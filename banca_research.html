@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bancassurance Strategy Dashboard</title>
+<style>
+body { font-family: Arial; margin:0; background:#f4f6f9;}
+.header { background:#1f3c88; color:white; padding:15px; text-align:center;}
+.tabs { display:flex; background:#ddd;}
+.tab { padding:12px 20px; cursor:pointer; flex:1; text-align:center;}
+.tab:hover { background:#bbb;}
+.active { background:#1f3c88; color:white;}
+.content { display:none; padding:20px;}
+.show { display:block;}
+.card { background:white; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<h2>Bancassurance Strategy Dashboard</h2>
+</div>
+
+<div class="tabs">
+<div class="tab active" onclick="openTab(event,'iob')">IOB</div>
+<div class="tab" onclick="openTab(event,'karnataka')">Karnataka Bank</div>
+<div class="tab" onclick="openTab(event,'apgvb')">APGVB</div>
+<div class="tab" onclick="openTab(event,'tngb')">TNGB</div>
+<div class="tab" onclick="openTab(event,'ogb')">Odisha GB</div>
+</div>
+
+<div id="iob" class="content show">
+<div class="card"><h3>Indian Overseas Bank</h3>
+<p>Target GWP: ₹1,500 Cr</p>
+<p>Focus: SME, Retail, Marine</p>
+</div>
+</div>
+
+<div id="karnataka" class="content">
+<div class="card"><h3>Karnataka Bank</h3>
+<p>Target GWP: ₹1,000 Cr</p>
+<p>Focus: SME + Affluent</p>
+</div>
+</div>
+
+<div id="apgvb" class="content">
+<div class="card"><h3>APGVB</h3>
+<p>Target GWP: ₹600 Cr</p>
+<p>Focus: Rural + SHG</p>
+</div>
+</div>
+
+<div id="tngb" class="content">
+<div class="card"><h3>TNGB</h3>
+<p>Target GWP: ₹500 Cr</p>
+<p>Focus: Agri Bundles</p>
+</div>
+</div>
+
+<div id="ogb" class="content">
+<div class="card"><h3>Odisha Grameen Bank</h3>
+<p>Target GWP: ₹700 Cr</p>
+<p>Focus: Climate Insurance</p>
+</div>
+</div>
+
+<script>
+function openTab(evt, tabName) {
+let i, content, tabs;
+content = document.getElementsByClassName("content");
+for (i = 0; i < content.length; i++) {
+content[i].classList.remove("show");
+}
+
+tabs = document.getElementsByClassName("tab");
+for (i = 0; i < tabs.length; i++) {
+tabs[i].classList.remove("active");
+}
+
+document.getElementById(tabName).classList.add("show");
+evt.currentTarget.classList.add("active");
+}
+</script>
+
+</body>
+</html
