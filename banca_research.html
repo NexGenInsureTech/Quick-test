@@ -1,88 +1,166 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bancassurance Strategy Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bancassurance Strategy Platform</title>
+
 <style>
-body { font-family: Arial; margin:0; background:#f4f6f9;}
-.header { background:#1f3c88; color:white; padding:15px; text-align:center;}
-.tabs { display:flex; background:#ddd;}
-.tab { padding:12px 20px; cursor:pointer; flex:1; text-align:center;}
-.tab:hover { background:#bbb;}
-.active { background:#1f3c88; color:white;}
-.content { display:none; padding:20px;}
-.show { display:block;}
-.card { background:white; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+body {
+    margin:0;
+    font-family: 'Segoe UI', sans-serif;
+    background:#f5f7fb;
+}
+
+.header {
+    background:#0d1b2a;
+    color:white;
+    padding:15px;
+    text-align:center;
+}
+
+.tabs {
+    display:flex;
+    background:#1b263b;
+}
+
+.tab {
+    flex:1;
+    padding:12px;
+    text-align:center;
+    color:white;
+    cursor:pointer;
+}
+
+.tab:hover { background:#415a77; }
+.active { background:#e63946; }
+
+.container {
+    padding:20px;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+    gap:15px;
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.1);
+}
+
+.kpi {
+    font-size:22px;
+    font-weight:bold;
+    color:#e63946;
+}
+
+.section-title {
+    margin-top:20px;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.hidden { display:none; }
 </style>
+
 </head>
 
 <body>
 
 <div class="header">
-<h2>Bancassurance Strategy Dashboard</h2>
+<h2>Bancassurance Growth Engine Dashboard</h2>
+<p>Multi-Bank Strategy Platform</p>
 </div>
 
 <div class="tabs">
-<div class="tab active" onclick="openTab(event,'iob')">IOB</div>
-<div class="tab" onclick="openTab(event,'karnataka')">Karnataka Bank</div>
-<div class="tab" onclick="openTab(event,'apgvb')">APGVB</div>
-<div class="tab" onclick="openTab(event,'tngb')">TNGB</div>
-<div class="tab" onclick="openTab(event,'ogb')">Odisha GB</div>
+<div class="tab active" onclick="openTab('iob')">IOB</div>
+<div class="tab" onclick="openTab('karnataka')">Karnataka Bank</div>
+<div class="tab" onclick="openTab('apgvb')">APGVB</div>
+<div class="tab" onclick="openTab('tngb')">TNGB</div>
+<div class="tab" onclick="openTab('ogb')">Odisha GB</div>
 </div>
 
-<div id="iob" class="content show">
-<div class="card"><h3>Indian Overseas Bank</h3>
-<p>Target GWP: ₹1,500 Cr</p>
-<p>Focus: SME, Retail, Marine</p>
-</div>
+<div class="container">
+
+<!-- IOB -->
+<div id="iob" class="tabContent">
+<div class="grid">
+<div class="card"><div class="kpi">₹1500 Cr</div><p>Target GWP</p></div>
+<div class="card"><div class="kpi">30%</div><p>Digital Sales</p></div>
+<div class="card"><div class="kpi">3x</div><p>SME Growth</p></div>
 </div>
 
-<div id="karnataka" class="content">
-<div class="card"><h3>Karnataka Bank</h3>
-<p>Target GWP: ₹1,000 Cr</p>
-<p>Focus: SME + Affluent</p>
-</div>
+<div class="section-title">Strategy</div>
+<div class="card">Focus on SME clusters, marine insurance, and loan-linked bundling.</div>
 </div>
 
-<div id="apgvb" class="content">
-<div class="card"><h3>APGVB</h3>
-<p>Target GWP: ₹600 Cr</p>
-<p>Focus: Rural + SHG</p>
-</div>
-</div>
-
-<div id="tngb" class="content">
-<div class="card"><h3>TNGB</h3>
-<p>Target GWP: ₹500 Cr</p>
-<p>Focus: Agri Bundles</p>
-</div>
+<!-- Karnataka -->
+<div id="karnataka" class="tabContent hidden">
+<div class="grid">
+<div class="card"><div class="kpi">₹1000 Cr</div><p>Target GWP</p></div>
+<div class="card"><div class="kpi">High</div><p>Ticket Size</p></div>
 </div>
 
-<div id="ogb" class="content">
-<div class="card"><h3>Odisha Grameen Bank</h3>
-<p>Target GWP: ₹700 Cr</p>
-<p>Focus: Climate Insurance</p>
+<div class="section-title">Strategy</div>
+<div class="card">Affluent + SME advisory-led insurance model.</div>
 </div>
+
+<!-- APGVB -->
+<div id="apgvb" class="tabContent hidden">
+<div class="grid">
+<div class="card"><div class="kpi">₹600 Cr</div><p>Target GWP</p></div>
+<div class="card"><div class="kpi">5x</div><p>Rural Penetration</p></div>
+</div>
+
+<div class="section-title">Strategy</div>
+<div class="card">SHG + farmer-led insurance distribution.</div>
+</div>
+
+<!-- TNGB -->
+<div id="tngb" class="tabContent hidden">
+<div class="grid">
+<div class="card"><div class="kpi">₹500 Cr</div><p>Target GWP</p></div>
+<div class="card"><div class="kpi">70%</div><p>Bundled Sales</p></div>
+</div>
+
+<div class="section-title">Strategy</div>
+<div class="card">Agri + livestock + equipment insurance bundling.</div>
+</div>
+
+<!-- OGB -->
+<div id="ogb" class="tabContent hidden">
+<div class="grid">
+<div class="card"><div class="kpi">₹700 Cr</div><p>Target GWP</p></div>
+<div class="card"><div class="kpi">4x</div><p>Penetration</p></div>
+</div>
+
+<div class="section-title">Strategy</div>
+<div class="card">Climate risk + parametric insurance model.</div>
+</div>
+
 </div>
 
 <script>
-function openTab(evt, tabName) {
-let i, content, tabs;
-content = document.getElementsByClassName("content");
-for (i = 0; i < content.length; i++) {
-content[i].classList.remove("show");
-}
+function openTab(tabId){
+    let tabs = document.getElementsByClassName("tabContent");
+    for(let i=0;i<tabs.length;i++){
+        tabs[i].classList.add("hidden");
+    }
 
-tabs = document.getElementsByClassName("tab");
-for (i = 0; i < tabs.length; i++) {
-tabs[i].classList.remove("active");
-}
+    document.getElementById(tabId).classList.remove("hidden");
 
-document.getElementById(tabName).classList.add("show");
-evt.currentTarget.classList.add("active");
+    let tabButtons = document.getElementsByClassName("tab");
+    for(let i=0;i<tabButtons.length;i++){
+        tabButtons[i].classList.remove("active");
+    }
+
+    event.target.classList.add("active");
 }
 </script>
 
 </body>
-</html
+</html>
