@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Sompo PLI Strategy Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Styles & Overrides */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #1e293b; }
+        .nav-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 600; }
+        .card { background-color: #ffffff; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 1.5rem; transition: transform 0.2s ease-in-out; }
+        .card:hover { transform: translateY(-2px); }
+        
+        /* Mandatory Chart Container Constraints */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        @media (min-width: 1024px) {
+            .chart-container.large { height: 450px; max-width: 900px;}
+        }
+
+        /* Slider Customization */
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #0284c7; cursor: pointer; margin-top: -8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 8px; cursor: pointer; background: #cbd5e1; border-radius: 4px;
+        }
+        input[type=range]:focus { outline: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+<!-- Chosen Palette: Corporate Trust (Slate-900 for text/headers, Slate-50 for background, Sky-600 for primary accents, Emerald-500 for positive metrics/financials). Neutral, professional, and readable. -->
+<!-- Application Structure Plan: The SPA uses a Tabbed Dashboard layout. 
+    1. 'Executive Summary': Sets the strategic context (Objective, Scope, Global v Indian perspective) to align stakeholders before diving into numbers.
+    2. 'Incentive Mechanics': Translates the complex PDF rules (Points, Zones, Clawbacks) into digestible visual cards and a bar chart, allowing HR/Sales ops to understand *how* it works.
+    3. 'Financial Approvals (P&L)': The crucial interactive tool for Management/Finance. It features a slider to simulate the business scaling from the ₹600Cr budget to the ₹1000Cr aspirational target, dynamically updating a P&L table and waterfall-style stacked chart to prove financial viability (ROI). This structure prioritizes the user's need to understand context -> mechanics -> financial impact. -->
+<!-- Visualization & Content Choices: 
+    - Context -> Grid/Text blocks -> Inform stakeholders -> Text styling -> HTML/CSS.
+    - Consistency Boosters -> Bar Chart -> Compare tiered payouts -> Visualizes exponential reward for consistency -> Chart.js.
+    - Financial Projection -> Stacked Bar Chart & Dynamic Table -> Compare scenarios (600Cr vs X Cr) -> Interactive slider -> Shows how incentive costs scale *slower* than net profit due to Loss Ratio controls -> Chart.js & Vanilla JS.
+    - Icons/Graphics -> Unicode (&#x1F4B0;, &#x1F4C8;, etc.) -> Aesthetic enhancement without SVG -> Unicode. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-md z-10 sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">&#x1F3E2; Universal Sompo General Insurance</h1>
+                <p class="text-sm text-slate-300 mt-1">Performance Linked Incentive (PLI) Strategy Approval</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-slate-800 rounded-lg px-4 py-2 border border-slate-700">
+                <span class="text-xs text-slate-400 uppercase tracking-wide">Target Budget</span>
+                <div class="text-lg font-bold text-sky-400">&#x20B9; 600 Cr - &#x20B9; 1,000 Cr</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex space-x-8" aria-label="Tabs">
+                <button onclick="switchTab('summary')" id="tab-summary" class="nav-active text-slate-600 hover:text-sky-600 py-4 px-1 text-sm font-medium transition-colors">
+                    &#x1F4DD; Executive Summary & Context
+                </button>
+                <button onclick="switchTab('mechanics')" id="tab-mechanics" class="text-slate-500 hover:text-sky-600 py-4 px-1 text-sm font-medium transition-colors">
+                    &#x2699;&#xFE0F; Policy Mechanics
+                </button>
+                <button onclick="switchTab('finance')" id="tab-finance" class="text-slate-500 hover:text-sky-600 py-4 px-1 text-sm font-medium transition-colors">
+                    &#x1F4B8; Financial P&L Projections
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- TAB 1: EXECUTIVE SUMMARY -->
+        <section id="sec-summary" class="block animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Strategic Overview</h2>
+                <p class="text-slate-600 text-lg leading-relaxed max-w-4xl">
+                    This module outlines the foundational rationale for the proposed Performance Linked Incentive (PLI) program for Universal Sompo's frontline sales channels. It contrasts the traditional Indian market approach with global best practices, ensuring our strategy not only drives the &#x20B9;600 Crore base budget but safely aggressively pursues the &#x20B9;1,000 Crore aspirational target through built-in quality controls (Loss Ratio & Renewals).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card border-l-4 border-sky-500">
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">&#x1F3AF; Objective & Scope</h3>
+                    <ul class="space-y-2 text-slate-600">
+                        <li><strong>Primary Goal:</strong> Recognize talent, reward superior performance, and transition from purely volume-based incentives to <em>profitable growth</em>.</li>
+                        <li><strong>Data-Driven:</strong> Transparent, graded payouts where high performers earn exponentially more based on holistic contributions.</li>
+                        <li><strong>Target Audience:</strong> Frontline sales (BDM Group) across Multiline Agency, Health, Bancassurance, Corporate, SME, OEM, RRBs, and Rural Retail.</li>
+                        <li><strong>Retention Mechanism:</strong> 20% of H1 incentives are deferred to year-end to ensure sustained performance and employee retention.</li>
+                    </ul>
+                </div>
+
+                <div class="card border-l-4 border-emerald-500">
+                    <h3 class="text-xl font-bold mb-3 text-slate-800">&#x1F6A7; The Universal Sompo Edge</h3>
+                    <p class="text-slate-600 mb-4">
+                        To scale from &#x20B9;600 Cr to &#x20B9;1000 Cr without jeopardizing the combined operating ratio (COR), this policy introduces strict <strong>Clawbacks</strong> for poor Loss Ratios and <strong>Boosters</strong> for high Renewal rates.
+                    </p>
+                    <div class="bg-emerald-50 p-3 rounded text-emerald-800 text-sm">
+                        <em>"Growth at any cost is a liability. Growth with quality is an asset. This PLI structure ensures Universal Sompo pays for assets."</em>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-bold text-slate-800 mb-6">Market Perspectives: PLI Frameworks</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 font-bold text-slate-700">&#x1F1EE;&#x1F1F3; Indian Perspective (Traditional)</div>
+                    <div class="p-4 text-sm text-slate-600 space-y-3">
+                        <p>&#x25B6; <strong>Focus:</strong> Historically heavily skewed towards top-line Gross Written Premium (GWP) acquisition.</p>
+                        <p>&#x25B6; <strong>Structure:</strong> Flat commission structures or simple step-up bonuses based solely on volume.</p>
+                        <p>&#x25B6; <strong>Risk:</strong> Leads to high attrition of policies (low renewals) and potentially writing bad risks, inflating the Loss Ratio.</p>
+                        <p>&#x25B6; <strong>Shift:</strong> Regulatory pushes (IRDAI EoM guidelines) are now forcing the Indian market to adopt quality metrics, which this policy pioneers.</p>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="bg-slate-800 px-4 py-3 border-b border-slate-700 font-bold text-white">&#x1F30E; Global Perspective (Mature Markets)</div>
+                    <div class="p-4 text-sm text-slate-600 space-y-3">
+                        <p>&#x25B6; <strong>Focus:</strong> Balanced Scorecards. Incentives are tied to Underwriting Profit, Customer Net Promoter Score (NPS), and Compliance.</p>
+                        <p>&#x25B6; <strong>Structure:</strong> Heavily deferred compensation. Often 30-50% of bonuses are vested over 2-3 years to ensure long-term portfolio health.</p>
+                        <p>&#x25B6; <strong>Risk Management:</strong> Severe clawbacks for compliance breaches or severe deterioration in cohort loss ratios.</p>
+                        <p>&#x25B6; <strong>Application:</strong> Our policy adopts the global <em>deferral</em> (20% H1) and <em>quality clawback</em> mechanisms adapted for Indian distribution agility.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: POLICY MECHANICS -->
+        <section id="sec-mechanics" class="hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Incentive Structure Mechanics</h2>
+                <p class="text-slate-600 text-lg leading-relaxed max-w-4xl">
+                    This section translates the policy rules into actionable data points. It details how frontline employees accumulate points based on target achievement, how consistency unlocks exponential payout boosters, and the crucial quality guardrails that protect the company's bottom line.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Base Points -->
+                <div class="card lg:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">&#x1F4CA; 1. Base Performance Points</h3>
+                    <p class="text-sm text-slate-500 mb-4">Awarded monthly/quarterly based on target achievement vs actuals.</p>
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-700">
+                            <tr><th class="py-2 px-2">Achievement</th><th class="py-2 px-2 text-right">Points</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr><td class="py-2 px-2 text-sky-700 font-medium">Target to Target Plus<br><span class="text-xs text-slate-400">(100% - 124.9%)</span></td><td class="py-2 px-2 text-right font-bold text-slate-700">1</td></tr>
+                            <tr><td class="py-2 px-2 text-sky-700 font-medium">Target Plus to Max<br><span class="text-xs text-slate-400">(125% - 139.9%)</span></td><td class="py-2 px-2 text-right font-bold text-slate-700">2</td></tr>
+                            <tr><td class="py-2 px-2 text-sky-700 font-medium">Maximum & Above<br><span class="text-xs text-slate-400">(&ge; 140%)</span></td><td class="py-2 px-2 text-right font-bold text-slate-700">4</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Consistency Chart -->
+                <div class="card lg:col-span-2">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">&#x1F680; 2. Consistency Booster Zones</h3>
+                    <p class="text-sm text-slate-500 mb-2">Annual points sum unlocks % boosters on total earned incentives.</p>
+                    <div class="chart-container">
+                        <canvas id="consistencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Gates -->
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 mt-10">&#x1F6E1;&#xFE0F; Quality of Business Guardrails</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card bg-red-50 border border-red-100">
+                    <div class="flex items-center mb-3">
+                        <span class="text-2xl mr-2">&#x26A0;&#xFE0F;</span>
+                        <h4 class="text-lg font-bold text-red-800">Loss Ratio Penalty</h4>
+                    </div>
+                    <p class="text-sm text-slate-700 mb-4">Evaluated against finalized channel targets. Protects underwriting margins.</p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-3 rounded border border-red-200">
+                            <div class="text-xs text-slate-500 uppercase">Below Threshold (Good)</div>
+                            <div class="font-bold text-emerald-600 mt-1">Payout as Due</div>
+                        </div>
+                        <div class="bg-white p-3 rounded border border-red-200">
+                            <div class="text-xs text-slate-500 uppercase">Above Threshold (Bad)</div>
+                            <div class="font-bold text-red-600 mt-1">20% Clawback</div>
+                            <div class="text-xs text-red-400 mt-1">of earned incentive</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-emerald-50 border border-emerald-100">
+                    <div class="flex items-center mb-3">
+                        <span class="text-2xl mr-2">&#x2705;</span>
+                        <h4 class="text-lg font-bold text-emerald-800">Renewal Target Booster</h4>
+                    </div>
+                    <p class="text-sm text-slate-700 mb-4">Encourages long-term customer retention and recurring revenue.</p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-3 rounded border border-emerald-200">
+                            <div class="text-xs text-slate-500 uppercase">Below Target</div>
+                            <div class="font-bold text-slate-400 mt-1">NIL Booster</div>
+                        </div>
+                        <div class="bg-white p-3 rounded border border-emerald-200">
+                            <div class="text-xs text-slate-500 uppercase">Meets/Exceeds Target</div>
+                            <div class="font-bold text-emerald-600 mt-1">+5% Additional</div>
+                            <div class="text-xs text-emerald-500 mt-1">on earned incentive</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: FINANCIAL APPROVAL P&L -->
+        <section id="sec-finance" class="hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Financial P&L Projection & Approval</h2>
+                <p class="text-slate-600 text-lg leading-relaxed max-w-4xl">
+                    Use the interactive dashboard below to present the business case to Management and Finance. By sliding the target from the baseline budget (&#x20B9;600 Cr) to the aspirational goal (&#x20B9;1000 Cr), you can demonstrate how the incentive structure pays for itself. As volume increases, built-in loss ratio controls ensure that the Underwriting Contribution grows substantially faster than the incentive payout.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
+                <div class="mb-8">
+                    <div class="flex justify-between items-end mb-2">
+                        <label for="premiumSlider" class="block text-sm font-bold text-slate-700 uppercase tracking-wide">Adjust Target Premium Volume (GWP)</label>
+                        <div class="text-3xl font-bold text-sky-600">&#x20B9; <span id="sliderValueDisplay">600</span> Cr</div>
+                    </div>
+                    <input type="range" id="premiumSlider" min="600" max="1000" step="50" value="600" class="w-full">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2 font-medium">
+                        <span>Base Budget (600 Cr)</span>
+                        <span>Aspirational (1000 Cr)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    
+                    <!-- P&L Table -->
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">&#x1F4B4; Incremental P&L Statement</h3>
+                        <table class="w-full text-sm">
+                            <tbody id="pnlTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                        <div class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                            <h4 class="font-bold text-slate-700 text-sm mb-2">Business Rationale for Finance:</h4>
+                            <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
+                                <li><strong>Self-Funding:</strong> Incentive costs increase from <span id="textIncStart" class="font-semibold text-slate-800"></span> to <span id="textIncEnd" class="font-semibold text-slate-800"></span>, but generate <span id="textProfitGain" class="font-bold text-emerald-600"></span> in additional Gross Underwriting Contribution.</li>
+                                <li><strong>Loss Ratio Mitigation:</strong> The 20% clawback clause ensures that if aggressive sales push bad risks, the incentive pool automatically contracts to offset claims.</li>
+                                <li><strong>Operational Leverage:</strong> Fixed operating expenses dilute at higher volumes, improving overall COR (Combined Operating Ratio).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- P&L Chart -->
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">&#x1F4CA; Revenue Allocation Breakdown</h3>
+                        <div class="chart-container large">
+                            <canvas id="pnlChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
+        <p>&#x1F512; Internal Confidential | Universal Sompo General Insurance - Management Dashboard</p>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // --- State & Data Management ---
+        const state = {
+            currentTab: 'summary',
+            premiumVolume: 600, // starting value in Cr
+        };
+
+        let consistencyChartInstance = null;
+        let pnlChartInstance = null;
+
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Update UI
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('nav-active', 'text-sky-600', 'font-semibold');
+                btn.classList.add('text-slate-500');
+            });
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('text-slate-500');
+            activeBtn.classList.add('nav-active', 'text-sky-600', 'font-semibold');
+
+            // Toggle Sections
+            document.getElementById('sec-summary').classList.add('hidden');
+            document.getElementById('sec-mechanics').classList.add('hidden');
+            document.getElementById('sec-finance').classList.add('hidden');
+            
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            
+            state.currentTab = tabId;
+
+            // Render Tab Specifics
+            if(tabId === 'mechanics' && !consistencyChartInstance) {
+                renderConsistencyChart();
+            }
+            if(tabId === 'finance') {
+                updateFinancials(); // calculates and renders P&L and chart
+            }
+        }
+
+        // --- Chart Renderers ---
+        function renderConsistencyChart() {
+            const ctx = document.getElementById('consistencyChart').getContext('2d');
+            consistencyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Bronze (<8 pts)', 'Silver (8-14 pts)', 'Gold (15-21 pts)', 'Platinum (22-29 pts)', 'Diamond (\u226530 pts)'],
+                    datasets: [{
+                        label: 'Additional Consistency Booster (%)',
+                        data: [0, 5, 10, 15, 20],
+                        backgroundColor: [
+                            '#cbd5e1', // Bronze-ish
+                            '#94a3b8', // Silver
+                            '#fbbf24', // Gold
+                            '#94a3b8', // Platinum (slate)
+                            '#38bdf8'  // Diamond (sky)
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '% Deferred Payout';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 25,
+                            title: { display: true, text: 'Booster Percentage (%)' },
+                            ticks: { callback: function(value) { return value + "%" } }
+                        },
+                        x: {
+                            ticks: { maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPnlChart(dataObj) {
+            const ctx = document.getElementById('pnlChart').getContext('2d');
+            
+            const chartData = {
+                labels: ['Financial Breakdown'],
+                datasets: [
+                    {
+                        label: 'Incurred Claims',
+                        data: [dataObj.claims],
+                        backgroundColor: '#f87171', // red-400
+                    },
+                    {
+                        label: 'Operating Expenses',
+                        data: [dataObj.opex],
+                        backgroundColor: '#cbd5e1', // slate-300
+                    },
+                    {
+                        label: 'Incentive Payout',
+                        data: [dataObj.incentive],
+                        backgroundColor: '#fbbf24', // amber-400
+                    },
+                    {
+                        label: 'Gross Underwriting Margin',
+                        data: [dataObj.profit],
+                        backgroundColor: '#34d399', // emerald-400
+                    }
+                ]
+            };
+
+            if (pnlChartInstance) {
+                pnlChartInstance.data = chartData;
+                pnlChartInstance.update();
+            } else {
+                pnlChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'x',
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': \u20B9 ' + context.parsed.y.toFixed(1) + ' Cr';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { stacked: true, display: false }, // Hide x axis label for single bar
+                            y: { 
+                                stacked: true,
+                                title: { display: true, text: 'Amount (\u20B9 Crores)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- Financial Logic & UI Update ---
+        function calculateFinancials(premiumStr) {
+            const premium = parseFloat(premiumStr);
+            
+            // Core Assumptions for presentation
+            // As volume scales, loss ratio improves slightly due to better spread of risk and quality gates.
+            const baseLR = 0.72; 
+            const lrImprovement = ((premium - 600) / 400) * 0.02; // Up to 2% improvement at 1000Cr
+            const actualLR = baseLR - lrImprovement;
+            
+            // Opex dilutes as volume increases (fixed costs spread)
+            const baseOpexRate = 0.18;
+            const opexImprovement = ((premium - 600) / 400) * 0.03; // Up to 3% improvement
+            const actualOpexRate = baseOpexRate - opexImprovement;
+
+            // Incentive scales up as volume triggers higher booster tiers
+            const baseIncentiveRate = 0.012; // 1.2% base
+            const boosterIncentiveRate = ((premium - 600) / 400) * 0.008; // Adds up to 0.8% at peak performance
+            const actualIncentiveRate = baseIncentiveRate + boosterIncentiveRate;
+
+            // Calculate absolute numbers (Crores)
+            const claims = premium * actualLR;
+            const opex = premium * actualOpexRate;
+            const incentive = premium * actualIncentiveRate;
+            const profit = premium - claims - opex - incentive;
+
+            return {
+                premium,
+                actualLR,
+                actualOpexRate,
+                actualIncentiveRate,
+                claims,
+                opex,
+                incentive,
+                profit
+            };
+        }
+
+        function formatCurrency(val) {
+            return '\u20B9 ' + val.toFixed(2) + ' Cr';
+        }
+        function formatPercent(val) {
+            return (val * 100).toFixed(1) + '%';
+        }
+
+        function updateFinancials() {
+            const dataObj = calculateFinancials(state.premiumVolume);
+            
+            // Update UI Table
+            const tbody = document.getElementById('pnlTableBody');
+            tbody.innerHTML = `
+                <tr class="bg-slate-50">
+                    <td class="py-3 px-4 font-bold text-slate-800">Gross Written Premium (Target)</td>
+                    <td class="py-3 px-4 text-right font-bold text-sky-600 text-lg">${formatCurrency(dataObj.premium)}</td>
+                    <td class="py-3 px-4 text-right text-slate-400">100.0%</td>
+                </tr>
+                <tr>
+                    <td class="py-3 px-4 text-slate-600">Less: Estimated Incurred Claims</td>
+                    <td class="py-3 px-4 text-right text-red-500">(${formatCurrency(dataObj.claims)})</td>
+                    <td class="py-3 px-4 text-right text-slate-500">${formatPercent(dataObj.actualLR)}</td>
+                </tr>
+                <tr>
+                    <td class="py-3 px-4 text-slate-600">Less: Operating & Mgmt Expenses</td>
+                    <td class="py-3 px-4 text-right text-slate-500">(${formatCurrency(dataObj.opex)})</td>
+                    <td class="py-3 px-4 text-right text-slate-500">${formatPercent(dataObj.actualOpexRate)}</td>
+                </tr>
+                <tr class="bg-amber-50">
+                    <td class="py-3 px-4 font-semibold text-amber-800">&#x21B3; Less: Total Incentive Payout (Base + Boosters)</td>
+                    <td class="py-3 px-4 text-right font-bold text-amber-600">(${formatCurrency(dataObj.incentive)})</td>
+                    <td class="py-3 px-4 text-right font-bold text-amber-600">${formatPercent(dataObj.actualIncentiveRate)}</td>
+                </tr>
+                <tr class="border-t-2 border-slate-200 bg-emerald-50">
+                    <td class="py-4 px-4 font-bold text-emerald-900 text-base">Net Gross Underwriting Contribution</td>
+                    <td class="py-4 px-4 text-right font-bold text-emerald-600 text-xl">${formatCurrency(dataObj.profit)}</td>
+                    <td class="py-4 px-4 text-right font-bold text-emerald-700">${formatPercent(dataObj.profit/dataObj.premium)}</td>
+                </tr>
+            `;
+
+            // Update Chart
+            renderPnlChart(dataObj);
+
+            // Update rationale text based on current vs base
+            const baseData = calculateFinancials(600);
+            document.getElementById('textIncStart').innerText = formatCurrency(baseData.incentive);
+            document.getElementById('textIncEnd').innerText = formatCurrency(dataObj.incentive);
+            const profitDiff = dataObj.profit - baseData.profit;
+            document.getElementById('textProfitGain').innerText = profitDiff >= 0 ? '+' + formatCurrency(profitDiff) : formatCurrency(profitDiff);
+        }
+
+        // --- Event Listeners ---
+        document.getElementById('premiumSlider').addEventListener('input', function(e) {
+            state.premiumVolume = e.target.value;
+            document.getElementById('sliderValueDisplay').innerText = state.premiumVolume;
+            if(state.currentTab === 'finance') {
+                updateFinancials();
+            }
+        });
+
+        // Initialize
+        switchTab('summary');
+
+    </script>
+</body>
+</html>
