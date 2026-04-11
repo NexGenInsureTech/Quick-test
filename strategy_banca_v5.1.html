@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bancassurance Command Center v5.1</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
+
+<style>
+body {font-family: Arial; margin:0; background:#f5f7fa;}
+header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
+nav {display:flex; flex-wrap:wrap; background:#0f172a;}
+nav button {flex:1; padding:10px; color:white; background:none; border:none; cursor:pointer;}
+.section {display:none; padding:20px;}
+.active {display:block;}
+.card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
+pre {background:#f1f5f9; padding:10px; overflow:auto;}
+</style>
+</head>
+<body>
+
+<header>
+<h2>Bancassurance Command Center v5.1</h2>
+</header>
+
+<nav>
+<button onclick="showTab('upload')">Upload</button>
+<button onclick="showTab('ai')">Predictive</button>
+<button onclick="showTab('doc')">Documentation</button>
+<button onclick="exportPPT()">Export PPT</button>
+</nav>
+
+<div id="upload" class="section active"><div class="card">
+<input type="file" id="fileInput" accept=".xlsx,.csv" />
+<p id="status"></p>
+</div></div>
+
+<div id="ai" class="section"><div class="card">
+<h3>Predictions</h3>
+<ul id="predictions"></ul>
+</div></div>
+
+<div id="doc" class="section">
+<div class="card">
+<h3>📘 Full Documentation</h3>
+
+<h4>1. Business Objective</h4>
+<p>Identify opportunity, optimize cost, drive campaigns, monitor performance.</p>
+
+<h4>2. Core Metrics</h4>
+<pre>
+Penetration = Policies / Customers
+Digital Share = Digital Policies / Total Policies
+Weighted Loss Ratio = Σ(Premium × LR) / Σ Premium
+COA per Policy = Cost / Policies
+</pre>
+
+<h4>3. Predictive Logic</h4>
+<pre>
+Score =
+ (1 - Penetration)*0.4
+ + CASA*0.3
+ + (1 - Digital)*0.3
+</pre>
+
+<h4>4. Campaign Logic</h4>
+<pre>
+IF Penetration < 20% → Cross-sell
+IF Digital < 20% → Digital push
+IF Loss Ratio > 80% → Risk control
+</pre>
+
+<h4>5. COA Logic</h4>
+<pre>
+Premium = Base × (1 + COA × Elasticity)
+Elasticity ≈ 0.5
+</pre>
+
+<h4>6. Monitoring Metrics</h4>
+<pre>
+Conversion = Policies / Leads
+COA per policy
+Premium growth
+</pre>
+
+<h4>7. Sample Dataset</h4>
+<pre>
+Branch,Customers,Policies,CASA,Digital,Premium,LossRatio
+A,10000,500,8000,50,5000000,70
+B,8000,200,4000,20,2000000,85
+C,12000,900,9000,300,9000000,60
+</pre>
+
+<h4>8. Use Case</h4>
+<p>Branch A → Low penetration + high CASA → Target for campaign</p>
+
+<h4>9. Training Guide</h4>
+<ul>
+<li>Daily: Check predictions</li>
+<li>Weekly: Run campaigns</li>
+<li>Monthly: Review COA & trends</li>
+</ul>
+
+</div>
+</div>
+
+<script>
+let data=[];
+
+function showTab(tab){
+ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+ document.getElementById(tab).classList.add('active');
+}
+
+// Upload
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+ const reader=new FileReader();
+ reader.onload=(evt)=>{
+  const wb=XLSX.read(evt.target.result,{type:'array'});
+  data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  runAI();
+ };
+ reader.readAsArrayBuffer(e.target.files[0]);
+});
+
+function runAI(){
+ let preds=[];
+ data.forEach(d=>{
+  let pen=(+d.Policies)/(+d.Customers);
+  let dig=(+d.Digital)/(+d.Policies);
+  let score=(1-pen)*0.4 + (d.CASA/10000)*0.3 + (1-dig)*0.3;
+  if(score>0.5) preds.push(d.Branch);
+ });
+ document.getElementById('predictions').innerHTML=
+ preds.map(p=>`<li>${p}</li>`).join('');
+}
+
+function exportPPT(){
+ let ppt=new PptxGenJS();
+ let slide=ppt.addSlide();
+ slide.addText("Bancassurance Report",{x:1,y:1});
+ ppt.writeFile("Report.pptx");
+}
+
+</script>
+
+</body>
+</html>
