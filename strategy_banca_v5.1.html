@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bancassurance Command Center v5.1</title>
+<title>Bancassurance Command Center v5.1 (Full Restored)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,9 @@ nav button {flex:1; padding:10px; color:white; background:none; border:none; cur
 .section {display:none; padding:20px;}
 .active {display:block;}
 .card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
-pre {background:#f1f5f9; padding:10px; overflow:auto;}
+.alert {color:#b91c1c; font-weight:bold;}
+.slider {width:100%;}
+pre {background:#f1f5f9; padding:10px;}
 </style>
 </head>
 <body>
@@ -28,7 +30,10 @@ pre {background:#f1f5f9; padding:10px; overflow:auto;}
 
 <nav>
 <button onclick="showTab('upload')">Upload</button>
-<button onclick="showTab('ai')">Predictive</button>
+<button onclick="showTab('predictive')">Predictive</button>
+<button onclick="showTab('coa')">COA Optimizer</button>
+<button onclick="showTab('campaign')">Campaign Engine</button>
+<button onclick="showTab('monitor')">Monitoring</button>
 <button onclick="showTab('doc')">Documentation</button>
 <button onclick="exportPPT()">Export PPT</button>
 </nav>
@@ -38,77 +43,40 @@ pre {background:#f1f5f9; padding:10px; overflow:auto;}
 <p id="status"></p>
 </div></div>
 
-<div id="ai" class="section"><div class="card">
-<h3>Predictions</h3>
+<div id="predictive" class="section"><div class="card">
+<h3>Predictive Targeting</h3>
 <ul id="predictions"></ul>
 </div></div>
 
-<div id="doc" class="section">
-<div class="card">
-<h3>📘 Full Documentation</h3>
+<div id="coa" class="section"><div class="card">
+<h3>COA Optimizer</h3>
+<input type="range" min="0" max="50" value="10" id="coaSlider" class="slider" />
+<p id="coaOutput"></p>
+</div></div>
 
-<h4>1. Business Objective</h4>
-<p>Identify opportunity, optimize cost, drive campaigns, monitor performance.</p>
+<div id="campaign" class="section"><div class="card">
+<h3>Campaign Recommendations</h3>
+<ul id="campaignList"></ul>
+</div></div>
 
-<h4>2. Core Metrics</h4>
+<div id="monitor" class="section"><div class="card">
+<h3>Monitoring</h3>
+<p id="monitorOutput"></p>
+</div></div>
+
+<div id="doc" class="section"><div class="card">
+<h3>📘 Documentation</h3>
 <pre>
 Penetration = Policies / Customers
-Digital Share = Digital Policies / Total Policies
-Weighted Loss Ratio = Σ(Premium × LR) / Σ Premium
-COA per Policy = Cost / Policies
+Score = (1-Pen)*0.4 + CASA*0.3 + (1-Digital)*0.3
+Campaign: Low Pen → Cross-sell
+COA: Premium × (1 + COA×0.5)
 </pre>
-
-<h4>3. Predictive Logic</h4>
-<pre>
-Score =
- (1 - Penetration)*0.4
- + CASA*0.3
- + (1 - Digital)*0.3
-</pre>
-
-<h4>4. Campaign Logic</h4>
-<pre>
-IF Penetration < 20% → Cross-sell
-IF Digital < 20% → Digital push
-IF Loss Ratio > 80% → Risk control
-</pre>
-
-<h4>5. COA Logic</h4>
-<pre>
-Premium = Base × (1 + COA × Elasticity)
-Elasticity ≈ 0.5
-</pre>
-
-<h4>6. Monitoring Metrics</h4>
-<pre>
-Conversion = Policies / Leads
-COA per policy
-Premium growth
-</pre>
-
-<h4>7. Sample Dataset</h4>
-<pre>
-Branch,Customers,Policies,CASA,Digital,Premium,LossRatio
-A,10000,500,8000,50,5000000,70
-B,8000,200,4000,20,2000000,85
-C,12000,900,9000,300,9000000,60
-</pre>
-
-<h4>8. Use Case</h4>
-<p>Branch A → Low penetration + high CASA → Target for campaign</p>
-
-<h4>9. Training Guide</h4>
-<ul>
-<li>Daily: Check predictions</li>
-<li>Weekly: Run campaigns</li>
-<li>Monthly: Review COA & trends</li>
-</ul>
-
-</div>
-</div>
+</div></div>
 
 <script>
 let data=[];
+let basePremium=0, basePolicies=1;
 
 function showTab(tab){
  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -122,27 +90,68 @@ document.getElementById('fileInput').addEventListener('change', e=>{
  reader.onload=(evt)=>{
   const wb=XLSX.read(evt.target.result,{type:'array'});
   data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-  runAI();
+  process();
  };
  reader.readAsArrayBuffer(e.target.files[0]);
 });
 
-function runAI(){
- let preds=[];
+function process(){
+ let preds=[], campaigns=[];
+ basePremium=0; basePolicies=0;
+
  data.forEach(d=>{
-  let pen=(+d.Policies)/(+d.Customers);
-  let dig=(+d.Digital)/(+d.Policies);
-  let score=(1-pen)*0.4 + (d.CASA/10000)*0.3 + (1-dig)*0.3;
-  if(score>0.5) preds.push(d.Branch);
+  let premium=+d.Premium_Collected||0;
+  let policies=+d.Policies_Sold||0;
+  let customers=+d.Total_Customers||1;
+  let casa=+d.CASA_Customers||0;
+  let digital=+d.Digital_Policies_Sold||0;
+
+  basePremium+=premium;
+  basePolicies+=policies;
+
+  let pen=policies/customers;
+  let dig=digital/(policies||1);
+
+  let score=(1-pen)*0.4 + (casa/100000)*0.3 + (1-dig)*0.3;
+
+  if(score>0.5) preds.push(d.Branch_Name);
+
+  if(pen<0.2) campaigns.push("Cross-sell: "+d.Branch_Name);
+  if(dig<0.2) campaigns.push("Digital push: "+d.Branch_Name);
  });
- document.getElementById('predictions').innerHTML=
- preds.map(p=>`<li>${p}</li>`).join('');
+
+ document.getElementById('predictions').innerHTML=preds.map(p=>`<li>${p}</li>`).join('');
+ document.getElementById('campaignList').innerHTML=campaigns.map(c=>`<li>${c}</li>`).join('');
+
+ updateCOA();
+ updateMonitor();
 }
 
+// COA
+
+document.getElementById('coaSlider').oninput=()=>updateCOA();
+
+function updateCOA(){
+ let coa=+document.getElementById('coaSlider').value;
+ let newPremium=basePremium*(1+coa/100*0.5);
+ document.getElementById('coaOutput').innerText=
+ `Projected Premium ₹${(newPremium/1e7).toFixed(2)} Cr`;
+}
+
+// Monitoring
+function updateMonitor(){
+ let coaPerPolicy=(basePremium*0.1)/(basePolicies||1);
+ let conversion=basePolicies/(data.length||1);
+ document.getElementById('monitorOutput').innerText=
+ `COA/Policy ₹${coaPerPolicy.toFixed(0)} | Conversion ${(conversion*100).toFixed(1)}%`;
+}
+
+// PPT
 function exportPPT(){
  let ppt=new PptxGenJS();
  let slide=ppt.addSlide();
  slide.addText("Bancassurance Report",{x:1,y:1});
+ slide.addText(document.getElementById('monitorOutput').innerText,{x:1,y:2});
  ppt.writeFile("Report.pptx");
 }
 
