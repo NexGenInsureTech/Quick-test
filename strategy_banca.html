@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bancassurance Strategic Insights Playbook</title>
+<style>
+body {font-family: Arial; margin:0; background:#f5f7fa;}
+header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
+nav {display:flex; background:#0f172a;}
+nav button {flex:1; padding:12px; color:white; background:none; border:none; cursor:pointer;}
+nav button:hover {background:#1e293b;}
+.section {display:none; padding:20px;}
+.active {display:block;}
+.card {background:white; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);} 
+.alert {color:#b91c1c; font-weight:bold;}
+.success {color:#065f46; font-weight:bold;}
+</style>
+</head>
+<body><header>
+<h2>Bancassurance Strategic Insights Playbook</h2>
+</header><nav>
+<button onclick="showTab('upload')">Data Upload</button>
+<button onclick="showTab('insights')">Insights</button>
+<button onclick="showTab('roadmap')">Roadmap</button>
+<button onclick="showTab('quarter')">Quarterly Plan</button>
+<button onclick="showTab('compliance')">Compliance Alerts</button>
+</nav><div id="upload" class="section active">
+<div class="card">
+<h3>Upload Excel/CSV</h3>
+<input type="file" id="fileInput" accept=".csv">
+<p id="uploadStatus"></p>
+</div>
+</div><div id="insights" class="section">
+<div class="card">
+<h3>Strategic Insights</h3>
+<p id="insightOutput">Upload data to generate insights.</p>
+</div>
+</div><div id="roadmap" class="section">
+<div class="card">
+<h3>Roadmap Generator</h3>
+<ul id="roadmapOutput"></ul>
+</div>
+</div><div id="quarter" class="section">
+<div class="card">
+<h3>Quarterly Performance</h3>
+<p id="quarterOutput"></p>
+</div>
+</div><div id="compliance" class="section">
+<div class="card">
+<h3>Compliance Alerts</h3>
+<ul id="complianceOutput"></ul>
+</div>
+</div><script>
+let data = [];
+
+function showTab(tab) {
+ document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+ document.getElementById(tab).classList.add('active');
+}
+
+// CSV Parser
+function parseCSV(text) {
+ const rows = text.split('\n').map(r => r.split(','));
+ const headers = rows[0];
+ return rows.slice(1).map(r => {
+ let obj = {};
+ headers.forEach((h,i)=> obj[h.trim()] = r[i]);
+ return obj;
+ });
+}
+
+// File Upload
+document.getElementById('fileInput').addEventListener('change', function(e) {
+ const file = e.target.files[0];
+ const reader = new FileReader();
+ reader.onload = function(event) {
+ data = parseCSV(event.target.result);
+ document.getElementById('uploadStatus').innerText = "Data uploaded successfully";
+ generateInsights();
+ };
+ reader.readAsText(file);
+});
+
+function generateInsights() {
+ let totalPremium = 0;
+ let digitalCount = 0;
+ let totalPolicies = 0;
+ let paCount = 0;
+ let alerts = [];
+
+ data.forEach(d => {
+ totalPremium += Number(d.Premium_Collected || 0);
+ totalPolicies += Number(d.Policies_Sold || 0);
+ digitalCount += Number(d.Digital_Policies_Sold || 0);
+ if(d.Product_Type === 'PA') paCount += Number(d.Policies_Sold || 0);
+
+ if(Number(d.Compliance_Audit_Score) < 80) alerts.push("High Risk Branch: " + d.Branch_Name);
+ if(Number(d.Mis_Selling_Cases) > 0) alerts.push("Mis-selling detected at " + d.Branch_Name);
+ });
+
+ let digitalShare = (digitalCount/totalPolicies)*100;
+ let paShare = (paCount/totalPolicies)*100;
+
+ let insightText = `Total Premium: ₹${totalPremium.toFixed(2)} Cr\n`;
+ insightText += `Digital Share: ${digitalShare.toFixed(2)}%\n`;
+ insightText += `PA Mix: ${paShare.toFixed(2)}%\n`;
+
+ if(digitalShare < 20) insightText += "⚠ Digital Adoption Low\n";
+ if(paShare > 60) insightText += "⚠ Product Concentration Risk (PA)\n";
+
+ document.getElementById('insightOutput').innerText = insightText;
+
+ // Roadmap
+ let roadmap = [];
+ if(digitalShare < 20) roadmap.push("Launch Digital Sales Pilot via Mobile/API Integration");
+ if(paShare > 60) roadmap.push("Diversify Product Mix (Health + Fire Bundles)");
+ roadmap.push("Staff Training Acceleration Program");
+ roadmap.push("Branch-level Incentive Realignment");
+
+ document.getElementById('roadmapOutput').innerHTML = roadmap.map(r=>"<li>"+r+"</li>").join('');
+
+ // Quarterly
+ document.getElementById('quarterOutput').innerText = "Variance analysis auto-generated based on uploaded data.";
+
+ // Compliance
+ document.getElementById('complianceOutput').innerHTML = alerts.map(a=>"<li class='alert'>"+a+"</li>").join('');
+}
+</script></body>
+</html>
