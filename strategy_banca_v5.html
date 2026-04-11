@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bancassurance Command Center v5 (AI + COA Engine)</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
+
+<style>
+body {font-family: Arial; margin:0; background:#f5f7fa;}
+header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
+nav {display:flex; flex-wrap:wrap; background:#0f172a;}
+nav button {flex:1; padding:10px; color:white; background:none; border:none; cursor:pointer;}
+.section {display:none; padding:20px;}
+.active {display:block;}
+.card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
+.alert {color:#b91c1c; font-weight:bold;}
+.info {cursor:pointer; color:#1e3a8a; font-weight:bold; margin-left:5px;}
+.slider {width:100%;}
+</style>
+</head>
+<body>
+
+<header>
+<h2>Bancassurance Command Center v5 – AI + COA Engine</h2>
+</header>
+
+<nav>
+<button onclick="showTab('upload')">Upload</button>
+<button onclick="showTab('ai')">Predictive</button>
+<button onclick="showTab('coa')">COA Optimizer</button>
+<button onclick="showTab('campaign')">Campaign Engine</button>
+<button onclick="showTab('monitor')">Monitoring</button>
+<button onclick="exportPPT()">Export PPT</button>
+</nav>
+
+<div id="upload" class="section active">
+<div class="card">
+<input type="file" id="fileInput" accept=".xlsx,.csv" />
+<p id="status"></p>
+</div>
+</div>
+
+<div id="ai" class="section">
+<div class="card">
+<h3>Predictive Targeting <span class="info" onclick="info('ai')">i</span></h3>
+<ul id="predictions"></ul>
+</div>
+</div>
+
+<div id="coa" class="section">
+<div class="card">
+<h3>COA Optimization <span class="info" onclick="info('coa')">i</span></h3>
+<label>Increase COA %</label>
+<input type="range" min="0" max="50" value="10" id="coaSlider" class="slider" />
+<p id="coaOutput"></p>
+</div>
+</div>
+
+<div id="campaign" class="section">
+<div class="card">
+<h3>Campaign Recommendations <span class="info" onclick="info('campaign')">i</span></h3>
+<ul id="campaignList"></ul>
+</div>
+</div>
+
+<div id="monitor" class="section">
+<div class="card">
+<h3>Campaign Monitoring <span class="info" onclick="info('monitor')">i</span></h3>
+<p id="monitorOutput"></p>
+</div>
+</div>
+
+<script>
+let data=[];
+
+function showTab(tab){
+ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+ document.getElementById(tab).classList.add('active');
+}
+
+function info(type){
+ const map={
+  ai:"AI predicts high-conversion branches",
+  coa:"Adjust COA to see impact on growth",
+  campaign:"Recommended campaigns based on data",
+  monitor:"Tracks ROI and campaign efficiency"
+ };
+ alert(map[type]);
+}
+
+// Upload
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+ const reader=new FileReader();
+ reader.onload=(evt)=>{
+  const wb=XLSX.read(evt.target.result,{type:'array'});
+  data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  runAI();
+ };
+ reader.readAsArrayBuffer(e.target.files[0]);
+});
+
+function runAI(){
+ let preds=[], campaigns=[], totalPremium=0, totalPolicies=0;
+
+ data.forEach(d=>{
+  let premium=+d.Premium_Collected||0;
+  let policies=+d.Policies_Sold||0;
+  let customers=+d.Total_Customers||1;
+  let casa=+d.CASA_Customers||0;
+  let digital=+d.Digital_Policies_Sold||0;
+
+  totalPremium+=premium;
+  totalPolicies+=policies;
+
+  let penetration=policies/customers;
+  let digitalShare=digital/(policies||1);
+
+  // AI Score (heuristic)
+  let score=(1-penetration)*0.4 + (casa/100000)*0.3 + (1-digitalShare)*0.3;
+
+  if(score>0.5) preds.push(`Target Branch: ${d.Branch_Name}`);
+
+  // Campaign Logic
+  if(penetration<0.2) campaigns.push(`Cross-sell drive at ${d.Branch_Name}`);
+  if(digitalShare<0.2) campaigns.push(`Digital push at ${d.Branch_Name}`);
+ });
+
+ document.getElementById('predictions').innerHTML=
+ preds.slice(0,10).map(p=>`<li>${p}</li>`).join('');
+
+ document.getElementById('campaignList').innerHTML=
+ campaigns.slice(0,10).map(c=>`<li>${c}</li>`).join('');
+
+ updateCOA(totalPremium,totalPolicies);
+ monitor(totalPremium,totalPolicies);
+}
+
+// COA Engine
+
+document.getElementById('coaSlider').oninput=()=>updateCOA();
+
+function updateCOA(basePremium=0, policies=1){
+ let coa=+document.getElementById('coaSlider').value;
+ let uplift=1+(coa/100)*0.5;
+ let newPremium=basePremium*uplift;
+
+ document.getElementById('coaOutput').innerText=
+ `Projected Premium ₹${(newPremium/1e7).toFixed(2)} Cr`;
+}
+
+// Monitoring Engine
+function monitor(premium, policies){
+ let coaPerPolicy=(premium*0.1)/policies;
+ let conversion=policies/(data.length||1);
+
+ let msg=`COA/Policy: ₹${coaPerPolicy.toFixed(0)} | Conversion: ${(conversion*100).toFixed(1)}%`;
+
+ if(conversion<0.1) msg+=" ⚠ Low conversion";
+
+ document.getElementById('monitorOutput').innerText=msg;
+}
+
+// PPT Export
+function exportPPT(){
+ let ppt=new PptxGenJS();
+ let slide=ppt.addSlide();
+ slide.addText("AI Bancassurance Report",{x:1,y:1});
+ slide.addText(document.getElementById('monitorOutput').innerText,{x:1,y:2});
+ ppt.writeFile("AI_Report.pptx");
+}
+
+</script>
+
+</body>
+</html>
