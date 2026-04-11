@@ -1,193 +1,260 @@
-<!DOCTYPE html><html lang="en">
-    <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bancassurance Strategic Insights Playbook</title><!-- SheetJS for Excel --><script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script><!-- Chart.js --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><style>
-    body {font-family: Arial; margin:0; background:#f5f7fa;}
-    header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
-    nav {display:flex; background:#0f172a;}
-    nav button {flex:1; padding:12px; color:white; background:none; border:none; cursor:pointer;}
-    nav button:hover {background:#1e293b;}
-    .section {display:none; padding:20px;}
-    .active {display:block;}
-    .card {background:white; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);} 
-    .alert {color:#b91c1c; font-weight:bold;}
-    .success {color:#065f46; font-weight:bold;}
-    canvas {max-width:100%;}
-    </style></head>
-    <body><header>
-    <h2>Bancassurance Strategic Insights Playbook</h2>
-    </header><nav>
-    <button onclick="showTab('upload')">Data Upload</button>
-    <button onclick="showTab('insights')">Insights</button>
-    <button onclick="showTab('roadmap')">Roadmap</button>
-    <button onclick="showTab('quarter')">Quarterly Plan</button>
-    <button onclick="showTab('compliance')">Compliance Alerts</button>
-    </nav><div id="upload" class="section active">
-    <div class="card">
-    <h3>Upload Excel/CSV</h3>
-    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
-    <p id="uploadStatus"></p>
-    </div>
-    </div><div id="insights" class="section">
-    <div class="card">
-    <h3>Strategic Insights</h3>
-    <p id="insightOutput"></p>
-    <canvas id="premiumChart"></canvas>
-    </div>
-    </div><div id="roadmap" class="section">
-    <div class="card">
-    <h3>Roadmap</h3>
-    <ul id="roadmapOutput"></ul>
-    </div>
-    </div><div id="quarter" class="section">
-    <div class="card">
-    <h3>Quarterly Projection</h3>
-    <p id="quarterOutput"></p>
-    </div>
-    </div><div id="compliance" class="section">
-    <div class="card">
-    <h3>Compliance Alerts</h3>
-    <ul id="complianceOutput"></ul>
-    </div>
-    </div><script>
-    let data = [];
+<!DOCTYPE html>
+<html lang="en">
 
-    function showTab(tab) {
-     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(tab).classList.add('active');
+<head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>Bancassurance Strategic Insights Playbook</title><!-- SheetJS for Excel -->
+   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script><!-- Chart.js -->
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+      body {
+         font-family: Arial;
+         margin: 0;
+         background: #f5f7fa;
+      }
+
+      header {
+         background: #1e3a8a;
+         color: white;
+         padding: 15px;
+         text-align: center;
+      }
+
+      nav {
+         display: flex;
+         background: #0f172a;
+      }
+
+      nav button {
+         flex: 1;
+         padding: 12px;
+         color: white;
+         background: none;
+         border: none;
+         cursor: pointer;
+      }
+
+      nav button:hover {
+         background: #1e293b;
+      }
+
+      .section {
+         display: none;
+         padding: 20px;
+      }
+
+      .active {
+         display: block;
+      }
+
+      .card {
+         background: white;
+         padding: 15px;
+         margin: 10px 0;
+         border-radius: 8px;
+         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .alert {
+         color: #b91c1c;
+         font-weight: bold;
+      }
+
+      .success {
+         color: #065f46;
+         font-weight: bold;
+      }
+
+      canvas {
+         max-width: 100%;
+      }
+   </style>
+</head>
+
+<body>
+   <header>
+      <h2>Bancassurance Strategic Insights Playbook</h2>
+   </header>
+   <nav>
+      <button onclick="showTab('upload')">Data Upload</button>
+      <button onclick="showTab('insights')">Insights</button>
+      <button onclick="showTab('roadmap')">Roadmap</button>
+      <button onclick="showTab('quarter')">Quarterly Plan</button>
+      <button onclick="showTab('compliance')">Compliance Alerts</button>
+   </nav>
+   <div id="upload" class="section active">
+      <div class="card">
+         <h3>Upload Excel/CSV</h3>
+         <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
+         <p id="uploadStatus"></p>
+      </div>
+   </div>
+   <div id="insights" class="section">
+      <div class="card">
+         <h3>Strategic Insights</h3>
+         <p id="insightOutput"></p>
+         <canvas id="premiumChart"></canvas>
+      </div>
+   </div>
+   <div id="roadmap" class="section">
+      <div class="card">
+         <h3>Roadmap</h3>
+         <ul id="roadmapOutput"></ul>
+      </div>
+   </div>
+   <div id="quarter" class="section">
+      <div class="card">
+         <h3>Quarterly Projection</h3>
+         <p id="quarterOutput"></p>
+      </div>
+   </div>
+   <div id="compliance" class="section">
+      <div class="card">
+         <h3>Compliance Alerts</h3>
+         <ul id="complianceOutput"></ul>
+      </div>
+   </div>
+   <script>
+      let data = [];
+
+      function showTab(tab) {
+         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+         document.getElementById(tab).classList.add('active');
       }
 
       // CSV parser
       function parseCSV(text) {
-       const rows = text.split('\n').map(r => r.split(','));
-        const headers = rows[0];
+         const rows = text.split('\n').map(r => r.split(','));
+         const headers = rows[0];
          return rows.slice(1).map(r => {
-          let obj = {};
-           headers.forEach((h,i)=> obj[h.trim()] = r[i]);
+            let obj = {};
+            headers.forEach((h, i) => obj[h.trim()] = r[i]);
             return obj;
-             });
-             }
+         });
+      }
 
-             // File Upload Handler
+      // File Upload Handler
 
-             document.getElementById('fileInput').addEventListener('change', function(e) {
-              const file = e.target.files[0];
-               if (!file) return;
+      document.getElementById('fileInput').addEventListener('change', function (e) {
+         const file = e.target.files[0];
+         if (!file) return;
 
-                const fileName = file.name.toLowerCase();
-                 const reader = new FileReader();
+         const fileName = file.name.toLowerCase();
+         const reader = new FileReader();
 
-                  if (fileName.endsWith('.csv')) {
-                     reader.onload = function(event) {
-                          data = parseCSV(event.target.result);
-                               afterUpload();
-                                  };
-                                     reader.readAsText(file);
-                                      }
+         if (fileName.endsWith('.csv')) {
+            reader.onload = function (event) {
+               data = parseCSV(event.target.result);
+               afterUpload();
+            };
+            reader.readAsText(file);
+         }
 
-                                       else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                                          reader.onload = function(event) {
-                                               const workbook = XLSX.read(event.target.result, { type: 'array' });
-                                                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                                                         data = XLSX.utils.sheet_to_json(sheet);
-                                                              afterUpload();
-                                                                 };
-                                                                    reader.readAsArrayBuffer(file);
-                                                                     }
+         else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+            reader.onload = function (event) {
+               const workbook = XLSX.read(event.target.result, { type: 'array' });
+               const sheet = workbook.Sheets[workbook.SheetNames[0]];
+               data = XLSX.utils.sheet_to_json(sheet);
+               afterUpload();
+            };
+            reader.readAsArrayBuffer(file);
+         }
 
-                                                                      else {
-                                                                         alert("Invalid file format. Upload CSV or Excel.");
-                                                                          }
-                                                                          });
+         else {
+            alert("Invalid file format. Upload CSV or Excel.");
+         }
+      });
 
-                                                                          function afterUpload() {
-                                                                           document.getElementById('uploadStatus').innerText = "Data uploaded successfully";
-                                                                            generateInsights();
-                                                                            }
+      function afterUpload() {
+         document.getElementById('uploadStatus').innerText = "Data uploaded successfully";
+         generateInsights();
+      }
 
-                                                                            function generateInsights() {
-                                                                             let totalPremium = 0;
-                                                                              let totalPolicies = 0;
-                                                                               let digitalPolicies = 0;
-                                                                                let paPolicies = 0;
-                                                                                 let alerts = [];
+      function generateInsights() {
+         let totalPremium = 0;
+         let totalPolicies = 0;
+         let digitalPolicies = 0;
+         let paPolicies = 0;
+         let alerts = [];
 
-                                                                                  let productMap = {};
+         let productMap = {};
 
-                                                                                   data.forEach(d => {
-                                                                                      let premium = Number(d.Premium_Collected || 0);
-                                                                                         let policies = Number(d.Policies_Sold || 0);
+         data.forEach(d => {
+            let premium = Number(d.Premium_Collected || 0);
+            let policies = Number(d.Policies_Sold || 0);
 
-                                                                                            totalPremium += premium;
-                                                                                               totalPolicies += policies;
-                                                                                                  digitalPolicies += Number(d.Digital_Policies_Sold || 0);
+            totalPremium += premium;
+            totalPolicies += policies;
+            digitalPolicies += Number(d.Digital_Policies_Sold || 0);
 
-                                                                                                     if (d.Product_Type === 'PA') paPolicies += policies;
+            if (d.Product_Type === 'PA') paPolicies += policies;
 
-                                                                                                        productMap[d.Product_Type] = (productMap[d.Product_Type] || 0) + premium;
+            productMap[d.Product_Type] = (productMap[d.Product_Type] || 0) + premium;
 
-                                                                                                           if (Number(d.Compliance_Audit_Score) < 80) {
-                                                                                                                alerts.push(`High Risk: ${d.Branch_Name}`);
-                                                                                                                   }
+            if (Number(d.Compliance_Audit_Score) < 80) {
+               alerts.push(`High Risk: ${d.Branch_Name}`);
+            }
 
-                                                                                                                      if (Number(d.Mis_Selling_Cases) > 0) {
-                                                                                                                           alerts.push(`Mis-selling: ${d.Branch_Name}`);
-                                                                                                                              }
-                                                                                                                               });
+            if (Number(d.Mis_Selling_Cases) > 0) {
+               alerts.push(`Mis-selling: ${d.Branch_Name}`);
+            }
+         });
 
-                                                                                                                                let digitalShare = (digitalPolicies / totalPolicies) * 100 || 0;
-                                                                                                                                 let paShare = (paPolicies / totalPolicies) * 100 || 0;
+         let digitalShare = (digitalPolicies / totalPolicies) * 100 || 0;
+         let paShare = (paPolicies / totalPolicies) * 100 || 0;
 
-                                                                                                                                  let insight = `Total Premium: ₹${(totalPremium/10000000).toFixed(2)} Cr\n`;
-                                                                                                                                   insight += `Digital Share: ${digitalShare.toFixed(1)}%\n`;
-                                                                                                                                    insight += `PA Mix: ${paShare.toFixed(1)}%\n`;
+         let insight = `Total Premium: ₹${(totalPremium / 10000000).toFixed(2)} Cr\n`;
+         insight += `Digital Share: ${digitalShare.toFixed(1)}%\n`;
+         insight += `PA Mix: ${paShare.toFixed(1)}%\n`;
 
-                                                                                                                                     if (digitalShare < 20) insight += "⚠ Low Digital Adoption\n";
-                                                                                                                                      if (paShare > 60) insight += "⚠ High PA Dependency\n";
+         if (digitalShare < 20) insight += "⚠ Low Digital Adoption\n";
+         if (paShare > 60) insight += "⚠ High PA Dependency\n";
 
-                                                                                                                                       document.getElementById('insightOutput').innerText = insight;
+         document.getElementById('insightOutput').innerText = insight;
 
-                                                                                                                                        generateChart(productMap);
-                                                                                                                                         generateRoadmap(digitalShare, paShare);
-                                                                                                                                          generateCompliance(alerts);
-                                                                                                                                           generateQuarter(totalPremium);
-                                                                                                                                           }
+         generateChart(productMap);
+         generateRoadmap(digitalShare, paShare);
+         generateCompliance(alerts);
+         generateQuarter(totalPremium);
+      }
 
-                                                                                                                                           function generateChart(productMap) {
-                                                                                                                                            const ctx = document.getElementById('premiumChart');
-                                                                                                                                             new Chart(ctx, {
-                                                                                                                                                type: 'bar',
-                                                                                                                                                   data: {
-                                                                                                                                                        labels: Object.keys(productMap),
-                                                                                                                                                             datasets: [{
-                                                                                                                                                                    label: 'Premium by Product',
-                                                                                                                                                                           data: Object.values(productMap)
-                                                                                                                                                                                }]
-                                                                                                                                                                                   }
-                                                                                                                                                                                    });
-                                                                                                                                                                                    }
+      function generateChart(productMap) {
+         const ctx = document.getElementById('premiumChart');
+         new Chart(ctx, {
+            type: 'bar',
+            data: {
+               labels: Object.keys(productMap),
+               datasets: [{
+                  label: 'Premium by Product',
+                  data: Object.values(productMap)
+               }]
+            }
+         });
+      }
 
-                                                                                                                                                                                    function generateRoadmap(digitalShare, paShare) {
-                                                                                                                                                                                     let roadmap = [];
+      function generateRoadmap(digitalShare, paShare) {
+         let roadmap = [];
 
-                                                                                                                                                                                      if (digitalShare < 20) roadmap.push("Increase digital adoption via API & mobile integration");
-                                                                                                                                                                                       if (paShare > 60) roadmap.push("Diversify product mix (Health + Fire)");
+         if (digitalShare < 20) roadmap.push("Increase digital adoption via API & mobile integration");
+         if (paShare > 60) roadmap.push("Diversify product mix (Health + Fire)");
 
-                                                                                                                                                                                        roadmap.push("Accelerate staff training");
-                                                                                                                                                                                         roadmap.push("Align branch incentives");
+         roadmap.push("Accelerate staff training");
+         roadmap.push("Align branch incentives");
 
-                                                                                                                                                                                          document.getElementById('roadmapOutput').innerHTML = roadmap.map(r => `<li>${r}</li>`).join('');
-                                                                                                                                                                                          }
+         document.getElementById('roadmapOutput').innerHTML = roadmap.map(r => `<li>${r}</li>`).join('');
+      }
 
-                                                                                                                                                                                          function generateCompliance(alerts) {
-                                                                                                                                                                                           document.getElementById('complianceOutput').innerHTML = alerts.map(a => `<li class='alert'>${a}</li>`).join('');
-                                                                                                                                                                                           }
+      function generateCompliance(alerts) {
+         document.getElementById('complianceOutput').innerHTML = alerts.map(a => `<li class='alert'>${a}</li>`).join('');
+      }
 
-                                                                                                                                                                                           function generateQuarter(totalPremium) {
-                                                                                                                                                                                            let projected = totalPremium * 1.2;
-                                                                                                                                                                                             document.getElementById('quarterOutput').innerText = `Projected Next Quarter Premium: ₹${(projected/10000000).toFixed(2)} Cr`;
-                                                                                                                                                                                             }
+      function generateQuarter(totalPremium) {
+         let projected = totalPremium * 1.2;
+         document.getElementById('quarterOutput').innerText = `Projected Next Quarter Premium: ₹${(projected / 10000000).toFixed(2)} Cr`;
+      }
 
-                                                                                                                                                                                             </script></body>
-                                                                                                                                                                                             </html>
+   </script>
+</body>
+
+</html>

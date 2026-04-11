@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bancassurance Command Center v4</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
+
+<style>
+body {font-family: Arial; margin:0; background:#f5f7fa;}
+header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
+nav {display:flex; flex-wrap:wrap; background:#0f172a;}
+nav button {flex:1; padding:10px; color:white; background:none; border:none; cursor:pointer;}
+.section {display:none; padding:20px;}
+.active {display:block;}
+.card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
+.alert {color:#b91c1c; font-weight:bold;}
+.info {cursor:pointer; color:#1e3a8a; font-weight:bold; margin-left:5px;}
+table {width:100%; border-collapse:collapse;}
+td, th {border:1px solid #ddd; padding:6px; text-align:center;}
+select {padding:5px;}
+</style>
+</head>
+<body>
+
+<header>
+<h2>Bancassurance Command Center v4</h2>
+</header>
+
+<nav>
+<button onclick="showTab('upload')">Upload</button>
+<button onclick="showTab('insights')">Insights</button>
+<button onclick="showTab('trend')">Trend</button>
+<button onclick="showTab('recommend')">Recommendations</button>
+<button onclick="showTab('scenario')">Scenario</button>
+<button onclick="showTab('compliance')">Compliance</button>
+<button onclick="exportPPT()">Export PPT</button>
+</nav>
+
+<div style="padding:10px">
+Language: 
+<select onchange="setLang(this.value)">
+<option value="en">English</option>
+<option value="ta">Tamil</option>
+<option value="te">Telugu</option>
+<option value="kn">Kannada</option>
+<option value="or">Odia</option>
+</select>
+</div>
+
+<div id="upload" class="section active"><div class="card">
+<input type="file" id="fileInput" accept=".xlsx,.csv" />
+<p id="uploadStatus"></p></div></div>
+
+<div id="insights" class="section"><div class="card">
+<h3>KPIs <span class="info" onclick="info('kpi')">i</span></h3>
+<p id="kpi"></p>
+<canvas id="productChart"></canvas>
+</div></div>
+
+<div id="trend" class="section"><div class="card">
+<h3>Trend Analysis <span class="info" onclick="info('trend')">i</span></h3>
+<canvas id="trendChart"></canvas>
+</div></div>
+
+<div id="recommend" class="section"><div class="card">
+<h3>Auto Recommendations <span class="info" onclick="info('rec')">i</span></h3>
+<ul id="recommendations"></ul>
+</div></div>
+
+<div id="scenario" class="section"><div class="card">
+<input type="range" min="0" max="50" value="10" id="penSlider" />
+<input type="range" min="0" max="100" value="30" id="digSlider" />
+<p id="scenarioOutput"></p>
+</div></div>
+
+<div id="compliance" class="section"><div class="card">
+<ul id="alerts"></ul>
+</div></div>
+
+<script>
+let data=[], lang='en';
+
+const dict={
+ en:{kpi:"Shows business KPIs",trend:"Monthly trend",rec:"Actionable insights"},
+ ta:{kpi:"முக்கிய அளவுகள்",trend:"போக்கு",rec:"செயல் பரிந்துரைகள்"}
+};
+
+function setLang(l){lang=l;}
+
+function showTab(tab){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(tab).classList.add('active');}
+
+function info(type){alert(dict[lang][type]||type);}
+
+// Upload
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+ const reader=new FileReader();
+ reader.onload=(evt)=>{
+  const wb=XLSX.read(evt.target.result,{type:'array'});
+  data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  process();
+ };
+ reader.readAsArrayBuffer(e.target.files[0]);
+});
+
+function process(){
+ let totalPremium=0;
+ let productAgg={}, trendMap={}, alerts=[], rec=[];
+
+ data.forEach(d=>{
+  let p=+d.Premium_Collected||0;
+  totalPremium+=p;
+  productAgg[d.Product_Type]=(productAgg[d.Product_Type]||0)+p;
+
+  // Trend
+  trendMap[d.Month]=(trendMap[d.Month]||0)+p;
+
+  // Recommendation Engine
+  if(+d.Insurance_Penetration_<0.2) rec.push(`Low penetration: ${d.Branch_Name}`);
+  if(+d.Digital_Share_<0.2) rec.push(`Low digital: ${d.Branch_Name}`);
+  if(+d.Loss_Ratio_>80) rec.push(`High loss: ${d.Branch_Name}`);
+
+  // Alerts
+  if(+d.Mis_Selling_Cases>2) alerts.push(`Mis-selling: ${d.Branch_Name}`);
+ });
+
+ document.getElementById('kpi').innerText=`₹${(totalPremium/1e7).toFixed(2)} Cr`;
+
+ renderChart('productChart', productAgg);
+ renderTrend(trendMap);
+
+ document.getElementById('recommendations').innerHTML=
+ rec.slice(0,10).map(r=>`<li>${r}</li>`).join('');
+
+ document.getElementById('alerts').innerHTML=
+ alerts.map(a=>`<li class='alert'>${a}</li>`).join('');
+
+ updateScenario(totalPremium);
+}
+
+function renderChart(id,obj){
+ new Chart(document.getElementById(id),{type:'pie',data:{labels:Object.keys(obj),datasets:[{data:Object.values(obj)}]}});
+}
+
+function renderTrend(map){
+ new Chart(document.getElementById('trendChart'),{
+  type:'line',
+  data:{labels:Object.keys(map),datasets:[{data:Object.values(map)}]}
+ });
+}
+
+// Scenario
+
+document.getElementById('penSlider').oninput=()=>updateScenario();
+document.getElementById('digSlider').oninput=()=>updateScenario();
+
+function updateScenario(base=0){
+ let pen=+document.getElementById('penSlider').value;
+ let dig=+document.getElementById('digSlider').value;
+ let projected=base*(1+pen/100)*(1+dig/200);
+ document.getElementById('scenarioOutput').innerText=`Projected ₹${(projected/1e7).toFixed(2)} Cr`;
+}
+
+// PPT Export
+function exportPPT(){
+ let ppt=new PptxGenJS();
+ let slide=ppt.addSlide();
+ slide.addText("Bancassurance Report",{x:1,y:1});
+ slide.addText(document.getElementById('kpi').innerText,{x:1,y:2});
+ ppt.writeFile("Bancassurance_Report.pptx");
+}
+
+</script>
+
+</body>
+</html>
