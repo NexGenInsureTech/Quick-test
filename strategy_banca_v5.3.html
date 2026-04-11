@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bancassurance Command Center v5.3 (Deep Explainability)</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
+
+<style>
+body {font-family: Arial; margin:0; background:#f5f7fa;}
+header {background:#1e3a8a; color:white; padding:15px; text-align:center;}
+nav {display:flex; flex-wrap:wrap; background:#0f172a;}
+nav button {flex:1; padding:10px; color:white; background:none; border:none; cursor:pointer;}
+.section {display:none; padding:20px;}
+.active {display:block;}
+.card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
+.table {width:100%; border-collapse:collapse;}
+.table th,.table td {border:1px solid #ddd; padding:6px; text-align:center;}
+.slider {width:100%;}
+pre {background:#f1f5f9; padding:10px; overflow:auto;}
+</style>
+</head>
+<body>
+
+<header>
+<h2>Bancassurance Command Center v5.3 (Deep Explainability)</h2>
+</header>
+
+<nav>
+<button onclick="showTab('upload')">Upload</button>
+<button onclick="showTab('predictive')">Predictive</button>
+<button onclick="showTab('coa')">COA Optimizer</button>
+<button onclick="showTab('campaign')">Campaign Engine</button>
+<button onclick="showTab('monitor')">Monitoring</button>
+<button onclick="showTab('doc')">Documentation</button>
+<button onclick="exportPPT()">Export PPT</button>
+</nav>
+
+<div id="upload" class="section active"><div class="card">
+<input type="file" id="fileInput" accept=".xlsx,.csv" />
+</div></div>
+
+<div id="predictive" class="section"><div class="card">
+<h3>Predictive Logic (Fully Explainable)</h3>
+<table class="table"><thead>
+<tr><th>Branch</th><th>Pen%</th><th>Digital%</th><th>CASA</th><th>Score</th><th>Weight Logic</th></tr>
+</thead><tbody id="predTable"></tbody></table>
+
+<pre>
+WHY 0.4, 0.3, 0.3?
+
+These are heuristic weights based on bancassurance drivers:
+
+Penetration (0.4):
+- Strongest signal of untapped opportunity
+- Directly linked to revenue upside
+
+CASA (0.3):
+- Proxy for customer base size
+- Larger base → higher potential
+
+Digital Gap (0.3):
+- Indicates efficiency improvement opportunity
+
+These weights are NOT fixed.
+They should ideally be calibrated using historical regression:
+
+Premium ~ f(Penetration, CASA, Digital)
+
+Current weights = business judgment (initial model)
+Future = ML optimization
+</pre>
+</div></div>
+
+<div id="coa" class="section"><div class="card">
+<h3>COA Optimization (Deep Logic)</h3>
+<input type="range" min="0" max="50" value="10" id="coaSlider" class="slider" />
+<p id="coaOutput"></p>
+
+<pre>
+BASE PREMIUM:
+Derived from uploaded dataset = sum of Premium_Collected
+
+ELASTICITY CONCEPT:
+Elasticity = % change in output / % change in input
+
+Here:
+Elasticity = % change in premium / % change in COA
+
+Example:
+If COA +10% → Premium +5% → Elasticity = 0.5
+
+IMPORTANT:
+- Elasticity varies by bank, product, region
+- Should be calculated using historical campaigns
+
+RECOMMENDED METHOD:
+Run regression:
+Premium Growth ~ Incentive Spend
+
+OR
+A/B Testing:
+Group A: Normal COA
+Group B: Increased COA
+
+Measure difference → derive real elasticity
+</pre>
+</div></div>
+
+<div id="campaign" class="section"><div class="card">
+<h3>Campaign Engine (Actionable)</h3>
+<ul id="campaignList"></ul>
+
+<pre>
+CAMPAIGN LOGIC (ADVANCED):
+
+Low Penetration + High CASA:
+→ Run Cross-Sell Campaign
+→ Target: CASA customers
+→ Product: PA + Health
+→ Channel: Branch staff + SMS
+
+Low Digital:
+→ Digital Enablement Drive
+→ Train staff + enable app issuance
+
+High Loss Ratio:
+→ Product mix correction
+→ Reduce risky segments
+
+Each recommendation now includes:
+- What to do
+- Who to target
+- Which product
+- Which channel
+</pre>
+</div></div>
+
+<div id="monitor" class="section"><div class="card">
+<h3>Monitoring (Detailed)</h3>
+<p id="monitorOutput"></p>
+
+<pre>
+MONITORING LOGIC:
+
+1. Conversion Rate:
+Policies / Opportunities
+→ Measures effectiveness
+
+2. COA per Policy:
+Total Cost / Policies
+→ Measures efficiency
+
+3. Premium Growth:
+Current vs Previous period
+→ Measures scale
+
+INTERPRETATION:
+
+Low Conversion + High COA → Inefficient campaign
+High Conversion + Low COA → Ideal state
+
+This enables real-time campaign control
+</pre>
+</div></div>
+
+<div id="doc" class="section"><div class="card">
+<h3>📘 Full Documentation (Strategic)</h3>
+<p>This system combines predictive analytics, cost optimization, campaign strategy, and monitoring into a closed-loop decision engine for bancassurance growth.</p>
+</div></div>
+
+<script>
+let data=[];
+let basePremium=0, basePolicies=1;
+
+function showTab(tab){
+ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+ document.getElementById(tab).classList.add('active');
+}
+
+// Upload
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+ const reader=new FileReader();
+ reader.onload=(evt)=>{
+  const wb=XLSX.read(evt.target.result,{type:'array'});
+  data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  process();
+ };
+ reader.readAsArrayBuffer(e.target.files[0]);
+});
+
+function process(){
+ let table="";
+ let campaigns=[];
+ basePremium=0; basePolicies=0;
+
+ data.forEach(d=>{
+  let premium=+d.Premium_Collected||0;
+  let policies=+d.Policies_Sold||0;
+  let customers=+d.Total_Customers||1;
+  let casa=+d.CASA_Customers||0;
+  let digital=+d.Digital_Policies_Sold||0;
+
+  basePremium+=premium;
+  basePolicies+=policies;
+
+  let pen=policies/customers;
+  let dig=digital/(policies||1);
+
+  let score=(1-pen)*0.4 + (casa/100000)*0.3 + (1-dig)*0.3;
+
+  table+=`<tr>
+<td>${d.Branch_Name}</td>
+<td>${(pen*100).toFixed(1)}</td>
+<td>${(dig*100).toFixed(1)}</td>
+<td>${casa}</td>
+<td>${score.toFixed(2)}</td>
+<td>Pen(0.4)+CASA(0.3)+Digital(0.3)</td>
+</tr>`;
+
+  if(pen<0.2 && casa>5000){
+    campaigns.push(`Branch ${d.Branch_Name}: Cross-sell to CASA base → Offer PA + Health via branch + SMS`);
+  }
+  if(dig<0.2){
+    campaigns.push(`Branch ${d.Branch_Name}: Run digital issuance training + app push`);
+  }
+ });
+
+ document.getElementById('predTable').innerHTML=table;
+ document.getElementById('campaignList').innerHTML=campaigns.map(c=>`<li>${c}</li>`).join('');
+
+ updateCOA();
+ updateMonitor();
+}
+
+// COA
+
+document.getElementById('coaSlider').oninput=()=>updateCOA();
+
+function updateCOA(){
+ let coa=+document.getElementById('coaSlider').value;
+ let uplift=1+coa/100*0.5;
+ let newPremium=basePremium*uplift;
+ document.getElementById('coaOutput').innerText=
+ `Base ₹${(basePremium/1e7).toFixed(2)}Cr → ₹${(newPremium/1e7).toFixed(2)}Cr`;
+}
+
+// Monitoring
+function updateMonitor(){
+ let coaPerPolicy=(basePremium*0.1)/(basePolicies||1);
+ let conversion=basePolicies/(data.length||1);
+ document.getElementById('monitorOutput').innerText=
+ `COA/Policy ₹${coaPerPolicy.toFixed(0)} | Conversion ${(conversion*100).toFixed(1)}%`;
+}
+
+function exportPPT(){
+ let ppt=new PptxGenJS();
+ let slide=ppt.addSlide();
+ slide.addText("Bancassurance Report",{x:1,y:1});
+ ppt.writeFile("Report.pptx");
+}
+
+</script>
+
+</body>
+</html>
