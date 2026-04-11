@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bancassurance Command Center v5.1 (Full Restored)</title>
+<title>Bancassurance Command Center v5.2 (Explainable AI)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,13 +19,15 @@ nav button {flex:1; padding:10px; color:white; background:none; border:none; cur
 .card {background:white; padding:15px; margin:10px 0; border-radius:10px;}
 .alert {color:#b91c1c; font-weight:bold;}
 .slider {width:100%;}
-pre {background:#f1f5f9; padding:10px;}
+pre {background:#f1f5f9; padding:10px; overflow:auto;}
+.table {width:100%; border-collapse:collapse;}
+.table th,.table td {border:1px solid #ddd; padding:6px; text-align:center;}
 </style>
 </head>
 <body>
 
 <header>
-<h2>Bancassurance Command Center v5.1</h2>
+<h2>Bancassurance Command Center v5.2 (Explainable AI)</h2>
 </header>
 
 <nav>
@@ -44,14 +46,35 @@ pre {background:#f1f5f9; padding:10px;}
 </div></div>
 
 <div id="predictive" class="section"><div class="card">
-<h3>Predictive Targeting</h3>
-<ul id="predictions"></ul>
+<h3>Predictive Targeting (Explainable)</h3>
+<table class="table" id="predTable">
+<thead><tr>
+<th>Branch</th>
+<th>Penetration %</th>
+<th>Digital %</th>
+<th>CASA</th>
+<th>Score</th>
+<th>Why Selected?</th>
+<th>Recommended Action</th>
+</tr></thead>
+<tbody></tbody>
+</table>
 </div></div>
 
 <div id="coa" class="section"><div class="card">
-<h3>COA Optimizer</h3>
+<h3>COA Optimizer (Explainable)</h3>
+<label>Increase COA %</label>
 <input type="range" min="0" max="50" value="10" id="coaSlider" class="slider" />
 <p id="coaOutput"></p>
+<pre>
+COA Logic:
+Premium Uplift = Base Premium × (1 + COA Increase × Elasticity)
+Elasticity assumed = 0.5
+
+Meaning:
+- Increasing incentives improves conversion
+- But impact is gradual and not 1:1
+</pre>
 </div></div>
 
 <div id="campaign" class="section"><div class="card">
@@ -65,13 +88,63 @@ pre {background:#f1f5f9; padding:10px;}
 </div></div>
 
 <div id="doc" class="section"><div class="card">
-<h3>📘 Documentation</h3>
+<h3>📘 Full Documentation</h3>
+
+<h4>1. Objective</h4>
+<p>Drive bancassurance growth using data-driven decision making.</p>
+
+<h4>2. Core Metrics</h4>
 <pre>
 Penetration = Policies / Customers
-Score = (1-Pen)*0.4 + CASA*0.3 + (1-Digital)*0.3
-Campaign: Low Pen → Cross-sell
-COA: Premium × (1 + COA×0.5)
+Digital Share = Digital / Policies
+Weighted Loss Ratio = Σ(Premium × LR) / Σ Premium
 </pre>
+
+<h4>3. Predictive Logic</h4>
+<pre>
+Score = (1 - Penetration)*0.4 + (CASA scaled)*0.3 + (1 - Digital)*0.3
+</pre>
+
+<h4>4. Interpretation</h4>
+<ul>
+<li>Low penetration = Untapped opportunity</li>
+<li>High CASA = Large customer base</li>
+<li>Low digital = Efficiency gap</li>
+</ul>
+
+<h4>5. Campaign Logic</h4>
+<pre>
+Low Penetration → Cross-sell
+Low Digital → Digital Push
+High Loss Ratio → Risk Control
+</pre>
+
+<h4>6. COA Logic</h4>
+<pre>
+Premium = Base × (1 + COA × Elasticity)
+Elasticity ~0.5
+</pre>
+
+<h4>7. Monitoring</h4>
+<pre>
+Conversion = Policies / Leads
+COA per policy
+</pre>
+
+<h4>8. Sample Dataset</h4>
+<pre>
+Branch,Customers,Policies,CASA,Digital,Premium
+A,10000,500,8000,50,5000000
+B,8000,200,4000,20,2000000
+</pre>
+
+<h4>9. Training Guide</h4>
+<ul>
+<li>Daily: Review predictive table</li>
+<li>Weekly: Run campaigns</li>
+<li>Monthly: Optimize COA</li>
+</ul>
+
 </div></div>
 
 <script>
@@ -96,8 +169,9 @@ document.getElementById('fileInput').addEventListener('change', e=>{
 });
 
 function process(){
- let preds=[], campaigns=[];
+ let campaigns=[];
  basePremium=0; basePolicies=0;
+ let table="";
 
  data.forEach(d=>{
   let premium=+d.Premium_Collected||0;
@@ -114,13 +188,26 @@ function process(){
 
   let score=(1-pen)*0.4 + (casa/100000)*0.3 + (1-dig)*0.3;
 
-  if(score>0.5) preds.push(d.Branch_Name);
+  let reason=`Low Penetration (${(pen*100).toFixed(1)}%), High CASA, Low Digital`;
+  let action="";
 
-  if(pen<0.2) campaigns.push("Cross-sell: "+d.Branch_Name);
-  if(dig<0.2) campaigns.push("Digital push: "+d.Branch_Name);
+  if(pen<0.2){ action="Cross-sell Campaign"; campaigns.push(action+": "+d.Branch_Name); }
+  if(dig<0.2){ action+=" + Digital Push"; }
+
+  if(score>0.4){
+    table+=`<tr>
+<td>${d.Branch_Name}</td>
+<td>${(pen*100).toFixed(1)}</td>
+<td>${(dig*100).toFixed(1)}</td>
+<td>${casa}</td>
+<td>${score.toFixed(2)}</td>
+<td>${reason}</td>
+<td>${action}</td>
+</tr>`;
+  }
  });
 
- document.getElementById('predictions').innerHTML=preds.map(p=>`<li>${p}</li>`).join('');
+ document.querySelector('#predTable tbody').innerHTML=table;
  document.getElementById('campaignList').innerHTML=campaigns.map(c=>`<li>${c}</li>`).join('');
 
  updateCOA();
@@ -133,9 +220,10 @@ document.getElementById('coaSlider').oninput=()=>updateCOA();
 
 function updateCOA(){
  let coa=+document.getElementById('coaSlider').value;
- let newPremium=basePremium*(1+coa/100*0.5);
+ let uplift=1+coa/100*0.5;
+ let newPremium=basePremium*uplift;
  document.getElementById('coaOutput').innerText=
- `Projected Premium ₹${(newPremium/1e7).toFixed(2)} Cr`;
+ `Base Premium ₹${(basePremium/1e7).toFixed(2)} Cr → Projected ₹${(newPremium/1e7).toFixed(2)} Cr`;
 }
 
 // Monitoring
@@ -151,7 +239,6 @@ function exportPPT(){
  let ppt=new PptxGenJS();
  let slide=ppt.addSlide();
  slide.addText("Bancassurance Report",{x:1,y:1});
- slide.addText(document.getElementById('monitorOutput').innerText,{x:1,y:2});
  ppt.writeFile("Report.pptx");
 }
 
