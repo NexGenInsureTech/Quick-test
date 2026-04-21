@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project Udaan Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; margin: 0; background: #f5f7fa; }
+    header { background: #1e3a8a; color: white; padding: 15px; text-align: center; }
+    .container { display: flex; padding: 20px; gap: 20px; }
+    .panel { background: white; padding: 20px; border-radius: 10px; flex: 1; }
+    h3 { margin-top: 0; }
+    input { width: 100%; margin: 10px 0; }
+    .output { font-size: 18px; margin: 10px 0; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h2>Project Udaan - Incentive Simulator</h2>
+</header>
+
+<div class="container">
+
+  <!-- INPUT PANEL -->
+  <div class="panel">
+    <h3>Inputs</h3>
+
+    GWP (₹ Cr)
+    <input type="range" min="500" max="2000" value="1000" id="gwp">
+
+    Growth %
+    <input type="range" min="5" max="30" value="15" id="growth">
+
+    Loss Ratio %
+    <input type="range" min="60" max="90" value="75" id="lr">
+
+    Incentive %
+    <input type="range" min="4" max="10" value="7" id="inc">
+
+  </div>
+
+  <!-- OUTPUT PANEL -->
+  <div class="panel">
+    <h3>Outputs</h3>
+
+    <div class="output" id="profit"></div>
+    <div class="output" id="newprofit"></div>
+    <div class="output" id="roi"></div>
+
+    <canvas id="chart"></canvas>
+  </div>
+
+</div>
+
+<script>
+let chart;
+
+function calculate() {
+
+  let gwp = document.getElementById("gwp").value;
+  let growth = document.getElementById("growth").value / 100;
+  let lr = document.getElementById("lr").value / 100;
+  let inc = document.getElementById("inc").value / 100;
+
+  let oldProfit = gwp * (1 - lr - 0.12);
+  let newGwp = gwp * (1 + growth);
+  let newProfit = newGwp * (1 - (lr - 0.03) - (0.12 + inc));
+
+  let roi = (newProfit - oldProfit) / (gwp * inc);
+
+  document.getElementById("profit").innerHTML = "Old Profit: ₹" + oldProfit.toFixed(2) + " Cr";
+  document.getElementById("newprofit").innerHTML = "New Profit: ₹" + newProfit.toFixed(2) + " Cr";
+  document.getElementById("roi").innerHTML = "ROI: " + roi.toFixed(2);
+
+  updateChart(oldProfit, newProfit);
+}
+
+function updateChart(oldP, newP) {
+  if(chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type: 'bar',
+    data: {
+      labels: ["Old", "New"],
+      datasets: [{
+        label: "Profit Comparison",
+        data: [oldP, newP]
+      }]
+    }
+  });
+}
+
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", calculate));
+
+calculate();
+</script>
+
+</body>
+</html>
