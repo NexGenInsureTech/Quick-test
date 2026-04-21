@@ -1,103 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Project Udaan</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Udaan V3</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div id="login">
+  <h2>Login</h2>
+  <select id="userRole">
+    <option value="usgi">USGI RM</option>
+    <option value="bank">Bank RM</option>
+    <option value="branch">Branch Manager</option>
+    <option value="zonal">Zonal Manager</option>
+  </select>
+  <button onclick="login()">Enter</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app" style="display:none">
+
 <header>
-  <h1>Project Udaan</h1>
-  <p>Bancassurance Growth & Incentive Engine</p>
+  <h2 id="roleTitle"></h2>
+  <button onclick="logout()">Logout</button>
 </header>
 
 <div class="container">
 
-<!-- LEFT PANEL -->
 <div class="panel">
+<h3>Inputs</h3>
 
-<h2>Inputs</h2>
-
-<label>Role</label>
-<select id="role">
-  <option value="usgi">USGI RM</option>
-  <option value="bank">Bank RM</option>
-  <option value="branch">Branch Manager</option>
-  <option value="zonal">Zonal Manager</option>
-</select>
-
-<label>GWP (₹ Cr): <span id="gwp_val"></span></label>
+<label>GWP: <span id="gwp_val"></span></label>
 <input type="range" id="gwp" min="500" max="2000" value="1000">
 
-<label>Growth %: <span id="growth_val"></span></label>
+<label>Growth: <span id="growth_val"></span></label>
 <input type="range" id="growth" min="5" max="30" value="15">
 
-<label>Loss Ratio %: <span id="lr_val"></span></label>
+<label>Loss Ratio: <span id="lr_val"></span></label>
 <input type="range" id="lr" min="60" max="90" value="75">
 
-<label>Incentive %: <span id="inc_val"></span></label>
-<input type="range" id="inc" min="4" max="10" value="7">
-
-<h3>KPI Inputs</h3>
-
-<label>AGWP (%) <span title="Growth performance">ℹ️</span></label>
-<input type="number" id="agwp" value="110">
-
-<label>ADI (%) <span title="Branch productivity">ℹ️</span></label>
-<input type="number" id="adi" value="85">
-
-<label>Quality Score (%) <span title="LR + Renewal">ℹ️</span></label>
-<input type="number" id="qs" value="120">
-
-<label>Inclusion (%) <span title="New customers">ℹ️</span></label>
-<input type="number" id="npi" value="90">
-
-<label>Engagement (%) <span title="Training & activity">ℹ️</span></label>
-<input type="number" id="es" value="100">
-
-<button onclick="exportCSV()">Export CSV</button>
-<button onclick="window.print()">Print Report</button>
-
 </div>
 
-<!-- RIGHT PANEL -->
 <div class="panel">
-
-<h2>Outputs</h2>
-
+<h3>Outputs</h3>
 <div id="ps"></div>
-<div id="incentive"></div>
 <div id="profit"></div>
 <div id="roi"></div>
-
-<h3>Insights</h3>
 <div id="insights"></div>
-
 <canvas id="chart"></canvas>
-
 </div>
 
 </div>
 
-<!-- RM CALCULATOR -->
-<div class="bottom">
-
-<h2>RM Earnings Calculator</h2>
-
-<label>Performance Score</label>
-<input type="number" id="rm_ps" value="110">
-
-<label>Target Incentive</label>
-<input type="number" id="rm_ti" value="600000">
-
-<div id="rm_output"></div>
+<div class="panel">
+<h3>Leaderboard</h3>
+<ul id="leaderboard"></ul>
+</div>
 
 </div>
 
+<script src="auth.js"></script>
+<script src="data.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>
