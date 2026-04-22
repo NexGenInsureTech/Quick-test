@@ -66,6 +66,20 @@ function calculate() {
   let incentiveCost = gwp * inc;
   let incrementalProfit = newProfit - oldProfit;
 
+  let role = localStorage.getItem("role");
+
+  document.getElementById("summary").innerHTML =
+
+  buildSummary(newProfit, oldProfit, roi);
+
+document.getElementById("actions").innerHTML =
+
+  buildActions(ps, roi, lr, inc);
+
+document.getElementById("incentive").innerHTML =
+
+  roleView(role, incentive, ps, roi);
+
   document.getElementById("ps").innerHTML = "Score: " + ps.toFixed(2);
   document.getElementById("incentive").innerHTML =
     "Incentive: ₹" + incentive.toFixed(0);
@@ -141,6 +155,46 @@ function buildSummary(newProfit, oldProfit, roi){
     Status: ${status}
   `;
 }
+
+function buildActions(ps, roi, lr, inc){
+  let actions = [];
+
+  if(roi < 1){
+    actions.push("Reduce incentive % OR improve LR by 2–3%");
+  }
+
+  if(lr > 78){
+    actions.push("Improve underwriting to reduce Loss Ratio");
+  }
+
+  if(ps < 100){
+    actions.push("Increase branch activation and engagement");
+  }
+
+  if(ps > 120){
+    actions.push("Leverage top performers with accelerator incentives");
+  }
+
+  return actions.map(a => "• " + a).join("<br>");
+}
+
+function roleView(role, incentive, ps, roi){
+  if(role === "bank"){
+    return `💰 Earn approx ₹${(incentive/12).toFixed(0)} per month`;
+  }
+
+  if(role === "branch"){
+    return `🏢 Focus: Improve branch activation (ADI)`;
+  }
+
+  if(role === "zonal"){
+    return `📊 ROI Focus: ${roi.toFixed(2)} | Score: ${ps.toFixed(0)}`;
+  }
+
+  return `👤 Incentive: ₹${incentive.toFixed(0)}`;
+}
+
+
 
 // EVENTS
 document.querySelectorAll("input").forEach((i) => {
