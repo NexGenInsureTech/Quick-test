@@ -1,97 +1,100 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Project Udaan V3.1</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Udaan V3.2</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 
-  <body>
-    <!-- LOGIN -->
-    <div id="login">
-      <h2>Project Udaan</h2>
-      <p>Select your role</p>
-      <select id="userRole">
-        <option value="usgi">USGI RM</option>
-        <option value="bank">Bank RM</option>
-        <option value="branch">Branch Manager</option>
-        <option value="zonal">Zonal Manager</option>
-      </select>
-      <button onclick="login()">Enter</button>
-    </div>
+<body>
 
-    <!-- APP -->
-    <div id="app" style="display: none">
-      <header>
-        <h2 id="roleTitle"></h2>
-        <button onclick="logout()">Logout</button>
-      </header>
-
-      <div class="container">
-        <!-- INPUT -->
-        <div class="panel">
-          <h3>Inputs</h3>
-
-          <label>GWP: <span id="gwp_val"></span></label>
-          <input type="range" id="gwp" min="500" max="2000" value="1000" />
-
-          <label>Growth: <span id="growth_val"></span></label>
-          <input type="range" id="growth" min="5" max="30" value="15" />
-
-          <label>Loss Ratio: <span id="lr_val"></span></label>
-          <input type="range" id="lr" min="60" max="90" value="75" />
-
-          <label>Incentive %: <span id="inc_val"></span></label>
-          <input type="range" id="inc" min="4" max="10" value="7" />
-
-          <h4>KPI Inputs</h4>
-
-          <label>AGWP</label><input type="number" id="agwp" value="110" />
-          <label>ADI</label><input type="number" id="adi" value="85" />
-          <label>QS</label><input type="number" id="qs" value="120" />
-          <label>NPI</label><input type="number" id="npi" value="90" />
-          <label>ES</label><input type="number" id="es" value="100" />
-
-          <button onclick="exportCSV()">Export CSV</button>
-          <button onclick="window.print()">Print</button>
-        </div>
-
-        <!-- OUTPUT -->
-        <div class="panel">
-          <h3>Outputs</h3>
-
-          <div id="ps"></div>
-          <div id="incentive"></div>
-          <div id="profit"></div>
-          <div id="roi"></div>
-          <div id="extra"></div>
-
-          <h4>Insights</h4>
-          <div id="insights"></div>
-
-          <canvas id="chart"></canvas>
-        </div>
-
-        <div class="summary">
-  <h3>Business Summary</h3>
-  <div id="summary"></div>
+<!-- LOGIN -->
+<div id="login">
+  <h2>Project Udaan</h2>
+  <select id="userRole">
+    <option value="usgi">USGI RM</option>
+    <option value="bank">Bank RM</option>
+    <option value="branch">Branch Manager</option>
+    <option value="zonal">Zonal Manager</option>
+  </select>
+  <button onclick="login()">Enter</button>
 </div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<header>
+  <h2 id="roleTitle"></h2>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+<!-- INPUT -->
+<div class="panel">
+<h3>Inputs</h3>
+
+<label>GWP: <span id="gwp_val"></span></label>
+<input type="range" id="gwp" min="500" max="2000" value="1000">
+
+<label>Growth: <span id="growth_val"></span></label>
+<input type="range" id="growth" min="5" max="30" value="15">
+
+<label>Loss Ratio: <span id="lr_val"></span></label>
+<input type="range" id="lr" min="60" max="90" value="75">
+
+<label>Incentive %: <span id="inc_val"></span></label>
+<input type="range" id="inc" min="4" max="10" value="7">
+
+<h4>KPI Inputs</h4>
+<label>AGWP</label><input type="number" id="agwp" value="110">
+<label>ADI</label><input type="number" id="adi" value="85">
+<label>QS</label><input type="number" id="qs" value="120">
+<label>NPI</label><input type="number" id="npi" value="90">
+<label>ES</label><input type="number" id="es" value="100">
+
+<button onclick="exportCSV()">Export CSV</button>
+<button onclick="window.print()">Print</button>
+
+</div>
+
+<!-- OUTPUT -->
+<div class="panel">
+
+<h3>Business Summary</h3>
+<div id="summary"></div>
+
+<h3>Outputs</h3>
+<div id="ps"></div>
+<div id="incentive"></div>
+<div id="profit"></div>
+<div id="roi"></div>
+<div id="extra"></div>
 
 <h3>Recommended Actions</h3>
 <div id="actions"></div>
-      </div>
 
-      <!-- LEADERBOARD -->
-      <div class="panel">
-        <h3>Leaderboard</h3>
-        <ul id="leaderboard"></ul>
-      </div>
-    </div>
+<h3>Insights</h3>
+<div id="insights"></div>
 
-    <script src="auth.js"></script>
-    <script src="data.js"></script>
-    <script src="app.js"></script>
-  </body>
+<canvas id="chart"></canvas>
+
+</div>
+
+</div>
+
+<!-- LEADERBOARD -->
+<div class="panel">
+<h3>Leaderboard</h3>
+<ul id="leaderboard"></ul>
+</div>
+
+</div>
+
+<script src="auth.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+</body>
 </html>
