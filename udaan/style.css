@@ -52,3 +52,21 @@ button {
   margin-top: 10px;
   border-radius: 5px;
 }
+
+.summary {
+  background: #e8f5e9;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+#actions {
+  background: #eef2ff;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.good { color: green; font-weight: bold; }
+.bad { color: red; font-weight: bold; }
+.warn { color: orange; font-weight: bold; }
