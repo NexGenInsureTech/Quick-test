@@ -122,6 +122,26 @@ function exportCSV() {
   a.click();
 }
 
+function buildSummary(newProfit, oldProfit, roi){
+  let diff = newProfit - oldProfit;
+  let status = "";
+
+  if(roi > 1){
+    status = "<span class='good'>Profitable Model ✅</span>";
+  } else if(roi > 0.7){
+    status = "<span class='warn'>Borderline ⚠️</span>";
+  } else {
+    status = "<span class='bad'>Not Profitable ❌</span>";
+  }
+
+  return `
+    Profit: ₹${newProfit.toFixed(2)} Cr <br>
+    Change: ₹${diff.toFixed(2)} Cr <br>
+    ROI: ${roi.toFixed(2)} <br>
+    Status: ${status}
+  `;
+}
+
 // EVENTS
 document.querySelectorAll("input").forEach((i) => {
   i.addEventListener("input", calculate);
