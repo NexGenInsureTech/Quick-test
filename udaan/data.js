@@ -1,29 +1,32 @@
-function saveData(key, value){
-  localStorage.setItem(key, JSON.stringify(value));
+function saveData(key, val) {
+  localStorage.setItem(key, JSON.stringify(val));
 }
 
-function getData(key){
+function getData(key) {
   return JSON.parse(localStorage.getItem(key));
 }
 
-function updateLeaderboard(ps){
-  let board = getData("leaderboard") || [];
-  board.push({score: ps, time: new Date()});
-  board.sort((a,b)=>b.score-a.score);
-  board = board.slice(0,5);
-  saveData("leaderboard", board);
+function updateLeaderboard(ps) {
+  let role = localStorage.getItem("role");
 
+  let board = getData("leaderboard") || [];
+  board.push({ score: ps, role: role, time: new Date() });
+
+  board.sort((a, b) => b.score - a.score);
+  board = board.slice(0, 5);
+
+  saveData("leaderboard", board);
   renderLeaderboard();
 }
 
-function renderLeaderboard(){
+function renderLeaderboard() {
   let board = getData("leaderboard") || [];
   let list = document.getElementById("leaderboard");
   list.innerHTML = "";
 
-  board.forEach(b=>{
+  board.forEach((b) => {
     let li = document.createElement("li");
-    li.innerText = "Score: "+b.score.toFixed(2);
+    li.innerText = `${b.role.toUpperCase()} - ${b.score.toFixed(2)}`;
     list.appendChild(li);
   });
 }
