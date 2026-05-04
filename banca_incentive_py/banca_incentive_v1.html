@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Bancassurance Incentive Model</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 20px;
+        background: #f5f7fa;
+      }
+      h2 {
+        color: #2c3e50;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        width: 48%;
+      }
+      input {
+        width: 100%;
+        padding: 6px;
+        margin: 5px 0;
+      }
+      .result {
+        font-weight: bold;
+        color: #27ae60;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Bancassurance Incentive Model Simulator</h2>
+
+    <div class="container">
+      <!-- INPUTS -->
+      <div class="card">
+        <h3>Inputs</h3>
+
+        <label>Total RMs</label>
+        <input id="rms" value="500" />
+
+        <label>Monthly Productivity (₹)</label>
+        <input id="productivity" value="750000" />
+
+        <label>Base Incentive %</label>
+        <input id="base" value="0.012" />
+
+        <label>Topline Achievement (%)</label>
+        <input id="ach" value="100" />
+
+        <label>Activation (%)</label>
+        <input id="act" value="65" />
+
+        <label>Product Mix (%)</label>
+        <input id="prod" value="50" />
+
+        <label>Persistency (%)</label>
+        <input id="persist" value="85" />
+
+        <label>Digital (%)</label>
+        <input id="digital" value="90" />
+
+        <button onclick="calculate()">Calculate</button>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="card">
+        <h3>Results</h3>
+
+        <p>BPI Score: <span id="bpi" class="result"></span></p>
+        <p>Multiplier: <span id="multiplier" class="result"></span></p>
+        <p>RM Monthly Earnings: ₹ <span id="earning" class="result"></span></p>
+
+        <hr />
+
+        <p>
+          Total Annual Business: ₹ <span id="business" class="result"></span>
+        </p>
+        <p>Total Incentive Cost: ₹ <span id="cost" class="result"></span></p>
+        <p>Incentive % of GWP: <span id="costpct" class="result"></span>%</p>
+      </div>
+    </div>
+
+    <script>
+      function calculate() {
+        let rms = parseFloat(document.getElementById("rms").value);
+        let prod = parseFloat(document.getElementById("productivity").value);
+        let base = parseFloat(document.getElementById("base").value);
+
+        let ach = parseFloat(document.getElementById("ach").value) / 100;
+        let act = parseFloat(document.getElementById("act").value) / 100;
+        let prodmix = parseFloat(document.getElementById("prod").value) / 100;
+        let persist =
+          parseFloat(document.getElementById("persist").value) / 100;
+        let digital =
+          parseFloat(document.getElementById("digital").value) / 100;
+
+        let bpi = Math.min(
+          ach * 0.5 +
+            act * 0.2 +
+            prodmix * 0.15 +
+            persist * 0.1 +
+            digital * 0.05,
+          1.5,
+        );
+
+        let multiplier = 0;
+        if (bpi < 0.6) multiplier = 0.3;
+        else if (bpi < 0.8) multiplier = 0.6;
+        else if (bpi < 1) multiplier = 1;
+        else if (bpi < 1.2) multiplier = 1.5;
+        else multiplier = 2;
+
+        let earning = prod * base * multiplier;
+
+        let annualBusiness = rms * prod * 12;
+
+        let weightedMultiplier = 0.3 * 0.6 + 0.5 * 1 + 0.2 * 1.8;
+
+        let totalCost = annualBusiness * base * weightedMultiplier;
+
+        let costPct = (totalCost / annualBusiness) * 100;
+
+        document.getElementById("bpi").innerText = (bpi * 100).toFixed(1) + "%";
+        document.getElementById("multiplier").innerText = multiplier + "x";
+        document.getElementById("earning").innerText =
+          Math.round(earning).toLocaleString();
+
+        document.getElementById("business").innerText =
+          Math.round(annualBusiness).toLocaleString();
+        document.getElementById("cost").innerText =
+          Math.round(totalCost).toLocaleString();
+        document.getElementById("costpct").innerText = costPct.toFixed(2);
+      }
+    </script>
+  </body>
+</html>

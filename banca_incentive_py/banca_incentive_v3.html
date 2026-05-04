@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Banca Incentive V3 - Enterprise</title>
+    <style>
+      body {
+        font-family: Arial;
+        background: #eef2f7;
+        margin: 20px;
+      }
+      h2 {
+        color: #2c3e50;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex: 1;
+        min-width: 300px;
+      }
+      label {
+        font-size: 13px;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .value {
+        font-weight: bold;
+        color: #27ae60;
+      }
+      button {
+        padding: 8px;
+        margin-top: 10px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+      canvas {
+        border: 1px solid #ddd;
+        background: #fff;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Bancassurance Incentive Engine V3</h2>
+
+    <div class="container">
+      <!-- INPUT PANEL -->
+      <div class="card">
+        <h3>Core Inputs</h3>
+
+        <label>Total RMs: <span id="rmsVal">500</span></label>
+        <input type="range" id="rms" min="100" max="2000" value="500" />
+
+        <label>Monthly Productivity: ₹<span id="prodVal">750000</span></label>
+        <input
+          type="range"
+          id="prod"
+          min="200000"
+          max="1500000"
+          step="50000"
+          value="750000"
+        />
+
+        <label>Base %: <span id="baseVal">1.2%</span></label>
+        <input
+          type="range"
+          id="base"
+          min="0.005"
+          max="0.02"
+          step="0.001"
+          value="0.012"
+        />
+
+        <h4>Performance Mix (%)</h4>
+
+        <label>Low Performers: <span id="lowVal">30%</span></label>
+        <input type="range" id="low" min="0" max="100" value="30" />
+
+        <label>Average Performers: <span id="avgVal">50%</span></label>
+        <input type="range" id="avg" min="0" max="100" value="50" />
+
+        <label>High Performers: <span id="highVal">20%</span></label>
+        <input type="range" id="high" min="0" max="100" value="20" />
+
+        <button onclick="normalizeMix()">Auto Balance Mix</button>
+      </div>
+
+      <!-- ZONE PANEL -->
+      <div class="card">
+        <h3>Zone Distribution</h3>
+
+        <label>North: <span id="northVal">25%</span></label>
+        <input type="range" id="north" min="0" max="100" value="25" />
+
+        <label>South: <span id="southVal">25%</span></label>
+        <input type="range" id="south" min="0" max="100" value="25" />
+
+        <label>East: <span id="eastVal">25%</span></label>
+        <input type="range" id="east" min="0" max="100" value="25" />
+
+        <label>West: <span id="westVal">25%</span></label>
+        <input type="range" id="west" min="0" max="100" value="25" />
+
+        <button onclick="normalizeZones()">Auto Balance Zones</button>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="card">
+        <h3>Results</h3>
+
+        <p>Total Business: ₹<span id="biz" class="value"></span></p>
+        <p>Total Incentive: ₹<span id="cost" class="value"></span></p>
+        <p>Cost %: <span id="pct" class="value"></span>%</p>
+
+        <p>Avg RM Earnings: ₹<span id="avgEarn" class="value"></span></p>
+        <p>Top RM Earnings: ₹<span id="topEarn" class="value"></span></p>
+
+        <canvas id="zoneChart" width="300" height="200"></canvas>
+
+        <button onclick="saveScenario()">Save Scenario</button>
+        <button onclick="loadScenario()">Load Scenario</button>
+      </div>
+    </div>
+
+    <script>
+      function updateLabels() {
+        rmsVal.innerText = rms.value;
+        prodVal.innerText = prod.value;
+        baseVal.innerText = (base.value * 100).toFixed(2) + "%";
+
+        lowVal.innerText = low.value + "%";
+        avgVal.innerText = avg.value + "%";
+        highVal.innerText = high.value + "%";
+
+        northVal.innerText = north.value + "%";
+        southVal.innerText = south.value + "%";
+        eastVal.innerText = east.value + "%";
+        westVal.innerText = west.value + "%";
+      }
+
+      document.querySelectorAll("input").forEach(
+        (i) =>
+          (i.oninput = () => {
+            updateLabels();
+            calculate();
+          }),
+      );
+
+      function normalizeMix() {
+        let total = +low.value + +avg.value + +high.value;
+        low.value = (low.value / total) * 100;
+        avg.value = (avg.value / total) * 100;
+        high.value = (high.value / total) * 100;
+      }
+
+      function normalizeZones() {
+        let total = +north.value + +south.value + +east.value + +west.value;
+        north.value = (north.value / total) * 100;
+        south.value = (south.value / total) * 100;
+        east.value = (east.value / total) * 100;
+        west.value = (west.value / total) * 100;
+      }
+
+      function calculate() {
+        let rmsVal = +rms.value;
+        let prodVal = +prod.value;
+        let baseVal = +base.value;
+
+        let biz = rmsVal * prodVal * 12;
+
+        let weightedMultiplier =
+          (low.value / 100) * 0.6 +
+          (avg.value / 100) * 1 +
+          (high.value / 100) * 1.8;
+
+        let cost = biz * baseVal * weightedMultiplier;
+
+        let pct = (cost / biz) * 100;
+
+        let avgEarn = prodVal * baseVal * weightedMultiplier;
+        let topEarn = prodVal * baseVal * 2;
+
+        bizEl.innerText = biz.toLocaleString();
+        costEl.innerText = cost.toLocaleString();
+        pctEl.innerText = pct.toFixed(2);
+
+        avgEarnEl.innerText = Math.round(avgEarn).toLocaleString();
+        topEarnEl.innerText = Math.round(topEarn).toLocaleString();
+
+        drawZoneChart();
+      }
+
+      function drawZoneChart() {
+        let ctx = zoneChart.getContext("2d");
+        ctx.clearRect(0, 0, 300, 200);
+
+        let zones = [north.value, south.value, east.value, west.value];
+        let colors = ["#3498db", "#2ecc71", "#f1c40f", "#e74c3c"];
+
+        let start = 0;
+        zones.forEach((z, i) => {
+          let angle = (z / 100) * 2 * Math.PI;
+          ctx.beginPath();
+          ctx.moveTo(150, 100);
+          ctx.arc(150, 100, 80, start, start + angle);
+          ctx.fillStyle = colors[i];
+          ctx.fill();
+          start += angle;
+        });
+      }
+
+      function saveScenario() {
+        let data = {
+          rms: rms.value,
+          prod: prod.value,
+          base: base.value,
+          low: low.value,
+          avg: avg.value,
+          high: high.value,
+          north: north.value,
+          south: south.value,
+          east: east.value,
+          west: west.value,
+        };
+        localStorage.setItem("bancaScenario", JSON.stringify(data));
+        alert("Saved");
+      }
+
+      function loadScenario() {
+        let data = JSON.parse(localStorage.getItem("bancaScenario"));
+        if (!data) return alert("No saved data");
+
+        for (let key in data) {
+          document.getElementById(key).value = data[key];
+        }
+        updateLabels();
+        calculate();
+      }
+
+      let bizEl = document.getElementById("biz");
+      let costEl = document.getElementById("cost");
+      let pctEl = document.getElementById("pct");
+      let avgEarnEl = document.getElementById("avgEarn");
+      let topEarnEl = document.getElementById("topEarn");
+
+      updateLabels();
+      calculate();
+    </script>
+  </body>
+</html>

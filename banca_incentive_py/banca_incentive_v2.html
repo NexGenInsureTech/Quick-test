@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Banca Incentive V2</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 20px;
+        background: #f4f6f9;
+      }
+      h2 {
+        color: #2c3e50;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex: 1;
+      }
+      label {
+        font-size: 13px;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .value {
+        font-weight: bold;
+        color: #27ae60;
+      }
+      canvas {
+        background: #fff;
+        border: 1px solid #ddd;
+        margin-top: 10px;
+      }
+      button {
+        padding: 10px;
+        margin-top: 10px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Bancassurance Incentive Simulator V2</h2>
+
+    <div class="container">
+      <div class="card">
+        <h3>Inputs</h3>
+
+        <label>Total RMs: <span id="rmsVal">500</span></label>
+        <input type="range" id="rms" min="100" max="2000" value="500" />
+
+        <label>Monthly Productivity: ₹<span id="prodVal">750000</span></label>
+        <input
+          type="range"
+          id="prod"
+          min="200000"
+          max="1500000"
+          step="50000"
+          value="750000"
+        />
+
+        <label>Base %: <span id="baseVal">1.2%</span></label>
+        <input
+          type="range"
+          id="base"
+          min="0.005"
+          max="0.02"
+          step="0.001"
+          value="0.012"
+        />
+
+        <h4>Performance Inputs</h4>
+
+        <label>Achievement: <span id="achVal">100%</span></label>
+        <input type="range" id="ach" min="50" max="200" value="100" />
+
+        <label>Activation: <span id="actVal">65%</span></label>
+        <input type="range" id="act" min="30" max="100" value="65" />
+
+        <label>Product Mix: <span id="mixVal">50%</span></label>
+        <input type="range" id="mix" min="20" max="100" value="50" />
+
+        <label>Persistency: <span id="perVal">85%</span></label>
+        <input type="range" id="per" min="50" max="100" value="85" />
+
+        <button onclick="calculate()">Run Simulation</button>
+      </div>
+
+      <div class="card">
+        <h3>Results</h3>
+
+        <p>BPI Score: <span id="bpi" class="value"></span></p>
+        <p>Multiplier: <span id="mult" class="value"></span></p>
+        <p>RM Earnings: ₹<span id="earn" class="value"></span></p>
+
+        <hr />
+
+        <p>Total Business: ₹<span id="biz" class="value"></span></p>
+        <p>Total Incentive: ₹<span id="cost" class="value"></span></p>
+        <p>Cost %: <span id="pct" class="value"></span>%</p>
+
+        <canvas id="chart" width="300" height="200"></canvas>
+
+        <button onclick="window.print()">Export / Print</button>
+      </div>
+    </div>
+
+    <script>
+      function updateLabels() {
+        document.getElementById("rmsVal").innerText = rms.value;
+        document.getElementById("prodVal").innerText = prod.value;
+        document.getElementById("baseVal").innerText =
+          (base.value * 100).toFixed(2) + "%";
+        document.getElementById("achVal").innerText = ach.value + "%";
+        document.getElementById("actVal").innerText = act.value + "%";
+        document.getElementById("mixVal").innerText = mix.value + "%";
+        document.getElementById("perVal").innerText = per.value + "%";
+      }
+
+      document
+        .querySelectorAll("input")
+        .forEach((i) => (i.oninput = updateLabels));
+
+      function calculate() {
+        let rms = +document.getElementById("rms").value;
+        let prod = +document.getElementById("prod").value;
+        let base = +document.getElementById("base").value;
+
+        let ach = achValCalc();
+        let act = actValCalc();
+        let mixv = mixValCalc();
+        let per = perValCalc();
+
+        let bpi = Math.min(
+          ach * 0.5 + act * 0.2 + mixv * 0.15 + per * 0.1 + 0.9 * 0.05,
+          1.5,
+        );
+
+        let mult =
+          bpi < 0.6 ? 0.3 : bpi < 0.8 ? 0.6 : bpi < 1 ? 1 : bpi < 1.2 ? 1.5 : 2;
+
+        let earn = prod * base * mult;
+
+        let biz = rms * prod * 12;
+        let weighted = 0.3 * 0.6 + 0.5 * 1 + 0.2 * 1.8;
+        let cost = biz * base * weighted;
+        let pct = (cost / biz) * 100;
+
+        document.getElementById("bpi").innerText = (bpi * 100).toFixed(1) + "%";
+        document.getElementById("mult").innerText = mult + "x";
+        document.getElementById("earn").innerText =
+          Math.round(earn).toLocaleString();
+
+        document.getElementById("biz").innerText =
+          Math.round(biz).toLocaleString();
+        document.getElementById("cost").innerText =
+          Math.round(cost).toLocaleString();
+        document.getElementById("pct").innerText = pct.toFixed(2);
+
+        drawChart(earn);
+      }
+
+      function achValCalc() {
+        return ach.value / 100;
+      }
+      function actValCalc() {
+        return act.value / 100;
+      }
+      function mixValCalc() {
+        return mix.value / 100;
+      }
+      function perValCalc() {
+        return per.value / 100;
+      }
+
+      function drawChart(earn) {
+        let ctx = document.getElementById("chart").getContext("2d");
+        ctx.clearRect(0, 0, 300, 200);
+
+        ctx.fillStyle = "#3498db";
+        ctx.fillRect(50, 200 - earn / 500, 50, earn / 500);
+
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillRect(150, 200 - (earn * 1.5) / 500, 50, (earn * 1.5) / 500);
+
+        ctx.fillStyle = "#000";
+        ctx.fillText("Current", 50, 190);
+        ctx.fillText("High", 150, 190);
+      }
+
+      updateLabels();
+      calculate();
+    </script>
+  </body>
+</html>

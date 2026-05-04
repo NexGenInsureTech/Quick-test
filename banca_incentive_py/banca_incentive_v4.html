@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Banca V4 AI Engine</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 20px;
+        background: #eef2f7;
+      }
+      .card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+      }
+      th {
+        background: #2c3e50;
+        color: white;
+      }
+      button {
+        padding: 8px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        margin-top: 10px;
+      }
+      .highlight {
+        color: #27ae60;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Bancassurance AI Incentive Engine V4</h2>
+
+    <div class="card">
+      <h3>Upload RM Data (CSV)</h3>
+      <input type="file" id="fileInput" />
+      <button onclick="processFile()">Run Analysis</button>
+    </div>
+
+    <div class="card">
+      <h3>Leaderboard</h3>
+      <table id="leaderboard">
+        <tr>
+          <th>RM</th>
+          <th>BPI</th>
+          <th>Earnings</th>
+          <th>Insight</th>
+        </tr>
+      </table>
+    </div>
+
+    <script>
+      function processFile() {
+        let file = document.getElementById("fileInput").files[0];
+        if (!file) return alert("Upload CSV");
+
+        let reader = new FileReader();
+        reader.onload = function (e) {
+          let rows = e.target.result.split("\n").slice(1);
+
+          let data = [];
+
+          rows.forEach((r) => {
+            let c = r.split(",");
+            if (c.length < 7) return;
+
+            let rm = c[0];
+            let target = +c[1];
+            let achieved = +c[2];
+            let act = c[3] / 100;
+            let mix = c[4] / 100;
+            let per = c[5] / 100;
+            let dig = c[6] / 100;
+
+            let ach = achieved / target;
+
+            let bpi = Math.min(
+              ach * 0.5 + act * 0.2 + mix * 0.15 + per * 0.1 + dig * 0.05,
+              1.5,
+            );
+
+            let mult =
+              bpi < 0.6
+                ? 0.3
+                : bpi < 0.8
+                  ? 0.6
+                  : bpi < 1
+                    ? 1
+                    : bpi < 1.2
+                      ? 1.5
+                      : 2;
+
+            let earn = achieved * 0.012 * mult;
+
+            let insight = generateInsight(ach, act, mix);
+
+            data.push({ rm, bpi, earn, insight });
+          });
+
+          renderTable(data.sort((a, b) => b.earn - a.earn));
+        };
+        reader.readAsText(file);
+      }
+
+      function generateInsight(ach, act, mix) {
+        if (ach < 0.8) return "Increase sales volume";
+        if (act < 0.6) return "Activate more branches";
+        if (mix < 0.5) return "Push focus products";
+        return "Strong performance";
+      }
+
+      function renderTable(data) {
+        let table = document.getElementById("leaderboard");
+        table.innerHTML =
+          "<tr><th>RM</th><th>BPI</th><th>Earnings</th><th>Insight</th></tr>";
+
+        data.forEach((d) => {
+          let row = `<tr>
+<td>${d.rm}</td>
+<td>${(d.bpi * 100).toFixed(1)}%</td>
+<td>₹${Math.round(d.earn).toLocaleString()}</td>
+<td class="highlight">${d.insight}</td>
+</tr>`;
+          table.innerHTML += row;
+        });
+      }
+    </script>
+  </body>
+</html>
