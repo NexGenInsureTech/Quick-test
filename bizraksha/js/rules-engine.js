@@ -16,3 +16,16 @@ function generateRecommendation() {
 
   calculatePrice(rec);
 }
+
+
+
+function runRecommendationEngine() {
+
+  appState.recommendations.paysafe = appState.loan.amount > 500000;
+
+  appState.recommendations.trust =
+    appState.business.hasStaff || appState.business.hasCustomers;
+
+  appState.recommendations.cyberlite =
+    appState.business.hasDigitalPayments;
+}
