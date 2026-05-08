@@ -23,3 +23,21 @@ function loadPricingFromExcel(file) {
 
   reader.readAsArrayBuffer(file);
 }
+
+
+function validateWorkbook(workbook) {
+  const requiredSheets = [
+    "META",
+    "CORE_PRICING",
+    "PAYSAFE_PRICING",
+    "TRUST_PRICING",
+    "CYBERLITE_PRICING",
+    "BUNDLE_RULES"
+  ];
+
+  requiredSheets.forEach(sheet => {
+    if (!workbook.Sheets[sheet]) {
+      throw new Error(`Missing sheet: ${sheet}`);
+    }
+  });
+}
