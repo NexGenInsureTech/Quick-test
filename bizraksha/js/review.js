@@ -50,3 +50,20 @@ function showConfirmationScreen() {
   document.getElementById("reviewScreen").style.display = "none";
   document.getElementById("confirmationScreen").style.display = "block";
 }
+
+
+function renderReviewScreen() {
+
+  document.getElementById("monthlyPrice").innerText =
+    appState.pricing.monthly;
+
+  document.getElementById("reviewModules").innerHTML = "";
+
+  Object.keys(appState.recommendations).forEach(key => {
+    if (appState.recommendations[key]) {
+      const li = document.createElement("li");
+      li.innerText = key.toUpperCase();
+      document.getElementById("reviewModules").appendChild(li);
+    }
+  });
+}
