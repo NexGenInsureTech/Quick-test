@@ -1,0 +1,29 @@
+<input type="file" id="pricingExcel" />
+<button onclick="uploadPricing()">Upload Pricing</button>
+
+<div id="discovery">
+  <h2>Your Business at a Glance</h2>
+
+  <select id="businessType">
+    <option value="shop">Shop / Trader</option>
+    <option value="manufacturing">Manufacturing</option>
+    <option value="office">Office / Clinic</option>
+  </select>
+
+  <label>
+    <input type="checkbox" id="hasStaff"> Staff Present
+  </label>
+
+  <label>
+    <input type="checkbox" id="digitalPayments"> Digital Payments
+  </label>
+
+  <button onclick="generateRecommendation()">
+    See Recommended Protection
+  </button>
+</div>
+
+<div id="recommendation"></div>
+
+<script src="libs/xlsx.full.min.js"></script>
+<script src="js/app.js"></script>
