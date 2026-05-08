@@ -7,3 +7,15 @@ function captureConsent() {
 
   console.log("Consent Log:", audit);
 }
+
+
+function captureConsent() {
+
+  appState.consent.given = true;
+  appState.consent.timestamp = new Date().toISOString();
+
+  localStorage.setItem(
+    "bizraksha_consent_" + appState.loan.loanId,
+    JSON.stringify(appState)
+  );
+}
