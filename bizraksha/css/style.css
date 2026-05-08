@@ -1,0 +1,48 @@
+.screen {
+  max-width: 640px;
+  margin: auto;
+  padding: 20px;
+  font-family: system-ui, sans-serif;
+}
+
+.card {
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.card.highlight {
+  background-color: #f4f9ff;
+  border-color: #0078d4;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button.primary {
+  background-color: #0078d4;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+}
+
+button.primary:disabled {
+  background-color: #999;
+}
+
+button.secondary {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 10px 16px;
+  border-radius: 6px;
+}
