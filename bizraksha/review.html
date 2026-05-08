@@ -1,0 +1,51 @@
+<div id="reviewScreen" class="screen">
+
+  <h2>Review & Confirm Protection</h2>
+
+  <p class="subtitle">
+    Please review your business protection details before activation.
+  </p>
+
+  <!-- Business Summary -->
+  <div class="card">
+    <h3>Your Business Profile</h3>
+    <p><strong>Business Type:</strong> <span id="reviewBusinessType"></span></p>
+    <p><strong>Locations:</strong> <span id="reviewLocations"></span></p>
+    <p><strong>Loan Linked Assets:</strong> ₹<span id="reviewLoanAmount"></span></p>
+  </div>
+
+  <!-- Selected Protections -->
+  <div class="card">
+    <h3>Selected Protection</h3>
+    <ul id="reviewModules"></ul>
+  </div>
+
+  <!-- Pricing -->
+  <div class="card highlight">
+    <h3>Cost Summary</h3>
+    <p class="price">
+      ₹<span id="monthlyPrice"></span> <small>/ month</small>
+    </p>
+    <p class="annual">
+      Annual equivalent: ₹<span id="annualPrice"></span>
+    </p>
+  </div>
+
+  <!-- Consent -->
+  <div class="consent">
+    <label>
+      <input type="checkbox" id="consentCheckbox" />
+      I understand and agree to the protection selected above.  
+      Detailed policy terms will be shared digitally.
+    </label>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="secondary" onclick="goBackToEdit()">Edit Selection</button>
+    <button class="primary" id="activateProtectionBtn" disabled>
+      Activate Protection
+    </button>
+  </div>
+
+</div>
