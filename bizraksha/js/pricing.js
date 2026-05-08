@@ -22,3 +22,23 @@ function captureConsent() {
 
   console.log("Consent Log:", audit);
 }
+
+function calculatePricing(pricingTable) {
+
+  let annual = 0;
+
+  if (appState.recommendations.core)
+    annual += pricingTable.core[appState.loan.slab];
+
+  if (appState.recommendations.paysafe)
+    annual += pricingTable.paysafe[appState.loan.slab];
+
+  if (appState.recommendations.trust)
+    annual += pricingTable.trust.basic;
+
+  if (appState.recommendations.cyberlite)
+    annual += pricingTable.cyberlite["5L"];
+
+  appState.pricing.annual = annual;
+  appState.pricing.monthly = Math.round(annual / 12);
+}
