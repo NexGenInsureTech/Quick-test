@@ -42,3 +42,21 @@ function calculatePricing(pricingTable) {
   appState.pricing.annual = annual;
   appState.pricing.monthly = Math.round(annual / 12);
 }
+
+
+{
+  "meta": {
+    "version": "2026.1",
+    "effectiveFrom": "2026-04-01"
+  },
+  "core": {
+    "25L": 3500,
+    "50L": 6000
+  },
+  "bundles": {
+    "COMPLETE": {
+      "discount": 12,
+      "modules": ["core","paysafe","trust","cyberlite"]
+    }
+  }
+}
