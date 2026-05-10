@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bancassurance Incentive Engine V5</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #eef2f7;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #1f3b5b;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        font-size: 13px;
+        font-weight: bold;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        margin-bottom: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+
+      button {
+        background: #1f3b5b;
+        color: #fff;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #274d73;
+      }
+
+      .result {
+        font-weight: bold;
+        color: #0d7a3a;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      th {
+        background: #1f3b5b;
+        color: white;
+      }
+
+      .badge {
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 11px;
+        color: white;
+      }
+
+      .green {
+        background: #1c9c4b;
+      }
+      .orange {
+        background: #d9822b;
+      }
+      .red {
+        background: #c0392b;
+      }
+
+      canvas {
+        background: white;
+        border: 1px solid #ddd;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Bancassurance Incentive Engine V5</h1>
+
+    <div class="container">
+      <div class="card">
+        <h2>RM Performance Inputs</h2>
+
+        <label>Monthly Target (₹)</label>
+        <input type="number" id="target" value="750000" />
+
+        <label>Achieved Premium (₹)</label>
+        <input type="number" id="achieved" value="950000" />
+
+        <label>Activation %</label>
+        <input type="number" id="activation" value="70" />
+
+        <label>Product Mix %</label>
+        <input type="number" id="mix" value="65" />
+
+        <label>Persistency %</label>
+        <input type="number" id="persistency" value="85" />
+
+        <label>Digital %</label>
+        <input type="number" id="digital" value="80" />
+
+        <label>Quality Factor</label>
+        <input type="number" id="quality" step="0.01" value="1" />
+
+        <label>Base Incentive %</label>
+        <input type="number" id="base" step="0.001" value="0.012" />
+
+        <button onclick="calculate()">Run Incentive Engine</button>
+      </div>
+
+      <div class="card">
+        <h2>Performance Output</h2>
+
+        <p>BPI Score: <span id="bpi" class="result"></span></p>
+        <p>Multiplier: <span id="multiplier" class="result"></span></p>
+        <p>Base Incentive: ₹ <span id="baseIncentive" class="result"></span></p>
+        <p>
+          Tapered Incentive: ₹ <span id="finalIncentive" class="result"></span>
+        </p>
+        <p>Gap to Next Slab: ₹ <span id="gap" class="result"></span></p>
+        <p>Governance Status: <span id="governance"></span></p>
+        <p>AI Recommendation: <span id="insight" class="result"></span></p>
+
+        <canvas id="chart" width="450" height="220"></canvas>
+      </div>
+    </div>
+
+    <br />
+
+    <div class="card">
+      <h2>Weighted Multiplier Simulation</h2>
+
+      <table>
+        <tr>
+          <th>RM Category</th>
+          <th>Population %</th>
+          <th>Avg Multiplier</th>
+          <th>Weighted Value</th>
+        </tr>
+
+        <tr>
+          <td>Low Performers</td>
+          <td><input type="number" id="lowPop" value="30" /></td>
+          <td><input type="number" id="lowMult" step="0.1" value="0.6" /></td>
+          <td id="lowWeighted"></td>
+        </tr>
+
+        <tr>
+          <td>Average Performers</td>
+          <td><input type="number" id="avgPop" value="50" /></td>
+          <td><input type="number" id="avgMult" step="0.1" value="1" /></td>
+          <td id="avgWeighted"></td>
+        </tr>
+
+        <tr>
+          <td>High Performers</td>
+          <td><input type="number" id="highPop" value="20" /></td>
+          <td><input type="number" id="highMult" step="0.1" value="1.8" /></td>
+          <td id="highWeighted"></td>
+        </tr>
+
+        <tr>
+          <th colspan="3">Weighted Multiplier</th>
+          <th id="weightedTotal"></th>
+        </tr>
+      </table>
+
+      <button onclick="calculateWeightedMultiplier()">
+        Calculate Weighted Multiplier
+      </button>
+    </div>
+
+    <br />
+
+    <div class="card">
+      <h2>Governance & Tapering Rules</h2>
+
+      <table>
+        <tr>
+          <th>Incentive Range</th>
+          <th>Logic</th>
+          <th>Governance</th>
+        </tr>
+
+        <tr>
+          <td>₹0 – ₹25K</td>
+          <td>Normal</td>
+          <td>Automatic</td>
+        </tr>
+
+        <tr>
+          <td>₹25K – ₹40K</td>
+          <td>Moderated</td>
+          <td>Monitor</td>
+        </tr>
+
+        <tr>
+          <td>₹40K – ₹75K</td>
+          <td>Tapered</td>
+          <td>Review</td>
+        </tr>
+
+        <tr>
+          <td>> ₹75K</td>
+          <td>Tapered + Approval</td>
+          <td>Approval Review</td>
+        </tr>
+      </table>
+    </div>
+
+    <script>
+      function calculate() {
+        let target = parseFloat(document.getElementById("target").value);
+        let achieved = parseFloat(document.getElementById("achieved").value);
+        let activation =
+          parseFloat(document.getElementById("activation").value) / 100;
+        let mix = parseFloat(document.getElementById("mix").value) / 100;
+        let persistency =
+          parseFloat(document.getElementById("persistency").value) / 100;
+        let digital =
+          parseFloat(document.getElementById("digital").value) / 100;
+        let quality = parseFloat(document.getElementById("quality").value);
+        let base = parseFloat(document.getElementById("base").value);
+
+        let achievement = achieved / target;
+
+        let bpi = Math.min(
+          achievement * 0.5 +
+            activation * 0.2 +
+            mix * 0.15 +
+            persistency * 0.1 +
+            digital * 0.05,
+          1.5,
+        );
+
+        let multiplier = 0;
+
+        if (bpi < 0.6) {
+          multiplier = 0.3;
+        } else if (bpi < 0.8) {
+          multiplier = 0.6;
+        } else if (bpi < 1) {
+          multiplier = 1;
+        } else if (bpi < 1.2) {
+          multiplier = 1.5;
+        } else {
+          multiplier = 2;
+        }
+
+        let rawIncentive = achieved * base * multiplier * quality;
+
+        let tapered = rawIncentive;
+
+        if (rawIncentive <= 25000) {
+          tapered = rawIncentive;
+        } else if (rawIncentive <= 40000) {
+          tapered = 25000 + (rawIncentive - 25000) * 0.85;
+        } else if (rawIncentive <= 75000) {
+          tapered = 37750 + (rawIncentive - 40000) * 0.7;
+        } else {
+          tapered = 62250 + (rawIncentive - 75000) * 0.5;
+        }
+
+        let nextSlab = 0;
+
+        if (achievement < 0.8) {
+          nextSlab = 0.8;
+        } else if (achievement < 1) {
+          nextSlab = 1;
+        } else if (achievement < 1.2) {
+          nextSlab = 1.2;
+        } else if (achievement < 1.4) {
+          nextSlab = 1.4;
+        } else {
+          nextSlab = 1.5;
+        }
+
+        let gap = Math.max(target * nextSlab - achieved, 0);
+
+        let governance = "";
+        let badge = "";
+
+        if (tapered < 25000) {
+          governance = "Automatic";
+          badge = "green";
+        } else if (tapered < 40000) {
+          governance = "Monitor";
+          badge = "orange";
+        } else if (tapered < 75000) {
+          governance = "Review";
+          badge = "orange";
+        } else {
+          governance = "Approval Review";
+          badge = "red";
+        }
+
+        let insight = "";
+
+        if (achievement < 0.8) {
+          insight = "Increase premium achievement";
+        } else if (activation < 0.6) {
+          insight = "Activate more branches";
+        } else if (mix < 0.5) {
+          insight = "Improve focus product mix";
+        } else {
+          insight = "Strong performance profile";
+        }
+
+        document.getElementById("bpi").innerText = (bpi * 100).toFixed(2) + "%";
+        document.getElementById("multiplier").innerText = multiplier + "x";
+        document.getElementById("baseIncentive").innerText =
+          Math.round(rawIncentive).toLocaleString();
+        document.getElementById("finalIncentive").innerText =
+          Math.round(tapered).toLocaleString();
+        document.getElementById("gap").innerText =
+          Math.round(gap).toLocaleString();
+        document.getElementById("insight").innerText = insight;
+        document.getElementById("governance").innerHTML =
+          '<span class="badge ' + badge + '">' + governance + "</span>";
+
+        renderChart(rawIncentive, tapered);
+      }
+
+      function renderChart(raw, tapered) {
+        let canvas = document.getElementById("chart");
+        let ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, 450, 220);
+
+        ctx.fillStyle = "#1f77b4";
+        ctx.fillRect(80, 220 - raw / 300, 80, raw / 300);
+
+        ctx.fillStyle = "#2ca02c";
+        ctx.fillRect(250, 220 - tapered / 300, 80, tapered / 300);
+
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.fillText("Raw Incentive", 70, 210);
+        ctx.fillText("Tapered Incentive", 220, 210);
+      }
+
+      function calculateWeightedMultiplier() {
+        let lowPop = parseFloat(document.getElementById("lowPop").value) / 100;
+        let avgPop = parseFloat(document.getElementById("avgPop").value) / 100;
+        let highPop =
+          parseFloat(document.getElementById("highPop").value) / 100;
+
+        let lowMult = parseFloat(document.getElementById("lowMult").value);
+        let avgMult = parseFloat(document.getElementById("avgMult").value);
+        let highMult = parseFloat(document.getElementById("highMult").value);
+
+        let lowWeighted = lowPop * lowMult;
+        let avgWeighted = avgPop * avgMult;
+        let highWeighted = highPop * highMult;
+
+        let total = lowWeighted + avgWeighted + highWeighted;
+
+        document.getElementById("lowWeighted").innerText =
+          lowWeighted.toFixed(2);
+        document.getElementById("avgWeighted").innerText =
+          avgWeighted.toFixed(2);
+        document.getElementById("highWeighted").innerText =
+          highWeighted.toFixed(2);
+        document.getElementById("weightedTotal").innerText =
+          total.toFixed(2) + "x";
+      }
+
+      calculate();
+      calculateWeightedMultiplier();
+    </script>
+  </body>
+</html>
