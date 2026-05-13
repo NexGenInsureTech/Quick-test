@@ -687,12 +687,12 @@
 
             if (raw <= 25000) {
               tapered = raw;
-            } else if (raw <= 40000) {
+            } else if (raw <= 35000) { // 40000 to 35000
               tapered = 25000 + (raw - 25000) * 0.85;
-            } else if (raw <= 75000) {
-              tapered = 37750 + (raw - 40000) * 0.7;
+            } else if (raw <= 45000) { // 75000 to 45000
+              tapered = 37750 + (raw - 35000) * 0.7;
             } else {
-              tapered = 62250 + (raw - 75000) * 0.5;
+              tapered = 44750 + (raw - 45000) * 0.5;  // 75000 to 45000
             }
 
             let insight = "Strong Performance";
