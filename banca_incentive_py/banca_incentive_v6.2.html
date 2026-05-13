@@ -479,277 +479,218 @@
       </div>
     </div>
 
-    <script>
-      // For Leaderboard computation and CSV processing
-      let processedRMData = [];
+   <script>
+  function safeNum(val, fallback = 0) {
+    let num = parseFloat(val);
+    return isNaN(num) ? fallback : num;
+  }
 
-      function openTab(evt, tabId) {
-        let tabs = document.querySelectorAll(".tabContent");
-        let btns = document.querySelectorAll(".tabBtn");
+  function calculateIncentiveCore({
+    target,
+    achieved,
+    activation,
+    mix,
+    persistency,
+    digital,
+    quality = 1
+  }) {
+    target = safeNum(target);
+    achieved = safeNum(achieved);
+    activation = safeNum(activation) / 100;
+    mix = safeNum(mix) / 100;
+    persistency = safeNum(persistency) / 100;
+    digital = safeNum(digital) / 100;
+    quality = safeNum(quality, 1);
 
-        tabs.forEach((t) => t.classList.remove("active"));
-        btns.forEach((b) => b.classList.remove("active"));
+    let achievement = target > 0 ? achieved / target : 0;
 
-        document.getElementById(tabId).classList.add("active");
+    let bpi =
+      achievement * 0.5 +
+      activation * 0.2 +
+      mix * 0.15 +
+      persistency * 0.1 +
+      digital * 0.05;
 
-        evt.currentTarget.classList.add("active");
-      }
+    let multiplier = 1;
 
-      function calculateRM() {
-        let target = parseFloat(document.getElementById("target").value);
-        let achieved = parseFloat(document.getElementById("achieved").value);
+    if (bpi < 0.6) multiplier = 0.3;
+    else if (bpi < 0.8) multiplier = 0.6;
+    else if (bpi < 1) multiplier = 1;
+    else if (bpi < 1.2) multiplier = 1.5;
+    else multiplier = 2;
 
-        let activation =
-          parseFloat(document.getElementById("activation").value) / 100;
-        let mix = parseFloat(document.getElementById("mix").value) / 100;
-        let persistency =
-          parseFloat(document.getElementById("persistency").value) / 100;
-        let digital =
-          parseFloat(document.getElementById("digital").value) / 100;
-        let quality = parseFloat(document.getElementById("quality").value);
+    let raw = achieved * 0.012 * multiplier * quality;
 
-        let achievement = achieved / target;
+    let tapered;
 
-        let bpi =
-          achievement * 0.5 +
-          activation * 0.2 +
-          mix * 0.15 +
-          persistency * 0.1 +
-          digital * 0.05;
+    if (raw <= 25000) {
+      tapered = raw;
+    } else if (raw <= 40000) {
+      tapered = 25000 + (raw - 25000) * 0.85;
+    } else if (raw <= 75000) {
+      tapered = 37750 + (raw - 40000) * 0.7;
+    } else {
+      tapered = 62250 + (raw - 75000) * 0.5;
+    }
 
-        let multiplier = 1;
+    let insight = "Strong Performance";
 
-        if (bpi < 0.6) {
-          multiplier = 0.3;
-        } else if (bpi < 0.8) {
-          multiplier = 0.6;
-        } else if (bpi < 1) {
-          multiplier = 1;
-        } else if (bpi < 1.2) {
-          multiplier = 1.5;
-        } else {
-          multiplier = 2;
-        }
+    if (achievement < 0.8) insight = "Increase Premium Achievement";
+    else if (activation < 0.6) insight = "Activate More Branches";
+    else if (mix < 0.5) insight = "Improve Product Mix";
 
-        let raw = achieved * 0.012 * multiplier * quality;
+    return {
+      achievement,
+      bpi,
+      multiplier,
+      raw,
+      tapered,
+      insight
+    };
+  }
 
-        let tapered = raw;
+  // ✅ RM Simulator
 
-        if (raw <= 25000) {
-          tapered = raw;
-        } else if (raw <= 40000) {
-          tapered = 25000 + (raw - 25000) * 0.85;
-        } else if (raw <= 75000) {
-          tapered = 37750 + (raw - 40000) * 0.7;
-        } else {
-          tapered = 62250 + (raw - 75000) * 0.5;
-        }
+  function calculateRM() {
+    const result = calculateIncentiveCore({
+      target: document.getElementById("target").value,
+      achieved: document.getElementById("achieved").value,
+      activation: document.getElementById("activation").value,
+      mix: document.getElementById("mix").value,
+      persistency: document.getElementById("persistency").value,
+      digital: document.getElementById("digital").value,
+      quality: document.getElementById("quality").value
+    });
 
-        let nextSlab = 0;
+    document.getElementById("bpi").innerText =
+      (result.bpi * 100).toFixed(1) + "%";
 
-        if (achievement < 0.8) {
-          nextSlab = 0.8;
-        } else if (achievement < 1) {
-          nextSlab = 1;
-        } else if (achievement < 1.2) {
-          nextSlab = 1.2;
-        } else if (achievement < 1.4) {
-          nextSlab = 1.4;
-        } else {
-          nextSlab = 1.5;
-        }
+    document.getElementById("multiplier").innerText =
+      result.multiplier + "x";
 
-        let gap = Math.max(target * nextSlab - achieved, 0);
+    document.getElementById("rawIncentive").innerText =
+      Math.round(result.raw).toLocaleString();
 
-        let insight = "Strong Performance";
+    document.getElementById("finalIncentive").innerText =
+      Math.round(result.tapered).toLocaleString();
 
-        if (achievement < 0.8) {
-          insight = "Increase Premium Achievement";
-        } else if (activation < 0.6) {
-          insight = "Activate More Branches";
-        } else if (mix < 0.5) {
-          insight = "Improve Product Mix";
-        }
+    document.getElementById("insight").innerText = result.insight;
+  }
 
-        document.getElementById("bpi").innerText = (bpi * 100).toFixed(1) + "%";
-        document.getElementById("multiplier").innerText = multiplier + "x";
-        document.getElementById("rawIncentive").innerText =
-          Math.round(raw).toLocaleString();
-        document.getElementById("finalIncentive").innerText =
-          Math.round(tapered).toLocaleString();
-        document.getElementById("gap").innerText =
-          Math.round(gap).toLocaleString();
-        document.getElementById("insight").innerText = insight;
-      }
+  // ✅ CSV Engine
 
-      function calculatePNL() {
-        let rmCount = parseFloat(document.getElementById("rmCount").value);
+  function processCSV() {
+    const file = document.getElementById("csvFile").files[0];
 
-        let avgProd = parseFloat(document.getElementById("avgProd").value);
+    if (!file) {
+      alert("Please upload CSV");
+      return;
+    }
 
-        let basePct = parseFloat(document.getElementById("basePct").value);
+    const reader = new FileReader();
 
-        let weightedMultiplier = parseFloat(
-          document.getElementById("weightedMultiplier").value,
-        );
+    reader.onload = function (e) {
+      const rows = e.target.result.split("\n");
+      const tbody = document.querySelector("#resultsTable tbody");
 
-        let asmPct = parseFloat(document.getElementById("asmPct").value);
+      tbody.innerHTML = "";
 
-        let boosterBudget = parseFloat(
-          document.getElementById("boosterBudget").value,
-        );
+      rows.slice(1).forEach((row) => {
+        const cols = row.split(",");
 
-        let annualBusiness = rmCount * avgProd * 12;
+        if (cols.length < 9) return;
 
-        let rmCost = annualBusiness * basePct * weightedMultiplier;
+        const result = calculateIncentiveCore({
+          target: cols[2],
+          achieved: cols[3],
+          activation: cols[5],
+          mix: cols[6],
+          persistency: cols[7],
+          digital: cols[8],
+          quality: 1 // fallback default
+        });
 
-        let asmCost = annualBusiness * asmPct;
+        let tr = document.createElement("tr");
 
-        let totalCost = rmCost + asmCost + boosterBudget;
-
-        let costPct = (totalCost / annualBusiness) * 100;
-
-        document.getElementById("annualBusiness").innerText =
-          Math.round(annualBusiness).toLocaleString();
-
-        document.getElementById("rmCost").innerText =
-          Math.round(rmCost).toLocaleString();
-
-        document.getElementById("asmCost").innerText =
-          Math.round(asmCost).toLocaleString();
-
-        document.getElementById("totalCost").innerText =
-          Math.round(totalCost).toLocaleString();
-
-        document.getElementById("costPct").innerText = costPct.toFixed(2);
-      }
-
-      function processCSV() {
-        const file = document.getElementById("csvFile").files[0];
-
-        if (!file) {
-          alert("Please upload CSV");
-          return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const rows = e.target.result.split("\n");
-
-          const tbody = document.querySelector("#resultsTable tbody");
-
-          tbody.innerHTML = "";
-
-          rows.slice(1).forEach((row) => {
-            processedRMData = [];
-            const cols = row.split(",");
-
-            if (cols.length < 9) return;
-
-            let rm = cols[0];
-            let zone = cols[1];
-
-            let target = parseFloat(cols[2]);
-            let achieved = parseFloat(cols[3]);
-
-            let activation = parseFloat(cols[5]) / 100;
-            let mix = parseFloat(cols[6]) / 100;
-            let persistency = parseFloat(cols[7]) / 100;
-            let digital = parseFloat(cols[8]) / 100;
-            let quality = parseFloat(cols[9]) || 1;
-            
-            let achievement = achieved / target;
-
-            let bpi =
-              achievement * 0.5 +
-              activation * 0.2 +
-              mix * 0.15 +
-              persistency * 0.1 +
-              digital * 0.05;
-
-            let multiplier = 1;
-
-            if (bpi < 0.6) {
-              multiplier = 0.3;
-            } else if (bpi < 0.8) {
-              multiplier = 0.6;
-            } else if (bpi < 1) {
-              multiplier = 1;
-            } else if (bpi < 1.2) {
-              multiplier = 1.5;
-            } else {
-              multiplier = 2;
-            }
-
-            let raw = achieved * 0.012 * multiplier;
-
-            let tapered = raw;
-
-            if (raw <= 25000) {
-              tapered = raw;
-            } else if (raw <= 35000) { // 40000 to 35000
-              tapered = 25000 + (raw - 25000) * 0.85;
-            } else if (raw <= 45000) { // 75000 to 45000
-              tapered = 37750 + (raw - 35000) * 0.7;
-            } else {
-              tapered = 44750 + (raw - 45000) * 0.5;  // 75000 to 45000
-            }
-
-            let insight = "Strong Performance";
-
-            if (achievement < 0.8) {
-              insight = "Increase Premium Achievement";
-            } else if (activation < 0.6) {
-              insight = "Activate More Branches";
-            } else if (mix < 0.5) {
-              insight = "Improve Product Mix";
-            }
-
-            let tr = document.createElement("tr");
-
-            tr.innerHTML = `
-<td>${rm}</td>
-<td>${zone}</td>
-<td>${(achievement * 100).toFixed(1)}%</td>
-<td>${(bpi * 100).toFixed(1)}%</td>
-<td>${multiplier}x</td>
-<td>₹${Math.round(tapered).toLocaleString()}</td>
-<td>${insight}</td>
+        tr.innerHTML = `
+<td>${cols[0]}</td>
+<td>${cols[1]}</td>
+<td>${(result.achievement * 100).toFixed(1)}%</td>
+<td>${(result.bpi * 100).toFixed(1)}%</td>
+<td>${result.multiplier}x</td>
+<td>₹${Math.round(result.tapered).toLocaleString()}</td>
+<td>${result.insight}</td>
 `;
 
-            tbody.appendChild(tr);
-          });
-        };
+        tbody.appendChild(tr);
+      });
+    };
 
-        reader.readAsText(file);
-      }
+    reader.readAsText(file);
+  }
 
-      function runScenario() {
-        let growth = parseFloat(
-          document.getElementById("scenarioGrowth").value,
-        );
+  // ✅ PNL (unchanged but cleaned)
 
-        let base = parseFloat(document.getElementById("scenarioBase").value);
+  function calculatePNL() {
+    let rmCount = safeNum(document.getElementById("rmCount").value);
+    let avgProd = safeNum(document.getElementById("avgProd").value);
+    let basePct = safeNum(document.getElementById("basePct").value);
+    let weightedMultiplier = safeNum(
+      document.getElementById("weightedMultiplier").value
+    );
+    let asmPct = safeNum(document.getElementById("asmPct").value);
+    let boosterBudget = safeNum(
+      document.getElementById("boosterBudget").value
+    );
 
-        let projectedGWP = 6000000000 * (1 + growth / 100);
+    let annualBusiness = rmCount * avgProd * 12;
+    let rmCost = annualBusiness * basePct * weightedMultiplier;
+    let asmCost = annualBusiness * asmPct;
+    let totalCost = rmCost + asmCost + boosterBudget;
+    let costPct = (totalCost / annualBusiness) * 100;
 
-        let projectedCost = projectedGWP * base * 1.04;
+    document.getElementById("annualBusiness").innerText =
+      Math.round(annualBusiness).toLocaleString();
 
-        let ratio = (projectedCost / projectedGWP) * 100;
+    document.getElementById("rmCost").innerText =
+      Math.round(rmCost).toLocaleString();
 
-        document.getElementById("scenarioGWP").innerText =
-          Math.round(projectedGWP).toLocaleString();
+    document.getElementById("asmCost").innerText =
+      Math.round(asmCost).toLocaleString();
 
-        document.getElementById("scenarioCost").innerText =
-          Math.round(projectedCost).toLocaleString();
+    document.getElementById("totalCost").innerText =
+      Math.round(totalCost).toLocaleString();
 
-        document.getElementById("scenarioRatio").innerText = ratio.toFixed(2);
-      }
+    document.getElementById("costPct").innerText =
+      isFinite(costPct) ? costPct.toFixed(2) : "0.00";
+  }
 
-      calculateRM();
-      calculatePNL();
-      runScenario();
-    </script>
+  // ✅ Scenario
+
+  function runScenario() {
+    let growth = safeNum(document.getElementById("scenarioGrowth").value);
+    let base = safeNum(document.getElementById("scenarioBase").value);
+
+    let projectedGWP = 6000000000 * (1 + growth / 100);
+    let projectedCost = projectedGWP * base * 1.04;
+    let ratio = (projectedCost / projectedGWP) * 100;
+
+    document.getElementById("scenarioGWP").innerText =
+      Math.round(projectedGWP).toLocaleString();
+
+    document.getElementById("scenarioCost").innerText =
+      Math.round(projectedCost).toLocaleString();
+
+    document.getElementById("scenarioRatio").innerText =
+      isFinite(ratio) ? ratio.toFixed(2) : "0.00";
+  }
+
+  // ✅ Init
+
+  calculateRM();
+  calculatePNL();
+  runScenario();
+</script>
+
   </body>
 </html>
