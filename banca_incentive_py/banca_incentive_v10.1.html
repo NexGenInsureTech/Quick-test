@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>
+      Bancassurance Performance Intelligence Platform V10 Enterprise
+    </title>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eef2f7;
+        color: #1f2937;
+      }
+
+      .header {
+        background: #1f3b5b;
+        color: white;
+        padding: 18px 24px;
+        font-size: 24px;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+        background: white;
+        border-bottom: 1px solid #d9dee7;
+        position: sticky;
+        top: 68px;
+        z-index: 999;
+      }
+
+      .tabBtn {
+        border: none;
+        background: #dce8f5;
+        color: #1f3b5b;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .tabBtn.active {
+        background: #1f3b5b;
+        color: white;
+      }
+
+      .tabContent {
+        display: none;
+        padding: 24px;
+      }
+
+      .tabContent.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .card h2,
+      .card h3 {
+        margin-top: 0;
+        color: #1f3b5b;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 16px;
+        border: 1px solid #ccd5df;
+        border-radius: 8px;
+      }
+
+      button {
+        border: none;
+        background: #1f3b5b;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .result {
+        font-weight: bold;
+        color: #0d7a3a;
+      }
+
+      .warning {
+        background: #fff4d6;
+        border: 1px solid #f0c36d;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .tableWrap {
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1200px;
+      }
+
+      th,
+      td {
+        border: 1px solid #d9dee7;
+        padding: 10px;
+        font-size: 12px;
+      }
+
+      th {
+        background: #1f3b5b;
+        color: white;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: white;
+        font-size: 11px;
+      }
+
+      .green {
+        background: #1c9c4b;
+      }
+
+      .orange {
+        background: #d9822b;
+      }
+
+      .red {
+        background: #c0392b;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+        }
+
+        .tabBtn {
+          flex: 0 0 auto;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      Bancassurance Performance Intelligence Platform V10 Enterprise
+    </div>
+
+    <div class="tabs">
+      <button class="tabBtn active" onclick="openTab(event, 'dashboard')">
+        Dashboard
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'simulator')">
+        RM Simulator
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'pnl')">
+        Channel P&L
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'upload')">
+        RM Upload
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'leaderboard')">
+        Leaderboard
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'governance')">
+        Governance
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'scenario')">
+        Scenario Lab
+      </button>
+
+      <button class="tabBtn" onclick="openTab(event, 'settings')">
+        Settings
+      </button>
+    </div>
+
+    <!-- DASHBOARD -->
+
+    <div id="dashboard" class="tabContent active">
+      <div class="grid">
+        <div class="card">
+          <h2>Executive Summary</h2>
+
+          <p>
+            Total GWP:
+            <span class="result">₹443 Cr</span>
+          </p>
+
+          <p>
+            Target GWP:
+            <span class="result">₹600 Cr</span>
+          </p>
+
+          <p>
+            Aspirational GWP:
+            <span class="result">₹800 Cr</span>
+          </p>
+
+          <p>
+            Incentive Cost Ratio:
+            <span class="result">1.28%</span>
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Strategic KPIs</h2>
+
+          <p>
+            Activation Ratio:
+            <span class="result">68%</span>
+          </p>
+
+          <p>
+            Focus Product Mix:
+            <span class="result">54%</span>
+          </p>
+
+          <p>
+            Persistency:
+            <span class="result">72%</span>
+          </p>
+
+          <p>
+            Weighted Multiplier:
+            <span class="result">1.04x</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RM SIMULATOR -->
+
+    <div id="simulator" class="tabContent">
+      <div class="grid">
+        <div class="card">
+          <h2>RM Incentive Simulator</h2>
+
+          <label>Target</label>
+          <input type="number" id="target" value="750000" />
+
+          <label>Achieved</label>
+          <input type="number" id="achieved" value="950000" />
+
+          <label>Activation %</label>
+          <input type="number" id="activation" value="70" />
+
+          <label>Fresh Business %</label>
+          <input type="number" id="fresh" value="80" />
+
+          <label>Focus Product 1 %</label>
+          <input type="number" id="fp1" value="75" />
+
+          <label>Focus Product 2 %</label>
+          <input type="number" id="fp2" value="65" />
+
+          <label>Focus Product 3 %</label>
+          <input type="number" id="fp3" value="55" />
+
+          <label>Focus Product 4 %</label>
+          <input type="number" id="fp4" value="50" />
+
+          <label>Persistency %</label>
+          <input type="number" id="persistency" value="85" />
+
+          <label>Digital %</label>
+          <input type="number" id="digital" value="80" />
+
+          <label>Quality Factor</label>
+          <input type="number" step="0.01" id="quality" value="1" />
+
+          <button onclick="calculateRM()">Calculate Incentive</button>
+        </div>
+
+        <div class="card">
+          <h2>RM Output</h2>
+
+          <p>
+            BPI:
+            <span id="bpi" class="result"></span>
+          </p>
+
+          <p>
+            Weighted Product Mix:
+            <span id="weightedMix" class="result"></span>
+          </p>
+
+          <p>
+            Achievement Accelerator:
+            <span id="achievementAccel" class="result"></span>
+          </p>
+
+          <p>
+            Activation Accelerator:
+            <span id="activationAccel" class="result"></span>
+          </p>
+
+          <p>
+            Multiplier:
+            <span id="multiplier" class="result"></span>
+          </p>
+
+          <p>Raw Incentive: ₹ <span id="rawIncentive" class="result"></span></p>
+
+          <p>
+            Tapered Incentive: ₹
+            <span id="finalIncentive" class="result"></span>
+          </p>
+
+          <p>Gap to Next Slab: ₹ <span id="gap" class="result"></span></p>
+
+          <p>
+            AI Insight:
+            <span id="insight" class="result"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PNL -->
+
+    <div id="pnl" class="tabContent">
+      <div class="grid">
+        <div class="card">
+          <h2>P&L Inputs</h2>
+
+          <label>Total RM Count</label>
+          <input type="number" id="rmCount" value="500" />
+
+          <label>Average Monthly Productivity</label>
+          <input type="number" id="avgProd" value="750000" />
+
+          <label>Weighted Multiplier</label>
+          <input type="number" id="weightedMultiplier" value="1.04" />
+
+          <button onclick="calculatePNL()">Run P&L</button>
+        </div>
+
+        <div class="card">
+          <h2>P&L Outputs</h2>
+
+          <p>Annual RM Business: ₹ <span id="annualBusiness"></span></p>
+
+          <p>RM Incentive Cost: ₹ <span id="rmCost"></span></p>
+
+          <p>Total Incentive Cost: ₹ <span id="totalCost"></span></p>
+
+          <p>Cost % of GWP: <span id="costPct"></span>%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+
+    <div id="upload" class="tabContent">
+      <div class="warning">
+        Upload Columns Required: RM Name, Zone, Target, Achieved, Activation %,
+        Fresh Business %, FP1 %, FP2 %, FP3 %, FP4 %, Persistency %, Digital %
+      </div>
+
+      <div class="card">
+        <h2>RM Upload Engine</h2>
+
+        <input type="file" id="csvFile" accept=".csv,.xlsx" />
+
+        <div class="grid">
+          <div>
+            <label>Search RM / Zone</label>
+
+            <input
+              type="text"
+              id="searchBox"
+              placeholder="Search..."
+              onkeyup="filterTable()"
+            />
+          </div>
+
+          <div>
+            <label>Sort By</label>
+
+            <select id="sortBy" onchange="sortTable()">
+              <option value="incentive_desc">Final Incentive ↓</option>
+
+              <option value="incentive_asc">Final Incentive ↑</option>
+
+              <option value="achievement_desc">Achievement ↓</option>
+
+              <option value="achievement_asc">Achievement ↑</option>
+
+              <option value="bpi_desc">BPI ↓</option>
+
+              <option value="bpi_asc">BPI ↑</option>
+
+              <option value="zone">Zone</option>
+
+              <option value="rm">RM Name</option>
+            </select>
+          </div>
+        </div>
+
+        <button onclick="processCSV()">Process File</button>
+      </div>
+
+      <!-- ANALYTICS -->
+
+      <div class="grid">
+        <div class="card">
+          <h2>Portfolio Analytics</h2>
+
+          <p>
+            Total Achieved Premium: ₹
+            <span id="totalAchievedPremium" class="result">0</span>
+          </p>
+
+          <p>
+            Total Raw Incentive: ₹
+            <span id="totalRawIncentive" class="result">0</span>
+          </p>
+
+          <p>
+            Total Final Incentive: ₹
+            <span id="totalFinalIncentive" class="result">0</span>
+          </p>
+
+          <p>
+            Raw Incentive % of Achieved Premium:
+            <span id="rawPctPremium" class="result">0</span>%
+          </p>
+
+          <p>
+            Final Incentive % of Achieved Premium:
+            <span id="finalPctPremium" class="result">0</span>%
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Performance Distribution</h2>
+
+          <p>
+            Elite Performers:
+            <span id="eliteCount" class="result">0</span>
+          </p>
+
+          <p>
+            Average Performers:
+            <span id="averageCount" class="result">0</span>
+          </p>
+
+          <p>
+            Low Performers:
+            <span id="lowCount" class="result">0</span>
+          </p>
+
+          <p>Average BPI: <span id="avgBPI" class="result">0</span>%</p>
+
+          <p>
+            Average Incentive: ₹ <span id="avgIncentive" class="result">0</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="card tableWrap">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>RM Name</th>
+              <th>Zone</th>
+              <th>Achievement %</th>
+              <th>Weighted Mix</th>
+              <th>BPI</th>
+              <th>Multiplier</th>
+              <th>Raw Incentive</th>
+              <th>Final Incentive</th>
+              <th>Insight</th>
+            </tr>
+          </thead>
+
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+
+    <div id="leaderboard" class="tabContent">
+      <div class="grid">
+        <div class="card">
+          <h2>Top Performers</h2>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RM</th>
+                  <th>Zone</th>
+                  <th>Achievement</th>
+                  <th>BPI</th>
+                  <th>Incentive</th>
+                </tr>
+              </thead>
+
+              <tbody id="topLeaderboardBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Bottom Performers</h2>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RM</th>
+                  <th>Gap</th>
+                  <th>Insight</th>
+                </tr>
+              </thead>
+
+              <tbody id="bottomLeaderboardBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOVERNANCE -->
+
+    <div id="governance" class="tabContent">
+      <div class="card">
+        <h2>Governance Rules</h2>
+
+        <table>
+          <tr>
+            <th>Range</th>
+            <th>Action</th>
+          </tr>
+
+          <tr>
+            <td>₹0–25K</td>
+            <td><span class="badge green">Automatic</span></td>
+          </tr>
+
+          <tr>
+            <td>₹25K–40K</td>
+            <td><span class="badge orange">Monitor</span></td>
+          </tr>
+
+          <tr>
+            <td>₹40K–75K</td>
+            <td><span class="badge orange">Review</span></td>
+          </tr>
+
+          <tr>
+            <td>> ₹75K</td>
+            <td><span class="badge red">Approval Required</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- SCENARIO -->
+
+    <div id="scenario" class="tabContent">
+      <div class="grid">
+        <div class="card">
+          <h2>Scenario Inputs</h2>
+
+          <label>Increase Productivity %</label>
+          <input type="number" id="scenarioGrowth" value="20" />
+
+          <label>Increase Base Incentive %</label>
+          <input type="number" id="scenarioBase" value="0.014" />
+
+          <button onclick="runScenario()">Run Scenario</button>
+        </div>
+
+        <div class="card">
+          <h2>Scenario Output</h2>
+
+          <p>Projected GWP: ₹ <span id="scenarioGWP"></span></p>
+
+          <p>Projected Cost: ₹ <span id="scenarioCost"></span></p>
+
+          <p>Projected Cost Ratio: <span id="scenarioRatio"></span>%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+
+    <div id="settings" class="tabContent">
+      <div class="card">
+        <h2>Configuration Settings</h2>
+
+        <h3>BPI Weights</h3>
+
+        <label>Achievement Weight</label>
+        <input type="number" step="0.01" id="cfgAchievement" value="0.50" />
+
+        <label>Activation Weight</label>
+        <input type="number" step="0.01" id="cfgActivation" value="0.20" />
+
+        <label>Product Mix Overall Weight</label>
+        <input type="number" step="0.01" id="cfgMixWeight" value="0.15" />
+
+        <label>Persistency Weight</label>
+        <input type="number" step="0.01" id="cfgPersistency" value="0.10" />
+
+        <label>Digital Weight</label>
+        <input type="number" step="0.01" id="cfgDigital" value="0.05" />
+
+        <h3>Product Mix Sub Weights</h3>
+
+        <label>Fresh Business</label>
+        <input type="number" step="0.01" id="cfgFresh" value="0.25" />
+
+        <label>Focus Product 1</label>
+        <input type="number" step="0.01" id="cfgFP1" value="0.30" />
+
+        <label>Focus Product 2</label>
+        <input type="number" step="0.01" id="cfgFP2" value="0.20" />
+
+        <label>Focus Product 3</label>
+        <input type="number" step="0.01" id="cfgFP3" value="0.15" />
+
+        <label>Focus Product 4</label>
+        <input type="number" step="0.01" id="cfgFP4" value="0.10" />
+
+        <h3>Achievement Accelerator</h3>
+
+        <label>Below 50%</label>
+        <input type="number" step="0.01" id="cfgAch50" value="0.70" />
+
+        <label>50%-70%</label>
+        <input type="number" step="0.01" id="cfgAch70" value="0.90" />
+
+        <label>70%-90%</label>
+        <input type="number" step="0.01" id="cfgAch90" value="1.00" />
+
+        <label>90%-110%</label>
+        <input type="number" step="0.01" id="cfgAch110" value="1.10" />
+
+        <label>110%-130%</label>
+        <input type="number" step="0.01" id="cfgAch130" value="1.25" />
+
+        <label>130%-150%</label>
+        <input type="number" step="0.01" id="cfgAch150" value="1.40" />
+
+        <label>150%-200%</label>
+        <input type="number" step="0.01" id="cfgAch200" value="1.60" />
+
+        <h3>Activation Accelerator</h3>
+
+        <label>Below 50%</label>
+        <input type="number" step="0.01" id="cfgAct50" value="0.70" />
+
+        <label>50%-60%</label>
+        <input type="number" step="0.01" id="cfgAct60" value="1.00" />
+
+        <label>60%-70%</label>
+        <input type="number" step="0.01" id="cfgAct70" value="1.10" />
+
+        <label>70%-80%</label>
+        <input type="number" step="0.01" id="cfgAct80" value="1.20" />
+
+        <label>80%-90%</label>
+        <input type="number" step="0.01" id="cfgAct90" value="1.30" />
+
+        <label>Above 90%</label>
+        <input type="number" step="0.01" id="cfgAct100" value="1.50" />
+
+        <h3>Safety Controls</h3>
+
+        <label>Base Incentive %</label>
+        <input type="number" step="0.001" id="cfgBasePct" value="0.012" />
+
+        <label>Maximum Achievement Cap %</label>
+        <input type="number" id="cfgMaxAchievement" value="200" />
+
+        <label>Maximum Incentive Cap</label>
+        <input type="number" id="cfgMaxIncentive" value="150000" />
+
+        <label>Maximum Multiplier Allowed</label>
+        <input type="number" step="0.1" id="cfgMaxMultiplier" value="3" />
+
+        <button onclick="saveConfig()">Save Configuration</button>
+      </div>
+    </div>
+
+    <script>
+      let processedRMData = [];
+
+      let CONFIG = {
+        weights: {
+          achievement: 0.5,
+          activation: 0.2,
+
+          mix: {
+            overallWeight: 0.15,
+
+            subWeights: {
+              fresh: 0.25,
+              fp1: 0.3,
+              fp2: 0.2,
+              fp3: 0.15,
+              fp4: 0.1,
+            },
+          },
+
+          persistency: 0.1,
+          digital: 0.05,
+        },
+
+        basePct: 0.012,
+
+        accelerators: {
+          achievement: [
+            { max: 0.5, multiplier: 0.7 },
+            { max: 0.7, multiplier: 0.9 },
+            { max: 0.9, multiplier: 1.0 },
+            { max: 1.1, multiplier: 1.1 },
+            { max: 1.3, multiplier: 1.25 },
+            { max: 1.5, multiplier: 1.4 },
+            { max: 2.0, multiplier: 1.6 },
+          ],
+
+          activation: [
+            { max: 0.5, multiplier: 0.7 },
+            { max: 0.6, multiplier: 1.0 },
+            { max: 0.7, multiplier: 1.1 },
+            { max: 0.8, multiplier: 1.2 },
+            { max: 0.9, multiplier: 1.3 },
+            { max: 999, multiplier: 1.5 },
+          ],
+        },
+
+        safety: {
+          maxAchievement: 2,
+          maxIncentive: 150000,
+          maxMultiplier: 3,
+        },
+      };
+
+      function safeNumber(value, defaultValue = 0) {
+        let n = parseFloat(value);
+
+        return isNaN(n) ? defaultValue : n;
+      }
+
+      function openTab(evt, tabId) {
+        let tabs = document.querySelectorAll(".tabContent");
+        let btns = document.querySelectorAll(".tabBtn");
+
+        tabs.forEach((t) => t.classList.remove("active"));
+        btns.forEach((b) => b.classList.remove("active"));
+
+        document.getElementById(tabId).classList.add("active");
+
+        evt.currentTarget.classList.add("active");
+      }
+
+      function saveConfig() {
+        alert("Configuration Updated Successfully");
+      }
+
+      function getMultiplier(bpi) {
+        if (bpi < 0.6) {
+          return 0.3;
+        } else if (bpi < 0.8) {
+          return 0.6;
+        } else if (bpi < 1) {
+          return 1;
+        } else if (bpi < 1.2) {
+          return 1.5;
+        }
+
+        return 2;
+      }
+
+      function getAchievementAccelerator(achievement) {
+        for (let slab of CONFIG.accelerators.achievement) {
+          if (achievement <= slab.max) {
+            return slab.multiplier;
+          }
+        }
+
+        return 1;
+      }
+
+      function getActivationAccelerator(activation) {
+        for (let slab of CONFIG.accelerators.activation) {
+          if (activation <= slab.max) {
+            return slab.multiplier;
+          }
+        }
+
+        return 1;
+      }
+
+      function taper(raw) {
+        if (raw <= 25000) {
+          return raw;
+        } else if (raw <= 40000) {
+          return 25000 + (raw - 25000) * 0.85;
+        } else if (raw <= 75000) {
+          return 37750 + (raw - 40000) * 0.7;
+        }
+
+        return 62250 + (raw - 75000) * 0.5;
+      }
+
+      function calculateWeightedMix(fresh, fp1, fp2, fp3, fp4) {
+        return (
+          fresh * CONFIG.weights.mix.subWeights.fresh +
+          fp1 * CONFIG.weights.mix.subWeights.fp1 +
+          fp2 * CONFIG.weights.mix.subWeights.fp2 +
+          fp3 * CONFIG.weights.mix.subWeights.fp3 +
+          fp4 * CONFIG.weights.mix.subWeights.fp4
+        );
+      }
+
+      function calculateRM() {
+        let target = safeNumber(document.getElementById("target").value);
+
+        let achieved = safeNumber(document.getElementById("achieved").value);
+
+        let activation =
+          safeNumber(document.getElementById("activation").value) / 100;
+
+        let fresh = safeNumber(document.getElementById("fresh").value) / 100;
+
+        let fp1 = safeNumber(document.getElementById("fp1").value) / 100;
+
+        let fp2 = safeNumber(document.getElementById("fp2").value) / 100;
+
+        let fp3 = safeNumber(document.getElementById("fp3").value) / 100;
+
+        let fp4 = safeNumber(document.getElementById("fp4").value) / 100;
+
+        let persistency =
+          safeNumber(document.getElementById("persistency").value) / 100;
+
+        let digital =
+          safeNumber(document.getElementById("digital").value) / 100;
+
+        let quality = safeNumber(document.getElementById("quality").value, 1);
+
+        let achievement = target > 0 ? achieved / target : 0;
+
+        let weightedMix = calculateWeightedMix(fresh, fp1, fp2, fp3, fp4);
+
+        let mixContribution = weightedMix * CONFIG.weights.mix.overallWeight;
+
+        let baseBPI =
+          achievement * CONFIG.weights.achievement +
+          activation * CONFIG.weights.activation +
+          mixContribution +
+          persistency * CONFIG.weights.persistency +
+          digital * CONFIG.weights.digital;
+
+        let achievementAccelerator = getAchievementAccelerator(achievement);
+
+        let activationAccelerator = getActivationAccelerator(activation);
+
+        let finalBPI = baseBPI * achievementAccelerator * activationAccelerator;
+
+        let multiplier = getMultiplier(finalBPI);
+
+        let raw = achieved * CONFIG.basePct * multiplier * quality;
+
+        let tapered = taper(raw);
+
+        let gap = Math.max(target * 1.2 - achieved, 0);
+
+        let insight = "Strong Performance";
+
+        document.getElementById("bpi").innerText =
+          (finalBPI * 100).toFixed(1) + "%";
+
+        document.getElementById("weightedMix").innerText =
+          (weightedMix * 100).toFixed(1) + "%";
+
+        document.getElementById("achievementAccel").innerText =
+          achievementAccelerator + "x";
+
+        document.getElementById("activationAccel").innerText =
+          activationAccelerator + "x";
+
+        document.getElementById("multiplier").innerText = multiplier + "x";
+
+        document.getElementById("rawIncentive").innerText =
+          Math.round(raw).toLocaleString();
+
+        document.getElementById("finalIncentive").innerText =
+          Math.round(tapered).toLocaleString();
+
+        document.getElementById("gap").innerText =
+          Math.round(gap).toLocaleString();
+
+        document.getElementById("insight").innerText = insight;
+      }
+
+      function calculatePNL() {
+        let rmCount = safeNumber(document.getElementById("rmCount").value);
+
+        let avgProd = safeNumber(document.getElementById("avgProd").value);
+
+        let weightedMultiplier = safeNumber(
+          document.getElementById("weightedMultiplier").value,
+        );
+
+        let annualBusiness = rmCount * avgProd * 12;
+
+        let rmCost = annualBusiness * CONFIG.basePct * weightedMultiplier;
+
+        let totalCost = rmCost;
+
+        let costPct = (totalCost / annualBusiness) * 100;
+
+        document.getElementById("annualBusiness").innerText =
+          Math.round(annualBusiness).toLocaleString();
+
+        document.getElementById("rmCost").innerText =
+          Math.round(rmCost).toLocaleString();
+
+        document.getElementById("totalCost").innerText =
+          Math.round(totalCost).toLocaleString();
+
+        document.getElementById("costPct").innerText = costPct.toFixed(2);
+      }
+
+      function processCSV() {
+        const file = document.getElementById("csvFile").files[0];
+
+        if (!file) {
+          alert("Please upload file");
+
+          return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          processedRMData = [];
+
+          const data = new Uint8Array(e.target.result);
+
+          const workbook = XLSX.read(data, { type: "array" });
+
+          const sheetName = workbook.SheetNames[0];
+
+          const worksheet = workbook.Sheets[sheetName];
+
+          const json = XLSX.utils.sheet_to_json(worksheet);
+
+          json.forEach((row) => {
+            let rm = row["RM Name"];
+
+            if (!rm) {
+              return;
+            }
+
+            let zone = row["Zone"];
+
+            let target = safeNumber(row["Target"]);
+
+            let achieved = safeNumber(row["Achieved"]);
+
+            let activation = safeNumber(row["Activation %"]) / 100;
+
+            let fresh = safeNumber(row["Fresh Business %"]) / 100;
+
+            let fp1 = safeNumber(row["FP1 %"]) / 100;
+
+            let fp2 = safeNumber(row["FP2 %"]) / 100;
+
+            let fp3 = safeNumber(row["FP3 %"]) / 100;
+
+            let fp4 = safeNumber(row["FP4 %"]) / 100;
+
+            let persistency = safeNumber(row["Persistency %"]) / 100;
+
+            let digital = safeNumber(row["Digital %"]) / 100;
+
+            let achievement = target > 0 ? achieved / target : 0;
+
+            let weightedMix = calculateWeightedMix(fresh, fp1, fp2, fp3, fp4);
+
+            let mixContribution =
+              weightedMix * CONFIG.weights.mix.overallWeight;
+
+            let baseBPI =
+              achievement * CONFIG.weights.achievement +
+              activation * CONFIG.weights.activation +
+              mixContribution +
+              persistency * CONFIG.weights.persistency +
+              digital * CONFIG.weights.digital;
+
+            let achievementAccelerator = getAchievementAccelerator(achievement);
+
+            let activationAccelerator = getActivationAccelerator(activation);
+
+            let finalBPI =
+              baseBPI * achievementAccelerator * activationAccelerator;
+
+            let multiplier = getMultiplier(finalBPI);
+
+            let raw = achieved * CONFIG.basePct * multiplier;
+
+            let tapered = taper(raw);
+
+            let insight = "Strong Performance";
+
+            processedRMData.push({
+              rm,
+              zone,
+              achievement,
+              weightedMix,
+              finalBPI,
+              multiplier,
+              raw,
+              tapered,
+              achieved,
+              insight,
+            });
+          });
+
+          renderTable();
+
+          renderAnalytics();
+
+          renderLeaderboard();
+
+          alert("Upload Processed Successfully");
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function renderTable(data = processedRMData) {
+        const tbody = document.querySelector("#resultsTable tbody");
+
+        tbody.innerHTML = "";
+
+        data.forEach((rm) => {
+          let tr = document.createElement("tr");
+
+          tr.innerHTML = `
+
+<td>${rm.rm}</td>
+<td>${rm.zone}</td>
+<td>${(rm.achievement * 100).toFixed(1)}%</td>
+<td>${(rm.weightedMix * 100).toFixed(1)}%</td>
+<td>${(rm.finalBPI * 100).toFixed(1)}%</td>
+<td>${rm.multiplier}x</td>
+<td>₹${Math.round(rm.raw).toLocaleString()}</td>
+<td>₹${Math.round(rm.tapered).toLocaleString()}</td>
+<td>${rm.insight}</td>
+
+`;
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      function sortTable() {
+        let value = document.getElementById("sortBy").value;
+
+        switch (value) {
+          case "incentive_desc":
+            processedRMData.sort((a, b) => b.tapered - a.tapered);
+
+            break;
+
+          case "incentive_asc":
+            processedRMData.sort((a, b) => a.tapered - b.tapered);
+
+            break;
+
+          case "achievement_desc":
+            processedRMData.sort((a, b) => b.achievement - a.achievement);
+
+            break;
+
+          case "achievement_asc":
+            processedRMData.sort((a, b) => a.achievement - b.achievement);
+
+            break;
+
+          case "bpi_desc":
+            processedRMData.sort((a, b) => b.finalBPI - a.finalBPI);
+
+            break;
+
+          case "bpi_asc":
+            processedRMData.sort((a, b) => a.finalBPI - b.finalBPI);
+
+            break;
+
+          case "zone":
+            processedRMData.sort((a, b) => a.zone.localeCompare(b.zone));
+
+            break;
+
+          case "rm":
+            processedRMData.sort((a, b) => a.rm.localeCompare(b.rm));
+
+            break;
+        }
+
+        renderTable();
+      }
+
+      function filterTable() {
+        let search = document.getElementById("searchBox").value.toLowerCase();
+
+        let filtered = processedRMData.filter((rm) => {
+          return (
+            rm.rm.toLowerCase().includes(search) ||
+            rm.zone.toLowerCase().includes(search)
+          );
+        });
+
+        renderTable(filtered);
+      }
+
+      function renderAnalytics() {
+        let totalAchieved = 0;
+
+        let totalRaw = 0;
+
+        let totalFinal = 0;
+
+        let elite = 0;
+
+        let average = 0;
+
+        let low = 0;
+
+        let totalBPI = 0;
+
+        processedRMData.forEach((rm) => {
+          totalAchieved += rm.achieved;
+
+          totalRaw += rm.raw;
+
+          totalFinal += rm.tapered;
+
+          totalBPI += rm.finalBPI;
+
+          if (rm.finalBPI >= 1.5) {
+            elite++;
+          } else if (rm.finalBPI >= 1) {
+            average++;
+          } else {
+            low++;
+          }
+        });
+
+        let avgBPI =
+          processedRMData.length > 0
+            ? (totalBPI / processedRMData.length) * 100
+            : 0;
+
+        let avgIncentive =
+          processedRMData.length > 0 ? totalFinal / processedRMData.length : 0;
+
+        let rawPct = totalAchieved > 0 ? (totalRaw / totalAchieved) * 100 : 0;
+
+        let finalPct =
+          totalAchieved > 0 ? (totalFinal / totalAchieved) * 100 : 0;
+
+        document.getElementById("totalAchievedPremium").innerText =
+          Math.round(totalAchieved).toLocaleString();
+
+        document.getElementById("totalRawIncentive").innerText =
+          Math.round(totalRaw).toLocaleString();
+
+        document.getElementById("totalFinalIncentive").innerText =
+          Math.round(totalFinal).toLocaleString();
+
+        document.getElementById("rawPctPremium").innerText = rawPct.toFixed(2);
+
+        document.getElementById("finalPctPremium").innerText =
+          finalPct.toFixed(2);
+
+        document.getElementById("eliteCount").innerText = elite;
+
+        document.getElementById("averageCount").innerText = average;
+
+        document.getElementById("lowCount").innerText = low;
+
+        document.getElementById("avgBPI").innerText = avgBPI.toFixed(1);
+
+        document.getElementById("avgIncentive").innerText =
+          Math.round(avgIncentive).toLocaleString();
+      }
+
+      function renderLeaderboard() {
+        const topTable = document.getElementById("topLeaderboardBody");
+
+        const bottomTable = document.getElementById("bottomLeaderboardBody");
+
+        topTable.innerHTML = "";
+        bottomTable.innerHTML = "";
+
+        let top = [...processedRMData]
+          .sort((a, b) => b.tapered - a.tapered)
+          .slice(0, 10);
+
+        let bottom = [...processedRMData]
+          .sort((a, b) => a.tapered - b.tapered)
+          .slice(0, 10);
+
+        top.forEach((rm) => {
+          let tr = document.createElement("tr");
+
+          tr.innerHTML = `
+
+<td>${rm.rm}</td>
+<td>${rm.zone}</td>
+<td>${(rm.achievement * 100).toFixed(1)}%</td>
+<td>${(rm.finalBPI * 100).toFixed(1)}%</td>
+<td>₹${Math.round(rm.tapered).toLocaleString()}</td>
+
+`;
+
+          topTable.appendChild(tr);
+        });
+
+        bottom.forEach((rm) => {
+          let tr = document.createElement("tr");
+
+          tr.innerHTML = `
+
+<td>${rm.rm}</td>
+<td>₹${Math.round(rm.tapered).toLocaleString()}</td>
+<td>${rm.insight}</td>
+
+`;
+
+          bottomTable.appendChild(tr);
+        });
+      }
+
+      function runScenario() {
+        let growth = safeNumber(
+          document.getElementById("scenarioGrowth").value,
+        );
+
+        let base = safeNumber(document.getElementById("scenarioBase").value);
+
+        let projectedGWP = 6000000000 * (1 + growth / 100);
+
+        let projectedCost = projectedGWP * base * 1.04;
+
+        let ratio = (projectedCost / projectedGWP) * 100;
+
+        document.getElementById("scenarioGWP").innerText =
+          Math.round(projectedGWP).toLocaleString();
+
+        document.getElementById("scenarioCost").innerText =
+          Math.round(projectedCost).toLocaleString();
+
+        document.getElementById("scenarioRatio").innerText = ratio.toFixed(2);
+      }
+
+      calculateRM();
+
+      calculatePNL();
+
+      runScenario();
+    </script>
+  </body>
+</html>
