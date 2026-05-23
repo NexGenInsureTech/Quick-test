@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>USGI RM Insights & PLI Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+      }
+      .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      .upload-zone:hover,
+      .upload-zone.dragover {
+        border-color: #0ea5e9;
+        background-color: #f0f9ff;
+      }
+
+      /* Tier Colors */
+      .tier-Diamond {
+        color: #0284c7;
+        background-color: #e0f2fe;
+        border: 1px solid #bae6fd;
+      }
+      .tier-Platinum {
+        color: #475569;
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+      }
+      .tier-Gold {
+        color: #b45309;
+        background-color: #fef3c7;
+        border: 1px solid #fde68a;
+      }
+      .tier-Silver {
+        color: #64748b;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+      }
+      .tier-Bronze {
+        color: #92400e;
+        background-color: #ffedd5;
+        border: 1px solid #fed7aa;
+      }
+
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 250px;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col antialiased">
+    <!-- Chosen Palette: Slate (Professional UI), Sky Blue (Actions), Amber/Emerald/Red (Alerts/Status). -->
+    <!-- Application Structure Plan: 
+    1. Header: Companion branding to the Master Simulator.
+    2. Upload Section: Drag/drop or click to upload CSV, plus a 'Demo' button for instant testing.
+    3. Dashboard (Hidden initially):
+        - Top Row: Aggregate KPIs (Total RMs, Average Achievement, Quality metrics).
+        - Middle Row: AI Insights Panel (Auto-generated text based on data distribution) + Tier Distribution Chart.
+        - Bottom Row: The Data Grid. Searchable table applying the PDF rules to individual RMs. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-slate-900 text-white shadow-md z-10 sticky top-0">
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+      >
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-sky-400">
+            &#x1F4CA; Project 800: RM Insights & PLI Engine
+          </h1>
+          <p class="text-xs text-slate-300 mt-1">
+            Module 2: Micro-Level Workforce Analytics
+          </p>
+        </div>
+        <button
+          onclick="location.reload()"
+          class="text-sm bg-slate-800 hover:bg-slate-700 text-white py-1.5 px-4 rounded border border-slate-600 transition-colors"
+        >
+          &#x21BA; Reset Data
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <!-- UPLOAD SECTION -->
+      <section
+        id="uploadSection"
+        class="card max-w-2xl mx-auto text-center animate-fade-in mt-10 border-t-4 border-sky-500"
+      >
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-slate-800">
+            &#x1F4C2; Upload RM Performance Data
+          </h2>
+          <p class="text-sm text-slate-500 mt-2">
+            Upload a CSV file containing internal RM targets, achievements, and
+            quality metrics to compute actual PLI liability and generate
+            actionable insights.
+          </p>
+        </div>
+
+        <div
+          class="upload-zone py-12 px-6 mb-6"
+          id="dropZone"
+          onclick="document.getElementById('csvFileInput').click()"
+        >
+          <div class="text-4xl mb-3">&#x1F4BE;</div>
+          <p class="text-slate-600 font-medium">
+            Click or Drag & Drop CSV here
+          </p>
+          <p class="text-xs text-slate-400 mt-1">
+            Expected columns: RM_ID, RM_Name, Region, Target_GWP, Achieved_GWP,
+            Annual_Points, Loss_Ratio, Renewal_Rate
+          </p>
+          <input
+            type="file"
+            id="csvFileInput"
+            accept=".csv"
+            class="hidden"
+            onchange="handleFileUpload(event)"
+          />
+        </div>
+
+        <div class="flex items-center justify-center space-x-4">
+          <div class="h-px bg-slate-200 flex-grow"></div>
+          <span class="text-xs text-slate-400 font-bold uppercase">OR</span>
+          <div class="h-px bg-slate-200 flex-grow"></div>
+        </div>
+
+        <button
+          onclick="loadDemoData()"
+          class="mt-6 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition-colors w-full"
+        >
+          &#x1F680; Load Simulated USGI Demo Dataset
+        </button>
+      </section>
+
+      <!-- DASHBOARD SECTION (Hidden by default) -->
+      <section id="dashboardSection" class="hidden space-y-6 animate-fade-in">
+        <!-- KPI Strip -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="card p-4 text-center border-l-4 border-slate-500">
+            <p
+              class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+            >
+              Total RMs
+            </p>
+            <div id="kpiCount" class="text-2xl font-black text-slate-800">
+              0
+            </div>
+          </div>
+          <div class="card p-4 text-center border-l-4 border-sky-500">
+            <p
+              class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+            >
+              Total GWP Achieved
+            </p>
+            <div id="kpiGWP" class="text-2xl font-black text-sky-700">
+              &#x20B9; 0 Cr
+            </div>
+          </div>
+          <div class="card p-4 text-center border-l-4 border-amber-500">
+            <p
+              class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+            >
+              RMs Facing Clawback
+            </p>
+            <div id="kpiClawback" class="text-2xl font-black text-amber-600">
+              0%
+            </div>
+          </div>
+          <div class="card p-4 text-center border-l-4 border-emerald-500">
+            <p
+              class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+            >
+              Earning Renewal Booster
+            </p>
+            <div id="kpiBooster" class="text-2xl font-black text-emerald-600">
+              0%
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights & Chart Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- AI Insight Generator -->
+          <div
+            class="card lg:col-span-2 border border-sky-200 bg-sky-50 shadow-sm relative overflow-hidden"
+          >
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">
+              &#x1F9E0;
+            </div>
+            <h3
+              class="text-md font-bold text-sky-900 mb-3 border-b border-sky-200 pb-2"
+            >
+              &#x2728; AI Actionable Insights
+            </h3>
+            <div
+              id="aiInsightsPanel"
+              class="space-y-3 text-sm text-sky-800 leading-relaxed"
+            >
+              <!-- Populated by JS -->
+              <p class="animate-pulse text-sky-600">
+                Analyzing workforce dataset...
+              </p>
+            </div>
+          </div>
+
+          <!-- Distribution Chart -->
+          <div class="card">
+            <h3
+              class="text-sm font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2"
+            >
+              &#x1F3C6; Booster Tier Distribution
+            </h3>
+            <div class="chart-container">
+              <canvas id="tierChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Grid -->
+        <div class="card p-0 overflow-hidden border border-slate-200">
+          <div
+            class="bg-slate-50 px-5 py-4 border-b border-slate-200 flex justify-between items-center"
+          >
+            <h3 class="text-sm font-bold text-slate-800">
+              &#x1F4CA; Workforce PLI Execution Grid
+            </h3>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search RM or Region..."
+              class="text-xs p-1.5 border border-slate-300 rounded outline-none focus:border-sky-500 w-48"
+              onkeyup="filterTable()"
+            />
+          </div>
+          <div class="overflow-x-auto max-h-[500px]">
+            <table class="w-full text-xs text-left">
+              <thead
+                class="bg-white text-slate-500 uppercase font-semibold sticky top-0 border-b border-slate-200 shadow-sm"
+              >
+                <tr>
+                  <th class="px-4 py-3">RM Name</th>
+                  <th class="px-4 py-3">Region</th>
+                  <th class="px-4 py-3 text-right">Target (Cr)</th>
+                  <th class="px-4 py-3 text-right">Achieved (Cr)</th>
+                  <th class="px-4 py-3 text-center">Achv %</th>
+                  <th class="px-4 py-3 text-center">Ann. Points</th>
+                  <th class="px-4 py-3 text-center">Tier Zone</th>
+                  <th
+                    class="px-4 py-3 text-center"
+                    title="Loss Ratio (>75% triggers penalty)"
+                  >
+                    LR %
+                  </th>
+                  <th
+                    class="px-4 py-3 text-center"
+                    title="Renewal Rate (>=85% triggers booster)"
+                  >
+                    Ren %
+                  </th>
+                  <th class="px-4 py-3 text-center">Final PLI Impact</th>
+                </tr>
+              </thead>
+              <tbody id="rmTableBody" class="divide-y divide-slate-100">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // --- CONSTANTS FROM POLICY PDF ---
+      const PLI_BASE_RATE = 0.012; // 1.2% assumed base
+      const LR_THRESHOLD = 75;
+      const REN_THRESHOLD = 85;
+
+      // --- STATE ---
+      let rmData = [];
+      let tierChartInstance = null;
+
+      // --- DATA PROCESSING LOGIC ---
+      function processData(rawData) {
+        rmData = rawData.map((rm) => {
+          const target = parseFloat(rm.Target_GWP);
+          const achieved = parseFloat(rm.Achieved_GWP);
+          const achvPct = (achieved / target) * 100;
+          const points = parseInt(rm.Annual_Points);
+          const lr = parseFloat(rm.Loss_Ratio);
+          const ren = parseFloat(rm.Renewal_Rate);
+
+          // Determine Tier (from PDF: Bronze <8, Silver 8-14, Gold 15-21, Platinum 22-29, Diamond >=30)
+          let tier = "";
+          let boosterPct = 0;
+          if (points >= 30) {
+            tier = "Diamond";
+            boosterPct = 0.2;
+          } else if (points >= 22) {
+            tier = "Platinum";
+            boosterPct = 0.15;
+          } else if (points >= 15) {
+            tier = "Gold";
+            boosterPct = 0.1;
+          } else if (points >= 8) {
+            tier = "Silver";
+            boosterPct = 0.05;
+          } else {
+            tier = "Bronze";
+            boosterPct = 0;
+          }
+
+          // Determine Quality Impacts
+          const hasClawback = lr > LR_THRESHOLD;
+          const hasRenBooster = ren >= REN_THRESHOLD;
+
+          // Base calculation for illustration
+          const basePLI = achieved * PLI_BASE_RATE;
+          let finalPLI = basePLI * (1 + boosterPct);
+          if (hasClawback) finalPLI = finalPLI * 0.8; // 20% clawback
+          if (hasRenBooster) finalPLI = finalPLI + finalPLI * 0.05; // 5% additional
+
+          return {
+            ...rm,
+            achvPct,
+            tier,
+            hasClawback,
+            hasRenBooster,
+            finalPLI,
+          };
+        });
+
+        renderDashboard();
+      }
+
+      // --- UI RENDERING ---
+      function renderDashboard() {
+        document.getElementById("uploadSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+
+        // KPI Calculations
+        const totalRMs = rmData.length;
+        const totalGWP = rmData.reduce(
+          (sum, rm) => sum + parseFloat(rm.Achieved_GWP),
+          0,
+        );
+        const clawbackCount = rmData.filter((rm) => rm.hasClawback).length;
+        const boosterCount = rmData.filter((rm) => rm.hasRenBooster).length;
+
+        document.getElementById("kpiCount").innerText = totalRMs;
+        document.getElementById("kpiGWP").innerHTML =
+          `&#x20B9; ${totalGWP.toFixed(1)} Cr`;
+        document.getElementById("kpiClawback").innerText =
+          `${((clawbackCount / totalRMs) * 100).toFixed(1)}%`;
+        document.getElementById("kpiBooster").innerText =
+          `${((boosterCount / totalRMs) * 100).toFixed(1)}%`;
+
+        renderTable();
+        renderChart();
+        generateAIInsights();
+      }
+
+      function renderTable() {
+        const tbody = document.getElementById("rmTableBody");
+        tbody.innerHTML = rmData
+          .map((rm) => {
+            let impactHtml = "";
+            if (rm.hasClawback)
+              impactHtml += `<span class="bg-red-100 text-red-700 px-1 rounded text-[10px] font-bold mr-1">-20% LR</span>`;
+            if (rm.hasRenBooster)
+              impactHtml += `<span class="bg-emerald-100 text-emerald-700 px-1 rounded text-[10px] font-bold">+5% Ren</span>`;
+            if (!rm.hasClawback && !rm.hasRenBooster)
+              impactHtml = `<span class="text-slate-400 text-[10px]">Standard</span>`;
+
+            const lrClass = rm.hasClawback
+              ? "text-red-600 font-bold"
+              : "text-slate-600";
+            const renClass = rm.hasRenBooster
+              ? "text-emerald-600 font-bold"
+              : "text-slate-600";
+            const achvClass =
+              rm.achvPct >= 100
+                ? "text-emerald-600 font-bold"
+                : "text-amber-600 font-medium";
+
+            return `
+                    <tr class="hover:bg-slate-50 transition-colors rm-row">
+                        <td class="px-4 py-2 font-medium text-slate-800">${rm.RM_Name}</td>
+                        <td class="px-4 py-2 text-slate-600 region-cell">${rm.Region}</td>
+                        <td class="px-4 py-2 text-right text-slate-500">${rm.Target_GWP}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-slate-700">${rm.Achieved_GWP}</td>
+                        <td class="px-4 py-2 text-center ${achvClass}">${rm.achvPct.toFixed(0)}%</td>
+                        <td class="px-4 py-2 text-center font-bold text-slate-700">${rm.Annual_Points}</td>
+                        <td class="px-4 py-2 text-center">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tier-${rm.tier}">${rm.tier}</span>
+                        </td>
+                        <td class="px-4 py-2 text-center ${lrClass}">${rm.Loss_Ratio}%</td>
+                        <td class="px-4 py-2 text-center ${renClass}">${rm.Renewal_Rate}%</td>
+                        <td class="px-4 py-2 text-center whitespace-nowrap">${impactHtml}</td>
+                    </tr>
+                `;
+          })
+          .join("");
+      }
+
+      function filterTable() {
+        const query = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const rows = document.querySelectorAll(".rm-row");
+        rows.forEach((row) => {
+          const text = row.innerText.toLowerCase();
+          row.style.display = text.includes(query) ? "" : "none";
+        });
+      }
+
+      function renderChart() {
+        const tiers = {
+          Bronze: 0,
+          Silver: 0,
+          Gold: 0,
+          Platinum: 0,
+          Diamond: 0,
+        };
+        rmData.forEach((rm) => tiers[rm.tier]++);
+
+        const ctx = document.getElementById("tierChart").getContext("2d");
+
+        if (tierChartInstance) tierChartInstance.destroy();
+
+        tierChartInstance = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: Object.keys(tiers),
+            datasets: [
+              {
+                data: Object.values(tiers),
+                backgroundColor: [
+                  "#fed7aa",
+                  "#e2e8f0",
+                  "#fde68a",
+                  "#cbd5e1",
+                  "#bae6fd",
+                ],
+                borderColor: [
+                  "#f97316",
+                  "#64748b",
+                  "#d97706",
+                  "#475569",
+                  "#0284c7",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: { boxWidth: 12, font: { size: 10 } },
+              },
+            },
+            cutout: "65%",
+          },
+        });
+      }
+
+      // --- AI INSIGHT ENGINE ---
+      function generateAIInsights() {
+        const total = rmData.length;
+        const avgLR =
+          rmData.reduce((sum, rm) => sum + parseFloat(rm.Loss_Ratio), 0) /
+          total;
+        const avgRen =
+          rmData.reduce((sum, rm) => sum + parseFloat(rm.Renewal_Rate), 0) /
+          total;
+        const underperformers = rmData.filter(
+          (rm) => rm.tier === "Bronze",
+        ).length;
+        const overperformers = rmData.filter(
+          (rm) => rm.tier === "Diamond" || rm.tier === "Platinum",
+        ).length;
+        const clawbacks = rmData.filter((rm) => rm.hasClawback);
+
+        // Find worst region for LR
+        const regionLRs = {};
+        rmData.forEach((rm) => {
+          if (!regionLRs[rm.Region])
+            regionLRs[rm.Region] = { sum: 0, count: 0 };
+          regionLRs[rm.Region].sum += parseFloat(rm.Loss_Ratio);
+          regionLRs[rm.Region].count++;
+        });
+        let worstRegion = "";
+        let maxLR = 0;
+        for (const [reg, data] of Object.entries(regionLRs)) {
+          let lr = data.sum / data.count;
+          if (lr > maxLR) {
+            maxLR = lr;
+            worstRegion = reg;
+          }
+        }
+
+        let html = `<ul class="space-y-4 list-disc pl-5">`;
+
+        // Insight 1: Pipeline / Target Health
+        if (underperformers > total * 0.4) {
+          html += `<li><strong>Activation Alert:</strong> A significant portion (${((underperformers / total) * 100).toFixed(0)}%) of the workforce is stuck in the <em>Bronze Zone</em> (<8 points). To reach the 800Cr target, base targets may need re-calibration or you must deploy the "CASA Activation League" campaign immediately to drive base volumes.</li>`;
+        } else {
+          html += `<li><strong>Healthy Pipeline:</strong> ${((overperformers / total) * 100).toFixed(0)}% of RMs are in Diamond/Platinum zones. The consistency booster budget will be utilized heavily, meaning retention of top performers is strong.</li>`;
+        }
+
+        // Insight 2: Quality & Profitability
+        if (avgLR > LR_THRESHOLD || clawbacks.length > total * 0.2) {
+          html += `<li><span class="text-amber-600 font-bold">Profitability Risk:</span> High frequency of Loss Ratio clawbacks detected (affecting ${clawbacks.length} RMs). The <strong>${worstRegion} region</strong> is driving this with an average LR of ${maxLR.toFixed(1)}%. Immediate underwriting intervention required in ${worstRegion} to protect net margin.</li>`;
+        } else {
+          html += `<li><span class="text-emerald-700 font-bold">Strong Quality Control:</span> Portfolio Loss Ratio is healthy (Avg: ${avgLR.toFixed(1)}%). The 20% clawback mechanism is rarely triggering, indicating clean business acquisition.</li>`;
+        }
+
+        // Insight 3: Retention
+        if (avgRen < REN_THRESHOLD) {
+          html += `<li><strong>Missed Opportunity:</strong> Average renewal rate (${avgRen.toFixed(1)}%) is below the 85% target threshold. RMs are missing the 5% PLI booster. Implement a dedicated renewal tracking sprint in Q4 to unlock this payout and secure long-term book stability.</li>`;
+        }
+
+        html += `</ul>`;
+
+        // Add actionable recommendation block
+        html += `<div class="mt-4 p-3 bg-sky-100 rounded-lg border border-sky-200 text-sky-900 font-medium text-xs">
+                <strong>&#x1F4CC; Executive Recommendation:</strong> Cross-reference the ${worstRegion} region's high Loss Ratio against the Bank's loan disbursement policies in that specific geography. The data suggests poor quality risk is being sourced through standard loan attachment there.
+            </div>`;
+
+        document.getElementById("aiInsightsPanel").innerHTML = html;
+      }
+
+      // --- FILE HANDLING & DEMO ---
+      function loadDemoData() {
+        // Simulated Dataset of ~15 RMs across regions representing a slice of the 400
+        const demoCSV = [
+          {
+            RM_ID: "USG101",
+            RM_Name: "Rahul Sharma",
+            Region: "North - Delhi",
+            Target_GWP: "2.0",
+            Achieved_GWP: "2.5",
+            Annual_Points: "32",
+            Loss_Ratio: "68",
+            Renewal_Rate: "88",
+          },
+          {
+            RM_ID: "USG102",
+            RM_Name: "Priya Patel",
+            Region: "West - Mumbai",
+            Target_GWP: "2.5",
+            Achieved_GWP: "2.2",
+            Annual_Points: "12",
+            Loss_Ratio: "71",
+            Renewal_Rate: "82",
+          },
+          {
+            RM_ID: "USG103",
+            RM_Name: "Amit Singh",
+            Region: "North - Punjab",
+            Target_GWP: "1.5",
+            Achieved_GWP: "2.0",
+            Annual_Points: "28",
+            Loss_Ratio: "78",
+            Renewal_Rate: "86",
+          },
+          {
+            RM_ID: "USG104",
+            RM_Name: "Sneha Reddy",
+            Region: "South - Hyd",
+            Target_GWP: "2.0",
+            Achieved_GWP: "2.8",
+            Annual_Points: "35",
+            Loss_Ratio: "62",
+            Renewal_Rate: "91",
+          },
+          {
+            RM_ID: "USG105",
+            RM_Name: "Vikram Das",
+            Region: "East - Kolkata",
+            Target_GWP: "1.8",
+            Achieved_GWP: "1.2",
+            Annual_Points: "6",
+            Loss_Ratio: "82",
+            Renewal_Rate: "75",
+          },
+          {
+            RM_ID: "USG106",
+            RM_Name: "Neha Gupta",
+            Region: "West - Pune",
+            Target_GWP: "2.2",
+            Achieved_GWP: "2.3",
+            Annual_Points: "16",
+            Loss_Ratio: "70",
+            Renewal_Rate: "84",
+          },
+          {
+            RM_ID: "USG107",
+            RM_Name: "Sanjay Kumar",
+            Region: "North - UP",
+            Target_GWP: "1.5",
+            Achieved_GWP: "1.4",
+            Annual_Points: "7",
+            Loss_Ratio: "76",
+            Renewal_Rate: "79",
+          },
+          {
+            RM_ID: "USG108",
+            RM_Name: "Divya Iyer",
+            Region: "South - Chennai",
+            Target_GWP: "2.0",
+            Achieved_GWP: "2.1",
+            Annual_Points: "20",
+            Loss_Ratio: "65",
+            Renewal_Rate: "88",
+          },
+          {
+            RM_ID: "USG109",
+            RM_Name: "Rohan Desai",
+            Region: "West - Guj",
+            Target_GWP: "2.5",
+            Achieved_GWP: "3.1",
+            Annual_Points: "31",
+            Loss_Ratio: "72",
+            Renewal_Rate: "85",
+          },
+          {
+            RM_ID: "USG110",
+            RM_Name: "Pooja Verma",
+            Region: "North - Delhi",
+            Target_GWP: "2.0",
+            Achieved_GWP: "1.8",
+            Annual_Points: "10",
+            Loss_Ratio: "69",
+            Renewal_Rate: "81",
+          },
+          {
+            RM_ID: "USG111",
+            RM_Name: "Arjun Nair",
+            Region: "South - Kerala",
+            Target_GWP: "1.8",
+            Achieved_GWP: "2.4",
+            Annual_Points: "25",
+            Loss_Ratio: "64",
+            Renewal_Rate: "90",
+          },
+          {
+            RM_ID: "USG112",
+            RM_Name: "Kavita Mishra",
+            Region: "East - Patna",
+            Target_GWP: "1.5",
+            Achieved_GWP: "0.9",
+            Annual_Points: "4",
+            Loss_Ratio: "85",
+            Renewal_Rate: "70",
+          },
+        ];
+        processData(demoCSV);
+      }
+
+      function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const text = e.target.result;
+          const rows = text.split("\n");
+          if (rows.length < 2) return alert("Invalid CSV file.");
+
+          const headers = rows[0].split(",").map((h) => h.trim());
+          const parsedData = [];
+
+          for (let i = 1; i < rows.length; i++) {
+            if (!rows[i].trim()) continue;
+            const values = rows[i].split(",");
+            let rowObj = {};
+            headers.forEach((header, index) => {
+              rowObj[header] = values[index] ? values[index].trim() : "";
+            });
+
+            // Basic validation to ensure required fields exist
+            if (rowObj.Target_GWP && rowObj.Annual_Points) {
+              parsedData.push(rowObj);
+            }
+          }
+
+          if (parsedData.length > 0) {
+            processData(parsedData);
+          } else {
+            alert(
+              "Could not parse data. Ensure headers match expected format.",
+            );
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // Drag and drop event handling
+      const dropZone = document.getElementById("dropZone");
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          document.getElementById("csvFileInput").files = files;
+          handleFileUpload({ target: { files: files } });
+        }
+      });
+    </script>
+  </body>
+</html>

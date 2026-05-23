@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>USGI Comprehensive Banca Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7f6;
+        color: #1e293b;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+      }
+
+      .tab-btn {
+        border-bottom: 3px solid transparent;
+        color: #64748b;
+        font-weight: 500;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .tab-btn:hover {
+        color: #0ea5e9;
+      }
+      .tab-active {
+        border-bottom-color: #0ea5e9;
+        color: #0ea5e9;
+        font-weight: 700;
+      }
+
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+      }
+      .small-chart-container {
+        position: relative;
+        width: 100%;
+        height: 250px;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        margin: 8px 0;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: #0ea5e9;
+        cursor: pointer;
+        margin-top: -6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      input[type="range"]:focus {
+        outline: none;
+      }
+
+      .slider-emerald::-webkit-slider-thumb {
+        background: #10b981;
+      }
+      .slider-amber::-webkit-slider-thumb {
+        background: #f59e0b;
+      }
+
+      /* RM Insights Upload Zone & Tiers */
+      .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      .upload-zone:hover,
+      .upload-zone.dragover {
+        border-color: #0ea5e9;
+        background-color: #f0f9ff;
+      }
+      .tier-Diamond {
+        color: #0284c7;
+        background-color: #e0f2fe;
+        border: 1px solid #bae6fd;
+      }
+      .tier-Platinum {
+        color: #475569;
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+      }
+      .tier-Gold {
+        color: #b45309;
+        background-color: #fef3c7;
+        border: 1px solid #fde68a;
+      }
+      .tier-Silver {
+        color: #64748b;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+      }
+      .tier-Bronze {
+        color: #92400e;
+        background-color: #ffedd5;
+        border: 1px solid #fed7aa;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col antialiased">
+    <!-- Chosen Palette: Corporate Trust (Slate-900 header, Sky-500 primary, Emerald-500 positive metrics, Amber-500 costs). -->
+    <!-- Application Structure Plan: 
+    - Left Sidebar: Macro Strategy Controls
+    - Right Main Area (Tabbed): 
+        Tab 1: Target Cascade
+        Tab 2: Financial P&L Ledger
+        Tab 3: Scenario Vault
+        Tab 4 (NEW): RM Upload & Execution Insights - connects the macro strategy to the micro RM reality. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-slate-900 text-white shadow-md z-20 relative">
+      <div
+        class="max-w-[1500px] mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center"
+      >
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">
+            &#x1F3E2; Universal Sompo - Project 800 Banca Simulator
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">
+            Integrating Macro Bank Strategy with Micro Internal PLI Policy
+          </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex gap-3 text-sm">
+          <div
+            class="bg-slate-800 rounded px-3 py-1 border border-slate-700 flex flex-col items-center"
+          >
+            <span class="text-[10px] text-slate-400 uppercase">FY 25-26</span>
+            <span class="font-bold text-slate-200">&#x20B9; 433 Cr</span>
+          </div>
+          <div
+            class="bg-sky-900 rounded px-3 py-1 border border-sky-700 flex flex-col items-center shadow-[0_0_10px_rgba(14,165,233,0.3)]"
+          >
+            <span class="text-[10px] text-sky-200 uppercase"
+              >Simulated GWP</span
+            >
+            <span class="font-bold text-sky-400"
+              >&#x20B9; <span id="hdrSimGWP">800</span> Cr</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="flex-grow max-w-[1500px] mx-auto w-full flex flex-col lg:flex-row h-[calc(100vh-70px)] overflow-hidden"
+    >
+      <!-- LEFT PANEL: CONTROLS -->
+      <aside
+        class="w-full lg:w-80 border-r border-slate-200 bg-white overflow-y-auto shadow-inner flex-shrink-0"
+      >
+        <div class="p-5 space-y-6">
+          <!-- Section 1: Bank Growth Levers -->
+          <div>
+            <h2
+              class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider border-b border-slate-200 pb-1"
+            >
+              &#x1F4C8; Bank Network Levers
+            </h2>
+
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-slate-700 mb-1"
+                >R&R Execution Theme</label
+              >
+              <select
+                id="inpTheme"
+                class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded p-2 focus:border-sky-500 outline-none"
+              >
+                <option value="loan">
+                  The Credit-Shield Grand Prix (Loan ROs)
+                </option>
+                <option value="casa">
+                  CASA Activation League (Branch Volume)
+                </option>
+                <option value="titans">Titans of 800 (GM Top-Down)</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Aspirational Target</span>
+                <span id="lblTarget" class="text-sky-600">&#x20B9; 800 Cr</span>
+              </div>
+              <input
+                type="range"
+                id="inpTarget"
+                min="450"
+                max="1200"
+                step="10"
+                value="800"
+              />
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Branch Activation</span>
+                <span id="lblActive" class="text-sky-600">35%</span>
+              </div>
+              <input
+                type="range"
+                id="inpActive"
+                min="10"
+                max="80"
+                step="5"
+                value="35"
+              />
+              <p class="text-[9px] text-slate-500">
+                Out of 10,500 total branches
+              </p>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Bank R&R Budget Allocation</span>
+                <span id="lblBankBudget" class="text-amber-600">1.5%</span>
+              </div>
+              <input
+                type="range"
+                id="inpBankBudget"
+                class="slider-amber"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+                value="1.5"
+              />
+              <p class="text-[9px] text-slate-500">
+                % of Incremental GWP used for Bank staff rewards
+              </p>
+            </div>
+          </div>
+
+          <!-- Section 2: Internal USGI Policy Rules -->
+          <div>
+            <h2
+              class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider border-b border-slate-200 pb-1"
+            >
+              &#x2699;&#xFE0F; Internal PLI Rules (PDF)
+            </h2>
+
+            <div class="mb-4 p-2 bg-slate-50 rounded border border-slate-200">
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700"
+                  >High Performer Mix (Dia/Plat)</span
+                >
+                <span id="lblPerformers" class="text-sky-600">40%</span>
+              </div>
+              <input
+                type="range"
+                id="inpPerformers"
+                min="10"
+                max="80"
+                step="5"
+                value="40"
+              />
+              <p class="text-[9px] text-slate-500 mt-1">
+                Higher % increases the consistency booster payout (up to +20% on
+                base).
+              </p>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Quality: Loss Ratio (LR)</span>
+                <span id="lblLR" class="text-slate-800">72%</span>
+              </div>
+              <input
+                type="range"
+                id="inpLR"
+                class="slider-emerald"
+                min="60"
+                max="110"
+                step="1"
+                value="72"
+              />
+              <p class="text-[9px] text-slate-500">
+                If >75% threshold, triggers 20% PLI Clawback.
+              </p>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Quality: Renewal Rate</span>
+                <span id="lblRen" class="text-slate-800">86%</span>
+              </div>
+              <input
+                type="range"
+                id="inpRen"
+                class="slider-emerald"
+                min="60"
+                max="100"
+                step="1"
+                value="86"
+              />
+              <p class="text-[9px] text-slate-500">
+                If >=85% target, triggers 5% PLI Booster.
+              </p>
+            </div>
+
+            <div class="mb-4 pt-2 border-t border-slate-200">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-700">Standard Opex (Non-PLI)</span>
+                <span id="lblOpex" class="text-slate-800">18%</span>
+              </div>
+              <input
+                type="range"
+                id="inpOpex"
+                min="10"
+                max="30"
+                step="1"
+                value="18"
+              />
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL: DASHBOARD -->
+      <section
+        class="flex-grow flex flex-col bg-[#f8fafc] overflow-y-auto overflow-x-hidden"
+      >
+        <!-- Tabs Navigation -->
+        <div
+          class="bg-white border-b border-slate-200 px-6 pt-4 sticky top-0 z-10 overflow-x-auto hide-scrollbar"
+        >
+          <nav class="flex space-x-6 text-sm" aria-label="Tabs">
+            <button
+              onclick="switchTab('cascade')"
+              id="tab-cascade"
+              class="tab-btn tab-active pb-3 px-1"
+            >
+              &#x1F3AF; Target Cascade
+            </button>
+            <button
+              onclick="switchTab('finance')"
+              id="tab-finance"
+              class="tab-btn pb-3 px-1"
+            >
+              &#x1F4B4; P&L Ledger
+            </button>
+            <button
+              onclick="switchTab('vault')"
+              id="tab-vault"
+              class="tab-btn pb-3 px-1"
+            >
+              &#x1F4C2; Scenario Vault
+            </button>
+            <button
+              onclick="switchTab('insights')"
+              id="tab-insights"
+              class="tab-btn pb-3 px-1 border-l pl-6 border-slate-300 font-bold text-sky-700"
+            >
+              &#x1F4CA; RM Upload & Insights
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content Area -->
+        <div class="p-6">
+          <!-- TAB 1: CASCADE -->
+          <div id="sec-cascade" class="space-y-6 animate-fade-in block">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="card p-5 text-center border-t-4 border-slate-500">
+                <p
+                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                >
+                  Per USGI Head
+                </p>
+                <div
+                  id="outUSGI"
+                  class="text-3xl font-black text-slate-800 my-2"
+                >
+                  &#x20B9; 2.00 Cr
+                </div>
+                <p
+                  class="text-xs text-slate-500 bg-slate-50 py-1 rounded inline-block px-3"
+                >
+                  400 Internal Staff
+                </p>
+              </div>
+              <div class="card p-5 text-center border-t-4 border-sky-500">
+                <p
+                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                >
+                  Per Regional Office
+                </p>
+                <div id="outRO" class="text-3xl font-black text-sky-700 my-2">
+                  &#x20B9; 4.00 Cr
+                </div>
+                <p
+                  class="text-xs text-sky-700 bg-sky-50 py-1 rounded inline-block px-3"
+                >
+                  200 Bank ROs
+                </p>
+              </div>
+              <div class="card p-5 text-center border-t-4 border-amber-500">
+                <p
+                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                >
+                  Per Active Branch
+                </p>
+                <div
+                  id="outBranch"
+                  class="text-3xl font-black text-amber-600 my-2"
+                >
+                  &#x20B9; 21.7 L
+                </div>
+                <p
+                  id="outBranchCount"
+                  class="text-xs text-amber-700 bg-amber-50 py-1 rounded inline-block px-3"
+                >
+                  3,675 Branches
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
+            >
+              <div
+                class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center"
+              >
+                <h3 class="text-sm font-bold text-slate-800">
+                  &#x1F4E2; Strategy Execution Summary
+                </h3>
+                <button
+                  onclick="switchTab('finance')"
+                  class="text-xs bg-white border border-slate-300 hover:bg-slate-50 rounded px-2 py-1 text-slate-600"
+                >
+                  View Financial Impact &#x2192;
+                </button>
+              </div>
+              <div class="p-5">
+                <p
+                  id="strategyText"
+                  class="text-sm text-slate-600 leading-relaxed"
+                ></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: FINANCE & P&L -->
+          <div id="sec-finance" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <!-- Detailed P&L Table -->
+              <div class="card overflow-x-auto">
+                <div
+                  class="flex justify-between items-center mb-4 min-w-[400px]"
+                >
+                  <h3 class="text-sm font-bold text-slate-800">
+                    &#x1F4B8; Projected P&L Ledger
+                  </h3>
+                  <button
+                    onclick="saveScenario()"
+                    class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-1.5 px-3 rounded shadow transition-colors"
+                  >
+                    &#x1F4BE; Save Scenario
+                  </button>
+                </div>
+                <table class="w-full text-xs text-left min-w-[400px]">
+                  <tbody id="pnlTable" class="divide-y divide-slate-100">
+                    <!-- JS populated -->
+                  </tbody>
+                </table>
+
+                <div id="policyAlerts" class="mt-4 space-y-2 min-w-[400px]">
+                  <!-- JS populated alerts for clawbacks/boosters -->
+                </div>
+              </div>
+
+              <!-- Chart -->
+              <div class="card">
+                <h3 class="text-sm font-bold text-slate-800 mb-4">
+                  &#x1F4CA; Profitability Waterfall
+                </h3>
+                <div class="chart-container">
+                  <canvas id="waterfallChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: SCENARIO VAULT -->
+          <div id="sec-vault" class="hidden">
+            <div class="card p-0 overflow-hidden">
+              <div class="bg-slate-50 px-5 py-4 border-b border-slate-200">
+                <h3 class="text-sm font-bold text-slate-800">
+                  &#x1F4C2; Saved Scenario Comparison
+                </h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left whitespace-nowrap">
+                  <thead
+                    class="bg-white text-slate-600 text-xs uppercase border-b border-slate-200"
+                  >
+                    <tr>
+                      <th class="px-4 py-3 font-semibold">Scenario Name</th>
+                      <th class="px-4 py-3 font-semibold text-right">
+                        Target (Cr)
+                      </th>
+                      <th class="px-4 py-3 font-semibold text-right">
+                        Branch Tgt (L)
+                      </th>
+                      <th class="px-4 py-3 font-semibold text-right">
+                        Bank R&R Cost
+                      </th>
+                      <th class="px-4 py-3 font-semibold text-right">
+                        USGI PLI Cost
+                      </th>
+                      <th class="px-4 py-3 font-semibold text-right">
+                        Net Margin
+                      </th>
+                      <th class="px-4 py-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vaultBody" class="divide-y divide-slate-100">
+                    <tr>
+                      <td
+                        colspan="7"
+                        class="px-4 py-8 text-center text-slate-400 italic"
+                      >
+                        No scenarios saved. Go to P&L Ledger tab to save.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: RM UPLOAD & INSIGHTS (The integrated feature) -->
+          <div id="sec-insights" class="hidden space-y-6">
+            <div class="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-2">
+              <h3 class="text-sm font-bold text-sky-900">
+                &#x1F50D; Micro-Execution Analytics
+              </h3>
+              <p class="text-xs text-sky-700 mt-1">
+                Verify how your macro budget allocation translates into actual
+                payouts based on real RM performance data and PDF policy rules.
+              </p>
+            </div>
+
+            <!-- UPLOAD UI -->
+            <section
+              id="uploadSection"
+              class="card text-center animate-fade-in border-t-4 border-sky-500"
+            >
+              <h2 class="text-lg font-bold text-slate-800 mb-1">
+                &#x1F4C2; Upload RM Performance Data (CSV)
+              </h2>
+              <p class="text-xs text-slate-500 mb-4">
+                Required columns: RM_ID, RM_Name, Region, Target_GWP,
+                Achieved_GWP, Annual_Points, Loss_Ratio, Renewal_Rate
+              </p>
+
+              <div
+                class="upload-zone py-8 px-6 mb-4 max-w-xl mx-auto"
+                id="dropZone"
+                onclick="document.getElementById('csvFileInput').click()"
+              >
+                <div class="text-3xl mb-2">&#x1F4BE;</div>
+                <p class="text-slate-600 font-medium text-sm">
+                  Click or Drag & Drop CSV here
+                </p>
+                <input
+                  type="file"
+                  id="csvFileInput"
+                  accept=".csv"
+                  class="hidden"
+                  onchange="handleFileUpload(event)"
+                />
+              </div>
+
+              <div
+                class="flex items-center justify-center space-x-4 max-w-xl mx-auto"
+              >
+                <div class="h-px bg-slate-200 flex-grow"></div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase"
+                  >OR</span
+                >
+                <div class="h-px bg-slate-200 flex-grow"></div>
+              </div>
+
+              <button
+                onclick="loadDemoData()"
+                class="mt-4 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-lg text-sm shadow transition-colors"
+              >
+                &#x1F680; Load Simulated Demo Dataset
+              </button>
+            </section>
+
+            <!-- RM DASHBOARD UI (Hidden until data loads) -->
+            <section
+              id="rmDashboardSection"
+              class="hidden space-y-6 animate-fade-in"
+            >
+              <!-- Reset Button row -->
+              <div class="flex justify-end">
+                <button
+                  onclick="resetRMData()"
+                  class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 py-1.5 px-3 rounded transition-colors shadow-sm"
+                >
+                  &#x21BA; Clear Data & Upload New
+                </button>
+              </div>
+
+              <!-- RM KPI Strip -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="card p-4 text-center border-l-4 border-slate-500">
+                  <p
+                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                  >
+                    Total RMs
+                  </p>
+                  <div id="kpiCount" class="text-2xl font-black text-slate-800">
+                    0
+                  </div>
+                </div>
+                <div class="card p-4 text-center border-l-4 border-sky-500">
+                  <p
+                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                  >
+                    Total GWP Achieved
+                  </p>
+                  <div id="kpiGWP" class="text-2xl font-black text-sky-700">
+                    &#x20B9; 0 Cr
+                  </div>
+                </div>
+                <div class="card p-4 text-center border-l-4 border-amber-500">
+                  <p
+                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                  >
+                    RMs Facing Clawback
+                  </p>
+                  <div
+                    id="kpiClawback"
+                    class="text-2xl font-black text-amber-600"
+                  >
+                    0%
+                  </div>
+                </div>
+                <div class="card p-4 text-center border-l-4 border-emerald-500">
+                  <p
+                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
+                  >
+                    Earning Ren. Booster
+                  </p>
+                  <div
+                    id="kpiBooster"
+                    class="text-2xl font-black text-emerald-600"
+                  >
+                    0%
+                  </div>
+                </div>
+              </div>
+
+              <!-- RM Insights & Chart -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div
+                  class="card lg:col-span-2 border border-sky-200 bg-sky-50 shadow-sm relative overflow-hidden"
+                >
+                  <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">
+                    &#x1F9E0;
+                  </div>
+                  <h3
+                    class="text-sm font-bold text-sky-900 mb-3 border-b border-sky-200 pb-2"
+                  >
+                    &#x2728; AI Actionable Insights (Based on Uploaded Data)
+                  </h3>
+                  <div
+                    id="aiInsightsPanel"
+                    class="space-y-3 text-xs text-sky-800 leading-relaxed"
+                  >
+                    <!-- Populated by JS -->
+                  </div>
+                </div>
+                <div class="card">
+                  <h3
+                    class="text-sm font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2"
+                  >
+                    &#x1F3C6; Booster Tier Distribution
+                  </h3>
+                  <div class="small-chart-container">
+                    <canvas id="tierChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Grid -->
+              <div class="card p-0 overflow-hidden border border-slate-200">
+                <div
+                  class="bg-slate-50 px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                >
+                  <h3 class="text-sm font-bold text-slate-800">
+                    &#x1F4CA; Workforce PLI Execution Grid
+                  </h3>
+                  <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search RM or Region..."
+                    class="text-xs p-1.5 border border-slate-300 rounded outline-none focus:border-sky-500 w-full sm:w-48"
+                    onkeyup="filterRMTable()"
+                  />
+                </div>
+                <div class="overflow-x-auto max-h-[400px]">
+                  <table class="w-full text-xs text-left whitespace-nowrap">
+                    <thead
+                      class="bg-white text-slate-500 uppercase font-semibold sticky top-0 border-b border-slate-200 shadow-sm z-10"
+                    >
+                      <tr>
+                        <th class="px-4 py-3">RM Name</th>
+                        <th class="px-4 py-3">Region</th>
+                        <th class="px-4 py-3 text-right">Target (Cr)</th>
+                        <th class="px-4 py-3 text-right">Achieved (Cr)</th>
+                        <th class="px-4 py-3 text-center">Achv %</th>
+                        <th class="px-4 py-3 text-center">Pts</th>
+                        <th class="px-4 py-3 text-center">Tier Zone</th>
+                        <th
+                          class="px-4 py-3 text-center"
+                          title="Loss Ratio (>75% penalty)"
+                        >
+                          LR %
+                        </th>
+                        <th
+                          class="px-4 py-3 text-center"
+                          title="Renewal Rate (>=85% booster)"
+                        >
+                          Ren %
+                        </th>
+                        <th class="px-4 py-3 text-center">PLI Impact</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rmTableBody" class="divide-y divide-slate-100">
+                      <!-- Populated by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // ============================================================================
+      // MODULE 1: MACRO SIMULATOR LOGIC (Tabs 1, 2, 3)
+      // ============================================================================
+
+      const BASE_GWP = 433;
+      const USGI_STAFF = 400;
+      const BANK_ROS = 200;
+      const TOTAL_BRANCHES = 10500;
+
+      // PLI Policy Constants for Macro projection
+      const BASE_PLI_RATE = 0.012;
+      const LR_THRESH = 75;
+      const REN_THRESH = 85;
+      const CLAWBACK_PCT = 0.2;
+      const REN_BOOSTER_PCT = 0.05;
+
+      const state = { tab: "cascade" };
+      const vault = [];
+      let scenarioId = 0;
+      let pnlChart = null;
+
+      const el = {
+        theme: document.getElementById("inpTheme"),
+        target: document.getElementById("inpTarget"),
+        active: document.getElementById("inpActive"),
+        bankBud: document.getElementById("inpBankBudget"),
+        perf: document.getElementById("inpPerformers"),
+        lr: document.getElementById("inpLR"),
+        ren: document.getElementById("inpRen"),
+        opex: document.getElementById("inpOpex"),
+      };
+
+      function calculateMacro() {
+        const target = parseFloat(el.target.value);
+        const activePct = parseFloat(el.active.value);
+        const bankBudPct = parseFloat(el.bankBud.value);
+        const perfPct = parseFloat(el.perf.value);
+        const lr = parseFloat(el.lr.value);
+        const ren = parseFloat(el.ren.value);
+        const opexPct = parseFloat(el.opex.value);
+
+        const incGWP = target - BASE_GWP;
+        const actBranches = Math.floor(TOTAL_BRANCHES * (activePct / 100));
+        const perUSGI = target / USGI_STAFF;
+        const perRO = target / BANK_ROS;
+        const perBranch = (target * 100) / actBranches;
+
+        const bankRRCost = incGWP * (bankBudPct / 100);
+
+        const basePLIPool = target * BASE_PLI_RATE;
+        const consistencyMultiplier = 1 + (perfPct / 100) * 0.15;
+        let grossPLI = basePLIPool * consistencyMultiplier;
+        const costOfBoosters = grossPLI - basePLIPool;
+
+        let lrClawbackVal = 0,
+          renBoosterVal = 0;
+        let isClawback = lr > LR_THRESH,
+          isBooster = ren >= REN_THRESH;
+
+        if (isClawback) lrClawbackVal = grossPLI * CLAWBACK_PCT;
+        if (isBooster) renBoosterVal = grossPLI * REN_BOOSTER_PCT;
+
+        const finalPLICost = grossPLI - lrClawbackVal + renBoosterVal;
+        const claims = target * (lr / 100);
+        const opex = target * (opexPct / 100);
+        const netMargin = target - claims - opex - bankRRCost - finalPLICost;
+
+        return {
+          target,
+          incGWP,
+          actBranches,
+          perUSGI,
+          perRO,
+          perBranch,
+          bankBudPct,
+          bankRRCost,
+          basePLIPool,
+          costOfBoosters,
+          lr,
+          isClawback,
+          lrClawbackVal,
+          ren,
+          isBooster,
+          renBoosterVal,
+          finalPLICost,
+          claims,
+          opex,
+          netMargin,
+          theme: el.theme.value,
+        };
+      }
+
+      function updateMacroUI() {
+        const d = calculateMacro();
+
+        // Labels
+        document.getElementById("lblTarget").innerText =
+          `\u20B9 ${d.target} Cr`;
+        document.getElementById("hdrSimGWP").innerText = d.target;
+        document.getElementById("lblActive").innerText = `${el.active.value}%`;
+        document.getElementById("lblBankBudget").innerText =
+          `${el.bankBud.value}%`;
+        document.getElementById("lblPerformers").innerText =
+          `${el.perf.value}%`;
+
+        const lrLbl = document.getElementById("lblLR");
+        lrLbl.innerText = `${d.lr}%`;
+        lrLbl.className = d.isClawback
+          ? "text-red-600 font-bold bg-red-100 px-1 rounded"
+          : "text-slate-800";
+
+        const renLbl = document.getElementById("lblRen");
+        renLbl.innerText = `${d.ren}%`;
+        renLbl.className = d.isBooster
+          ? "text-emerald-600 font-bold bg-emerald-100 px-1 rounded"
+          : "text-slate-800";
+
+        document.getElementById("lblOpex").innerText = `${el.opex.value}%`;
+
+        // Tab 1: Cascade
+        document.getElementById("outUSGI").innerText =
+          `\u20B9 ${d.perUSGI.toFixed(2)} Cr`;
+        document.getElementById("outRO").innerText =
+          `\u20B9 ${d.perRO.toFixed(2)} Cr`;
+        document.getElementById("outBranch").innerText =
+          `\u20B9 ${d.perBranch.toFixed(1)} L`;
+        document.getElementById("outBranchCount").innerText =
+          `${d.actBranches.toLocaleString()} Branches`;
+
+        const titles = {
+          loan: "Credit-Shield Grand Prix",
+          casa: "CASA Activation League",
+          titans: "Titans of 800 (Top-Down)",
+        };
+        let pitch = `<strong>Strategic Narrative:</strong> To bridge the &#x20B9;${d.incGWP.toFixed(0)} Cr gap using <em>${titles[d.theme]}</em>, our primary focus is: `;
+        if (d.theme === "loan")
+          pitch += `Deploying our 400 internal staff to partner directly with the ${BANK_ROS} Bank Regional Offices. Target is &#x20B9;${d.perRO.toFixed(2)} Cr per RO. Bank R&R budget (&#x20B9;${d.bankRRCost.toFixed(1)} Cr) is concentrated on rewarding Loan Sanctioning GMs/DGMs.`;
+        else if (d.theme === "casa")
+          pitch += `Mass activation. By getting ${el.active.value}% of branches (${d.actBranches.toLocaleString()}) to write just &#x20B9;${d.perBranch.toFixed(1)} Lakhs annually, we hit the target. The &#x20B9;${d.bankRRCost.toFixed(1)} Cr Bank R&R is used for localized, high-frequency gadget rewards for Branch Managers.`;
+        else
+          pitch += `Leveraging bank hierarchy. We task top GMs/Zonal heads with achieving &#x20B9;${d.perRO.toFixed(2)} Cr averages across their zones. The &#x20B9;${d.bankRRCost.toFixed(1)} Cr Bank R&R funds an elite Chairman's Club international summit for the top 10% leadership.`;
+        document.getElementById("strategyText").innerHTML = pitch;
+
+        // Tab 2: Finance
+        document.getElementById("pnlTable").innerHTML = `
+                <tr class="bg-slate-50 border-b border-slate-200">
+                    <td class="py-2 px-3 font-bold text-slate-800">1. Gross Written Premium (Target)</td>
+                    <td class="py-2 px-3 text-right font-bold text-sky-600 text-sm">\u20B9 ${d.target.toFixed(1)} Cr</td>
+                </tr>
+                <tr class="border-b border-slate-100"><td class="py-2 px-3 text-slate-600 pl-6">Less: Claims Incurred (${d.lr}%)</td><td class="py-2 px-3 text-right text-red-500">(\u20B9 ${d.claims.toFixed(1)} Cr)</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-2 px-3 text-slate-600 pl-6">Less: Standard Opex (${el.opex.value}%)</td><td class="py-2 px-3 text-right text-slate-500">(\u20B9 ${d.opex.toFixed(1)} Cr)</td></tr>
+                <tr class="border-b border-slate-100 bg-amber-50"><td class="py-2 px-3 font-semibold text-amber-800 pl-6">Less: External Bank R&R Cost (${d.bankBudPct}% on Inc.)</td><td class="py-2 px-3 text-right font-semibold text-amber-600">(\u20B9 ${d.bankRRCost.toFixed(1)} Cr)</td></tr>
+                <tr class="bg-slate-50 border-y border-slate-200 mt-2"><td class="py-2 px-3 font-bold text-slate-700">2. Internal USGI PLI Ledger</td><td class="py-2 px-3 text-right"></td></tr>
+                <tr class="border-b border-slate-100"><td class="py-1 px-3 text-slate-600 pl-6">Base Incentive Pool</td><td class="py-1 px-3 text-right text-slate-600">\u20B9 ${d.basePLIPool.toFixed(2)} Cr</td></tr>
+                <tr class="border-b border-slate-100"><td class="py-1 px-3 text-slate-600 pl-6">Add: Consistency Boosters (Gold/Diamond)</td><td class="py-1 px-3 text-right text-amber-500">+\u20B9 ${d.costOfBoosters.toFixed(2)} Cr</td></tr>
+                ${d.isClawback ? `<tr class="border-b border-slate-100 bg-red-50"><td class="py-1 px-3 text-red-700 font-medium pl-6">Less: LR Clawback Penalty (20%)</td><td class="py-1 px-3 text-right text-red-600 font-bold">-\u20B9 ${d.lrClawbackVal.toFixed(2)} Cr</td></tr>` : ""}
+                ${d.isBooster ? `<tr class="border-b border-slate-100 bg-emerald-50"><td class="py-1 px-3 text-emerald-700 font-medium pl-6">Add: Renewal Booster Reward (5%)</td><td class="py-1 px-3 text-right text-emerald-600 font-bold">+\u20B9 ${d.renBoosterVal.toFixed(2)} Cr</td></tr>` : ""}
+                <tr class="border-b border-slate-200 bg-slate-50"><td class="py-2 px-3 font-semibold text-slate-700 pl-6">Net USGI PLI Payout Cost</td><td class="py-2 px-3 text-right font-bold text-amber-700">(\u20B9 ${d.finalPLICost.toFixed(2)} Cr)</td></tr>
+                <tr class="border-y-2 border-slate-300 ${d.netMargin > 0 ? "bg-emerald-50" : "bg-red-50"}"><td class="py-3 px-3 font-bold text-slate-800 text-sm">3. Final Net Profit Margin</td><td class="py-3 px-3 text-right font-black text-sm ${d.netMargin > 0 ? "text-emerald-600" : "text-red-600"}">\u20B9 ${d.netMargin.toFixed(1)} Cr</td></tr>
+            `;
+
+        const alerts = document.getElementById("policyAlerts");
+        alerts.innerHTML = "";
+        if (d.isClawback)
+          alerts.innerHTML += `<div class="p-2 bg-red-50 border border-red-200 text-red-800 text-xs rounded shadow-sm"><strong>&#x26A0;&#xFE0F; Clawback Triggered:</strong> Loss ratio (${d.lr}%) > 75%. 20% of internal PLI is withheld, saving &#x20B9;${d.lrClawbackVal.toFixed(2)} Cr.</div>`;
+        if (d.isBooster)
+          alerts.innerHTML += `<div class="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded shadow-sm"><strong>&#x2705; Renewal Booster:</strong> Renewals (${d.ren}%) >= 85%. Additional 5% PLI distributed (&#x20B9;${d.renBoosterVal.toFixed(2)} Cr).</div>`;
+
+        // Chart Update
+        const chartData = {
+          labels: [
+            "Gross Target",
+            "Claims & Opex",
+            "Bank R&R Cost",
+            "USGI PLI Cost",
+            "Net Margin",
+          ],
+          datasets: [
+            {
+              data: [
+                d.target,
+                -(d.claims + d.opex),
+                -d.bankRRCost,
+                -d.finalPLICost,
+                d.netMargin,
+              ],
+              backgroundColor: [
+                "#0ea5e9",
+                "#94a3b8",
+                "#f59e0b",
+                "#f59e0b",
+                d.netMargin > 0 ? "#10b981" : "#ef4444",
+              ],
+              borderRadius: 4,
+            },
+          ],
+        };
+
+        if (pnlChart) {
+          pnlChart.data = chartData;
+          pnlChart.update();
+        } else {
+          pnlChart = new Chart(
+            document.getElementById("waterfallChart").getContext("2d"),
+            {
+              type: "bar",
+              data: chartData,
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (c) => `\u20B9 ${Math.abs(c.raw).toFixed(1)} Cr`,
+                    },
+                  },
+                },
+                scales: {
+                  y: { title: { display: true, text: "Crores (\u20B9)" } },
+                },
+              },
+            },
+          );
+        }
+      }
+
+      function saveScenario() {
+        scenarioId++;
+        const d = calculateMacro();
+        const themes = { loan: "Loan", casa: "CASA", titans: "Top-Down" };
+        vault.push({
+          id: scenarioId,
+          name: `Scen. ${scenarioId} (${themes[d.theme]})`,
+          target: d.target,
+          branch: d.perBranch,
+          bankCost: d.bankRRCost,
+          pliCost: d.finalPLICost,
+          net: d.netMargin,
+        });
+        renderVault();
+        switchTab("vault");
+      }
+
+      function renderVault() {
+        const tbody = document.getElementById("vaultBody");
+        if (vault.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-400 italic">No scenarios saved. Go to P&L Ledger tab to save.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = vault
+          .map(
+            (v, i) => `
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="px-4 py-3 font-semibold text-slate-800">${v.name}</td>
+                    <td class="px-4 py-3 text-right font-bold text-sky-700">\u20B9 ${v.target}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">\u20B9 ${v.branch.toFixed(1)} L</td>
+                    <td class="px-4 py-3 text-right text-amber-600">\u20B9 ${v.bankCost.toFixed(1)} Cr</td>
+                    <td class="px-4 py-3 text-right text-amber-700">\u20B9 ${v.pliCost.toFixed(2)} Cr</td>
+                    <td class="px-4 py-3 text-right font-bold ${v.net > 0 ? "text-emerald-600" : "text-red-600"}">\u20B9 ${v.net.toFixed(1)} Cr</td>
+                    <td class="px-4 py-3 text-center"><button onclick="deleteScenario(${i})" class="text-xs text-slate-400 hover:text-red-500">&#x2715; Remove</button></td>
+                </tr>`,
+          )
+          .join("");
+      }
+      function deleteScenario(index) {
+        vault.splice(index, 1);
+        renderVault();
+      }
+
+      // ============================================================================
+      // MODULE 2: MICRO RM INSIGHTS LOGIC (Tab 4)
+      // ============================================================================
+
+      let microRMData = [];
+      let microTierChart = null;
+
+      function processRMData(rawData) {
+        microRMData = rawData.map((rm) => {
+          const target = parseFloat(rm.Target_GWP);
+          const achieved = parseFloat(rm.Achieved_GWP);
+          const achvPct = (achieved / target) * 100;
+          const points = parseInt(rm.Annual_Points);
+          const lr = parseFloat(rm.Loss_Ratio);
+          const ren = parseFloat(rm.Renewal_Rate);
+
+          let tier = "";
+          let boosterPct = 0;
+          if (points >= 30) {
+            tier = "Diamond";
+            boosterPct = 0.2;
+          } else if (points >= 22) {
+            tier = "Platinum";
+            boosterPct = 0.15;
+          } else if (points >= 15) {
+            tier = "Gold";
+            boosterPct = 0.1;
+          } else if (points >= 8) {
+            tier = "Silver";
+            boosterPct = 0.05;
+          } else {
+            tier = "Bronze";
+            boosterPct = 0;
+          }
+
+          const hasClawback = lr > LR_THRESH;
+          const hasRenBooster = ren >= REN_THRESH;
+
+          const basePLI = achieved * BASE_PLI_RATE; // Using the macro PLI rate assumption
+          let finalPLI = basePLI * (1 + boosterPct);
+          if (hasClawback) finalPLI = finalPLI * 0.8;
+          if (hasRenBooster) finalPLI = finalPLI + finalPLI * 0.05;
+
+          return { ...rm, achvPct, tier, hasClawback, hasRenBooster, finalPLI };
+        });
+        renderRMDashboard();
+      }
+
+      function renderRMDashboard() {
+        document.getElementById("uploadSection").classList.add("hidden");
+        document
+          .getElementById("rmDashboardSection")
+          .classList.remove("hidden");
+
+        const totalRMs = microRMData.length;
+        const totalGWP = microRMData.reduce(
+          (sum, rm) => sum + parseFloat(rm.Achieved_GWP),
+          0,
+        );
+        const clawbacks = microRMData.filter((rm) => rm.hasClawback).length;
+        const boosters = microRMData.filter((rm) => rm.hasRenBooster).length;
+
+        document.getElementById("kpiCount").innerText = totalRMs;
+        document.getElementById("kpiGWP").innerHTML =
+          `&#x20B9; ${totalGWP.toFixed(1)} Cr`;
+        document.getElementById("kpiClawback").innerText =
+          `${((clawbacks / totalRMs) * 100).toFixed(1)}%`;
+        document.getElementById("kpiBooster").innerText =
+          `${((boosters / totalRMs) * 100).toFixed(1)}%`;
+
+        // Render Table
+        document.getElementById("rmTableBody").innerHTML = microRMData
+          .map((rm) => {
+            let impactHtml = "";
+            if (rm.hasClawback)
+              impactHtml += `<span class="bg-red-100 text-red-700 px-1 rounded text-[10px] font-bold mr-1">-20% LR</span>`;
+            if (rm.hasRenBooster)
+              impactHtml += `<span class="bg-emerald-100 text-emerald-700 px-1 rounded text-[10px] font-bold">+5% Ren</span>`;
+            if (!rm.hasClawback && !rm.hasRenBooster)
+              impactHtml = `<span class="text-slate-400 text-[10px]">Standard</span>`;
+
+            const lrClass = rm.hasClawback
+              ? "text-red-600 font-bold"
+              : "text-slate-600";
+            const renClass = rm.hasRenBooster
+              ? "text-emerald-600 font-bold"
+              : "text-slate-600";
+            const achvClass =
+              rm.achvPct >= 100
+                ? "text-emerald-600 font-bold"
+                : "text-amber-600 font-medium";
+
+            return `
+                    <tr class="hover:bg-slate-50 transition-colors rm-row border-b border-slate-100">
+                        <td class="px-4 py-2 font-medium text-slate-800">${rm.RM_Name}</td>
+                        <td class="px-4 py-2 text-slate-600 truncate max-w-[100px]">${rm.Region}</td>
+                        <td class="px-4 py-2 text-right text-slate-500">${rm.Target_GWP}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-slate-700">${rm.Achieved_GWP}</td>
+                        <td class="px-4 py-2 text-center ${achvClass}">${rm.achvPct.toFixed(0)}%</td>
+                        <td class="px-4 py-2 text-center font-bold text-slate-700">${rm.Annual_Points}</td>
+                        <td class="px-4 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tier-${rm.tier}">${rm.tier}</span></td>
+                        <td class="px-4 py-2 text-center ${lrClass}">${rm.Loss_Ratio}%</td>
+                        <td class="px-4 py-2 text-center ${renClass}">${rm.Renewal_Rate}%</td>
+                        <td class="px-4 py-2 text-center whitespace-nowrap">${impactHtml}</td>
+                    </tr>`;
+          })
+          .join("");
+
+        // Render Chart
+        const tiers = {
+          Bronze: 0,
+          Silver: 0,
+          Gold: 0,
+          Platinum: 0,
+          Diamond: 0,
+        };
+        microRMData.forEach((rm) => tiers[rm.tier]++);
+        if (microTierChart) microTierChart.destroy();
+        microTierChart = new Chart(
+          document.getElementById("tierChart").getContext("2d"),
+          {
+            type: "doughnut",
+            data: {
+              labels: Object.keys(tiers),
+              datasets: [
+                {
+                  data: Object.values(tiers),
+                  backgroundColor: [
+                    "#fed7aa",
+                    "#e2e8f0",
+                    "#fde68a",
+                    "#cbd5e1",
+                    "#bae6fd",
+                  ],
+                  borderColor: [
+                    "#f97316",
+                    "#64748b",
+                    "#d97706",
+                    "#475569",
+                    "#0284c7",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "right",
+                  labels: { boxWidth: 10, font: { size: 10 } },
+                },
+              },
+              cutout: "60%",
+            },
+          },
+        );
+
+        generateAIInsights();
+      }
+
+      function filterRMTable() {
+        const query = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        document.querySelectorAll(".rm-row").forEach((row) => {
+          row.style.display = row.innerText.toLowerCase().includes(query)
+            ? ""
+            : "none";
+        });
+      }
+
+      function generateAIInsights() {
+        const total = microRMData.length;
+        const avgLR =
+          microRMData.reduce((sum, rm) => sum + parseFloat(rm.Loss_Ratio), 0) /
+          total;
+        const avgRen =
+          microRMData.reduce(
+            (sum, rm) => sum + parseFloat(rm.Renewal_Rate),
+            0,
+          ) / total;
+        const bronze = microRMData.filter((rm) => rm.tier === "Bronze").length;
+        const topPerformers = microRMData.filter(
+          (rm) => rm.tier === "Diamond" || rm.tier === "Platinum",
+        ).length;
+        const clawbacks = microRMData.filter((rm) => rm.hasClawback);
+
+        // Find worst region for LR
+        const regLR = {};
+        microRMData.forEach((rm) => {
+          if (!regLR[rm.Region]) regLR[rm.Region] = { sum: 0, count: 0 };
+          regLR[rm.Region].sum += parseFloat(rm.Loss_Ratio);
+          regLR[rm.Region].count++;
+        });
+        let worstReg = "";
+        let maxLR = 0;
+        for (const [r, d] of Object.entries(regLR)) {
+          let lr = d.sum / d.count;
+          if (lr > maxLR) {
+            maxLR = lr;
+            worstReg = r;
+          }
+        }
+
+        let html = `<ul class="space-y-2 list-disc pl-5">`;
+        if (bronze > total * 0.4)
+          html += `<li><strong>Activation Alert:</strong> ${((bronze / total) * 100).toFixed(0)}% of RMs are in the Bronze Zone. To hit the 800Cr macro target, we must utilize the "CASA Activation" theme to drive base volumes.</li>`;
+        else
+          html += `<li><strong>Healthy Pipeline:</strong> ${((topPerformers / total) * 100).toFixed(0)}% of RMs are Diamond/Platinum. The consistency booster budget will be utilized heavily.</li>`;
+
+        if (avgLR > LR_THRESH || clawbacks.length > total * 0.2)
+          html += `<li><span class="text-amber-600 font-bold">Profit Risk:</span> High Loss Ratio clawbacks (${clawbacks.length} RMs). The <strong>${worstReg}</strong> region is driving this (Avg LR: ${maxLR.toFixed(1)}%). Underwriting intervention required.</li>`;
+        else
+          html += `<li><span class="text-emerald-700 font-bold">Strong Quality:</span> Portfolio LR is healthy (Avg: ${avgLR.toFixed(1)}%). Clawbacks are rare.</li>`;
+
+        if (avgRen < REN_THRESH)
+          html += `<li><strong>Missed Opportunity:</strong> Average renewal (${avgRen.toFixed(1)}%) is below the 85% booster threshold. RMs are missing out on the 5% upside.</li>`;
+        html += `</ul>`;
+
+        document.getElementById("aiInsightsPanel").innerHTML = html;
+      }
+
+      // --- FILE HANDLING ---
+      function loadDemoData() {
+        const demoCSV = [
+          {
+            RM_ID: "USG101",
+            RM_Name: "Rahul Sharma",
+            Region: "North - Delhi",
+            Target_GWP: "2.0",
+            Achieved_GWP: "2.5",
+            Annual_Points: "32",
+            Loss_Ratio: "68",
+            Renewal_Rate: "88",
+          },
+          {
+            RM_ID: "USG102",
+            RM_Name: "Priya Patel",
+            Region: "West - Mumbai",
+            Target_GWP: "2.5",
+            Achieved_GWP: "2.2",
+            Annual_Points: "12",
+            Loss_Ratio: "71",
+            Renewal_Rate: "82",
+          },
+          {
+            RM_ID: "USG103",
+            RM_Name: "Amit Singh",
+            Region: "North - Punjab",
+            Target_GWP: "1.5",
+            Achieved_GWP: "2.0",
+            Annual_Points: "28",
+            Loss_Ratio: "78",
+            Renewal_Rate: "86",
+          },
+          {
+            RM_ID: "USG104",
+            RM_Name: "Sneha Reddy",
+            Region: "South - Hyd",
+            Target_GWP: "2.0",
+            Achieved_GWP: "2.8",
+            Annual_Points: "35",
+            Loss_Ratio: "62",
+            Renewal_Rate: "91",
+          },
+          {
+            RM_ID: "USG105",
+            RM_Name: "Vikram Das",
+            Region: "East - Kolkata",
+            Target_GWP: "1.8",
+            Achieved_GWP: "1.2",
+            Annual_Points: "6",
+            Loss_Ratio: "82",
+            Renewal_Rate: "75",
+          },
+          {
+            RM_ID: "USG106",
+            RM_Name: "Neha Gupta",
+            Region: "West - Pune",
+            Target_GWP: "2.2",
+            Achieved_GWP: "2.3",
+            Annual_Points: "16",
+            Loss_Ratio: "70",
+            Renewal_Rate: "84",
+          },
+        ];
+        processRMData(demoCSV);
+      }
+
+      function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          const rows = evt.target.result.split("\n");
+          if (rows.length < 2) return alert("Invalid CSV file.");
+          const headers = rows[0].split(",").map((h) => h.trim());
+          const parsed = [];
+          for (let i = 1; i < rows.length; i++) {
+            if (!rows[i].trim()) continue;
+            const values = rows[i].split(",");
+            let obj = {};
+            headers.forEach((h, idx) => {
+              obj[h] = values[idx] ? values[idx].trim() : "";
+            });
+            if (obj.Target_GWP && obj.Annual_Points) parsed.push(obj);
+          }
+          if (parsed.length > 0) processRMData(parsed);
+          else alert("Could not parse data. Check headers.");
+        };
+        reader.readAsText(file);
+      }
+
+      function resetRMData() {
+        document.getElementById("csvFileInput").value = "";
+        document.getElementById("rmDashboardSection").classList.add("hidden");
+        document.getElementById("uploadSection").classList.remove("hidden");
+        microRMData = [];
+      }
+
+      // Drag and drop for upload zone
+      const dropZone = document.getElementById("dropZone");
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        if (e.dataTransfer.files.length) {
+          document.getElementById("csvFileInput").files = e.dataTransfer.files;
+          handleFileUpload({ target: { files: e.dataTransfer.files } });
+        }
+      });
+
+      // ============================================================================
+      // GLOBAL NAVIGATION & INIT
+      // ============================================================================
+
+      function switchTab(tabId) {
+        ["cascade", "finance", "vault", "insights"].forEach((t) => {
+          document.getElementById(`tab-${t}`).classList.remove("tab-active");
+          document.getElementById(`sec-${t}`).classList.add("hidden");
+        });
+        document.getElementById(`tab-${tabId}`).classList.add("tab-active");
+        document.getElementById(`sec-${tabId}`).classList.remove("hidden");
+      }
+
+      // Bind Macro Controls
+      Object.keys(el).forEach((k) => {
+        el[k].addEventListener("input", updateMacroUI);
+        el[k].addEventListener("change", updateMacroUI);
+      });
+
+      // Initial Render
+      updateMacroUI();
+      renderVault();
+    </script>
+  </body>
+</html>
