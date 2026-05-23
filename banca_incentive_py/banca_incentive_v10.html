@@ -837,16 +837,30 @@
         return 1;
       }
 
+      // function taper(raw) {
+      //   if (raw <= 25000) {
+      //     return raw;
+      //   } else if (raw <= 40000) {
+      //     return 25000 + (raw - 25000) * 0.85;
+      //   } else if (raw <= 75000) {
+      //     return 37750 + (raw - 40000) * 0.7;
+      //   }
+
+      //   return 62250 + (raw - 75000) * 0.5;
+      // }
+
       function taper(raw) {
-        if (raw <= 25000) {
+        if (raw <= 35000) {
           return raw;
-        } else if (raw <= 40000) {
-          return 25000 + (raw - 25000) * 0.85;
+        } else if (raw <= 50000) {
+          return 35000 + (raw - 35000) * 0.75;
         } else if (raw <= 75000) {
-          return 37750 + (raw - 40000) * 0.7;
+          return 46250 + (raw - 50000) * 0.55;
+        } else if (raw <= 100000) {
+          return 60000 + (raw - 75000) * 0.35;
         }
 
-        return 62250 + (raw - 75000) * 0.5;
+        return 68750 + (raw - 100000) * 0.2;
       }
 
       function calculateWeightedMix(fresh, fp1, fp2, fp3, fp4) {
