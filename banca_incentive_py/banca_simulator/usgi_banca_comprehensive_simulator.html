@@ -3,30 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>USGI Comprehensive Banca Simulator</title>
+    <title>USGI Ultimate Banca Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f7f6;
-        color: #1e293b;
+        background-color: #f8fafc;
+        color: #0f172a;
       }
       .card {
         background-color: #ffffff;
         border-radius: 0.5rem;
-        box-shadow:
-          0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        padding: 1.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        padding: 1.25rem;
+        border: 1px solid #e2e8f0;
       }
 
       .tab-btn {
         border-bottom: 3px solid transparent;
         color: #64748b;
-        font-weight: 500;
+        font-weight: 600;
+        padding-bottom: 0.75rem;
         transition: all 0.2s;
         white-space: nowrap;
+        font-size: 0.875rem;
       }
       .tab-btn:hover {
         color: #0ea5e9;
@@ -34,23 +35,30 @@
       .tab-active {
         border-bottom-color: #0ea5e9;
         color: #0ea5e9;
-        font-weight: 700;
       }
 
       .chart-container {
         position: relative;
         width: 100%;
-        height: 350px;
+        height: 300px;
       }
-      .small-chart-container {
+      .small-chart {
         position: relative;
         width: 100%;
-        height: 250px;
+        height: 220px;
       }
       .gauge-container {
         position: relative;
         width: 100%;
-        height: 200px;
+        height: 180px;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
 
       input[type="range"] {
@@ -61,13 +69,13 @@
       }
       input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        height: 18px;
-        width: 18px;
+        height: 16px;
+        width: 16px;
         border-radius: 50%;
         background: #0ea5e9;
         cursor: pointer;
-        margin-top: -6px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        margin-top: -5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
       input[type="range"]::-webkit-slider-runnable-track {
         width: 100%;
@@ -90,34 +98,6 @@
         background: #8b5cf6;
       }
 
-      /* Elevate Campaign Zones */
-      .zone-danger {
-        color: #ef4444;
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
-      }
-      .zone-ignition {
-        color: #d97706;
-        background-color: #fffbeb;
-        border: 1px solid #fde68a;
-      }
-      .zone-momentum {
-        color: #0284c7;
-        background-color: #f0f9ff;
-        border: 1px solid #bae6fd;
-      }
-      .zone-achiever {
-        color: #10b981;
-        background-color: #ecfdf5;
-        border: 1px solid #a7f3d0;
-      }
-      .zone-rockstar {
-        color: #8b5cf6;
-        background-color: #f5f3ff;
-        border: 1px solid #ddd6fe;
-      }
-
-      /* RM Insights Upload Zone & Tiers */
       .upload-zone {
         border: 2px dashed #cbd5e1;
         border-radius: 0.75rem;
@@ -125,76 +105,97 @@
         transition: all 0.2s ease;
         cursor: pointer;
       }
-      .upload-zone:hover,
-      .upload-zone.dragover {
+      .upload-zone:hover {
         border-color: #0ea5e9;
         background-color: #f0f9ff;
       }
-      .tier-Diamond {
+
+      /* Legacy PDF Tiers */
+      .t-Dia {
         color: #0284c7;
         background-color: #e0f2fe;
         border: 1px solid #bae6fd;
       }
-      .tier-Platinum {
+      .t-Pla {
         color: #475569;
         background-color: #f1f5f9;
         border: 1px solid #cbd5e1;
       }
-      .tier-Gold {
+      .t-Gol {
         color: #b45309;
         background-color: #fef3c7;
         border: 1px solid #fde68a;
       }
-      .tier-Silver {
+      .t-Sil {
         color: #64748b;
         background-color: #f8fafc;
         border: 1px solid #e2e8f0;
       }
-      .tier-Bronze {
+      .t-Bro {
         color: #92400e;
         background-color: #ffedd5;
         border: 1px solid #fed7aa;
       }
+
+      /* Elevate Zones */
+      .z-dan {
+        color: #ef4444;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+      }
+      .z-ign {
+        color: #d97706;
+        background-color: #fffbeb;
+        border: 1px solid #fde68a;
+      }
+      .z-mom {
+        color: #0284c7;
+        background-color: #f0f9ff;
+        border: 1px solid #bae6fd;
+      }
+      .z-ach {
+        color: #10b981;
+        background-color: #ecfdf5;
+        border: 1px solid #a7f3d0;
+      }
+      .z-roc {
+        color: #8b5cf6;
+        background-color: #f5f3ff;
+        border: 1px solid #ddd6fe;
+      }
     </style>
   </head>
-  <body class="min-h-screen flex flex-col antialiased">
-    <!-- Chosen Palette: Corporate Trust (Slate-900 header, Sky-500 primary, Emerald-500 positive metrics, Amber-500 costs, Purple-500 for Rockstar/Elevate themes). -->
-    <!-- Application Structure Plan: 
-    - Left Sidebar: Macro Strategy Controls
-    - Right Main Area (Tabbed): 
-        Tab 1: Target Cascade
-        Tab 2: Financial P&L Ledger
-        Tab 3: Scenario Vault
-        Tab 4: RM Upload & Execution Insights
-        Tab 5 (NEW): Elevate Campaign Evaluator (RM Coaching Tool) -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
-    <header class="bg-slate-900 text-white shadow-md z-20 relative">
+  <body class="min-h-screen flex flex-col h-screen overflow-hidden">
+    <header class="bg-slate-900 text-white shadow-md z-20 flex-shrink-0">
       <div
-        class="max-w-[1500px] mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center"
+        class="w-full px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center"
       >
         <div>
-          <h1 class="text-xl font-bold tracking-tight">
-            &#x1F3E2; Universal Sompo - Project 800 Banca Simulator
+          <h1 class="text-xl font-bold text-emerald-400">
+            &#x1F680; USGI Project 800 Engine
           </h1>
-          <p class="text-xs text-slate-400 mt-1">
-            Integrating Macro Bank Strategy with Micro Internal PLI Policy
+          <p
+            class="text-[11px] text-slate-400 uppercase tracking-widest mt-0.5"
+          >
+            Macro Strategy & Micro Execution
           </p>
         </div>
-        <div class="mt-4 md:mt-0 flex gap-3 text-sm">
+        <div class="flex gap-4">
           <div
-            class="bg-slate-800 rounded px-3 py-1 border border-slate-700 flex flex-col items-center"
+            class="bg-slate-800 rounded px-4 py-1.5 border border-slate-700 text-center hidden md:block"
           >
-            <span class="text-[10px] text-slate-400 uppercase">FY 25-26</span>
+            <span class="text-[10px] text-slate-400 uppercase block"
+              >FY 25-26 Base</span
+            >
             <span class="font-bold text-slate-200">&#x20B9; 433 Cr</span>
           </div>
           <div
-            class="bg-sky-900 rounded px-3 py-1 border border-sky-700 flex flex-col items-center shadow-[0_0_10px_rgba(14,165,233,0.3)]"
+            class="bg-emerald-900 rounded px-4 py-1.5 border border-emerald-700 text-center shadow-[0_0_10px_rgba(16,185,129,0.3)]"
           >
-            <span class="text-[10px] text-sky-200 uppercase"
-              >Simulated GWP</span
+            <span class="text-[10px] text-emerald-200 uppercase block"
+              >Simulated Target</span
             >
-            <span class="font-bold text-sky-400"
+            <span class="font-bold text-emerald-400"
               >&#x20B9; <span id="hdrSimGWP">800</span> Cr</span
             >
           </div>
@@ -202,74 +203,69 @@
       </div>
     </header>
 
-    <main
-      class="flex-grow max-w-[1500px] mx-auto w-full flex flex-col lg:flex-row h-[calc(100vh-70px)] overflow-hidden"
-    >
-      <!-- LEFT PANEL: CONTROLS (Tied to Tabs 1-3) -->
+    <div class="flex flex-grow overflow-hidden">
+      <!-- SIDEBAR: MACRO CONTROLS -->
       <aside
-        class="w-full lg:w-80 border-r border-slate-200 bg-white overflow-y-auto shadow-inner flex-shrink-0"
+        class="w-80 bg-white border-r border-slate-200 overflow-y-auto flex-shrink-0 shadow-inner p-5 space-y-6"
       >
-        <div class="p-5 space-y-6">
-          <!-- Section 1: Bank Growth Levers -->
-          <div>
-            <h2
-              class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider border-b border-slate-200 pb-1"
-            >
-              &#x1F4C8; Bank Network Levers
-            </h2>
-            <div class="mb-4">
+        <div>
+          <h2
+            class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"
+          >
+            Macro Bank Levers
+          </h2>
+          <div class="space-y-4">
+            <div>
               <label class="block text-xs font-bold text-slate-700 mb-1"
-                >R&R Execution Theme</label
+                >R&R Theme Strategy</label
               >
               <select
-                id="inpTheme"
-                class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded p-2 focus:border-sky-500 outline-none"
+                id="m_theme"
+                class="w-full bg-slate-50 border border-slate-300 text-xs rounded p-2 focus:border-sky-500 outline-none"
               >
                 <option value="loan">
-                  The Credit-Shield Grand Prix (Loan ROs)
+                  Credit-Shield Grand Prix (Loan ROs)
                 </option>
-                <option value="casa">
-                  CASA Activation League (Branch Volume)
-                </option>
-                <option value="titans">Titans of 800 (GM Top-Down)</option>
+                <option value="casa">CASA Activation League (Volume)</option>
+                <option value="titans">Titans of 800 (Top-Down GM)</option>
               </select>
             </div>
-            <div class="mb-4">
+            <div>
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Aspirational Target</span>
-                <span id="lblTarget" class="text-sky-600">&#x20B9; 800 Cr</span>
+                <span class="text-slate-700">Aspirational Target</span
+                ><span id="m_lblTgt" class="text-emerald-600">800 Cr</span>
               </div>
               <input
                 type="range"
-                id="inpTarget"
+                id="m_tgt"
                 min="450"
                 max="1200"
                 step="10"
                 value="800"
               />
             </div>
-            <div class="mb-4">
+            <div>
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Branch Activation</span>
-                <span id="lblActive" class="text-sky-600">35%</span>
+                <span class="text-slate-700">Branch Activation</span
+                ><span id="m_lblAct" class="text-sky-600">35%</span>
               </div>
               <input
                 type="range"
-                id="inpActive"
+                id="m_act"
                 min="10"
                 max="80"
                 step="5"
                 value="35"
               />
             </div>
-            <div class="mb-4">
+            <div>
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Bank R&R Budget Allocation</span>
-                <span id="lblBankBudget" class="text-amber-600">1.5%</span>
+                <span class="text-slate-700">Bank R&R Budget (on Inc.)</span
+                ><span id="m_lblBud" class="text-amber-600">1.5%</span>
               </div>
               <input
                 type="range"
-                id="inpBankBudget"
+                id="m_bud"
                 class="slider-amber"
                 min="0.5"
                 max="3.0"
@@ -278,38 +274,37 @@
               />
             </div>
           </div>
+        </div>
 
-          <!-- Section 2: Internal USGI Policy Rules -->
-          <div>
-            <h2
-              class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider border-b border-slate-200 pb-1"
-            >
-              &#x2699;&#xFE0F; Internal PLI Rules (PDF)
-            </h2>
-            <div class="mb-4 p-2 bg-slate-50 rounded border border-slate-200">
+        <div>
+          <h2
+            class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4"
+          >
+            USGI PLI Rules
+          </h2>
+          <div class="space-y-4">
+            <div class="p-2 bg-slate-50 rounded border border-slate-200">
               <div class="flex justify-between text-xs font-bold mb-1">
-                <span class="text-slate-700"
-                  >High Performer Mix (Dia/Plat)</span
-                >
-                <span id="lblPerformers" class="text-sky-600">40%</span>
+                <span class="text-slate-700">High Performer Mix</span
+                ><span id="m_lblPerf" class="text-sky-600">40%</span>
               </div>
               <input
                 type="range"
-                id="inpPerformers"
+                id="m_perf"
                 min="10"
                 max="80"
                 step="5"
                 value="40"
               />
             </div>
-            <div class="mb-4">
+            <div>
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Quality: Loss Ratio (LR)</span>
-                <span id="lblLR" class="text-slate-800">72%</span>
+                <span class="text-slate-700">Proj. Loss Ratio (LR)</span
+                ><span id="m_lblLR">72%</span>
               </div>
               <input
                 type="range"
-                id="inpLR"
+                id="m_lr"
                 class="slider-emerald"
                 min="60"
                 max="110"
@@ -317,14 +312,14 @@
                 value="72"
               />
             </div>
-            <div class="mb-4">
+            <div>
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Quality: Renewal Rate</span>
-                <span id="lblRen" class="text-slate-800">86%</span>
+                <span class="text-slate-700">Proj. Renewal Rate</span
+                ><span id="m_lblRen">86%</span>
               </div>
               <input
                 type="range"
-                id="inpRen"
+                id="m_ren"
                 class="slider-emerald"
                 min="60"
                 max="100"
@@ -332,14 +327,14 @@
                 value="86"
               />
             </div>
-            <div class="mb-4 pt-2 border-t border-slate-200">
+            <div class="pt-3 border-t border-slate-100">
               <div class="flex justify-between text-xs font-bold">
-                <span class="text-slate-700">Standard Opex (Non-PLI)</span>
-                <span id="lblOpex" class="text-slate-800">18%</span>
+                <span class="text-slate-700">Standard Opex</span
+                ><span id="m_lblOpex">18%</span>
               </div>
               <input
                 type="range"
-                id="inpOpex"
+                id="m_opex"
                 min="10"
                 max="30"
                 step="1"
@@ -350,978 +345,1025 @@
         </div>
       </aside>
 
-      <!-- RIGHT PANEL: DASHBOARD -->
-      <section
-        class="flex-grow flex flex-col bg-[#f8fafc] overflow-y-auto overflow-x-hidden relative"
+      <!-- MAIN CONTENT AREA -->
+      <main
+        class="flex-grow flex flex-col bg-[#f8fafc] overflow-hidden relative"
       >
-        <!-- Tabs Navigation -->
+        <!-- TABS NAV -->
         <div
-          class="bg-white border-b border-slate-200 px-6 pt-4 sticky top-0 z-10 overflow-x-auto hide-scrollbar"
+          class="bg-white border-b border-slate-200 px-6 pt-3 flex-shrink-0 overflow-x-auto hide-scrollbar shadow-sm z-10"
         >
-          <nav class="flex space-x-4 text-sm" aria-label="Tabs">
+          <nav class="flex space-x-6" aria-label="Tabs">
+            <!-- Macro -->
             <button
-              onclick="switchTab('cascade')"
-              id="tab-cascade"
-              class="tab-btn tab-active pb-3 px-1"
+              onclick="tab('cascade')"
+              id="t-cascade"
+              class="tab-btn tab-active"
             >
               &#x1F3AF; Target Cascade
             </button>
-            <button
-              onclick="switchTab('finance')"
-              id="tab-finance"
-              class="tab-btn pb-3 px-1"
-            >
+            <button onclick="tab('finance')" id="t-finance" class="tab-btn">
               &#x1F4B4; P&L Ledger
             </button>
-            <button
-              onclick="switchTab('vault')"
-              id="tab-vault"
-              class="tab-btn pb-3 px-1"
-            >
+            <button onclick="tab('vault')" id="t-vault" class="tab-btn">
               &#x1F4C2; Scenario Vault
             </button>
+            <div class="w-px bg-slate-200 my-2"></div>
+            <!-- Legacy PDF -->
             <button
-              onclick="switchTab('insights')"
-              id="tab-insights"
-              class="tab-btn pb-3 px-1 border-l pl-4 border-slate-300 font-bold text-sky-700"
+              onclick="tab('stdUpload')"
+              id="t-stdUpload"
+              class="tab-btn text-slate-500 hover:text-slate-800"
             >
-              &#x1F4CA; RM Upload & Insights
+              &#x1F4CA; Standard PDF Upload
+            </button>
+            <div class="w-px bg-slate-200 my-2"></div>
+            <!-- Elevate -->
+            <button
+              onclick="tab('elvCoach')"
+              id="t-elvCoach"
+              class="tab-btn text-purple-600 hover:text-purple-800"
+            >
+              &#x1F680; Elevate Coach (1RM)
             </button>
             <button
-              onclick="switchTab('elevate')"
-              id="tab-elevate"
-              class="tab-btn pb-3 px-1 border-l pl-4 border-slate-300 font-bold text-purple-600"
+              onclick="tab('elvBulk')"
+              id="t-elvBulk"
+              class="tab-btn text-indigo-600 hover:text-indigo-800 font-bold"
             >
-              &#x1F680; Elevate Evaluator (New)
+              &#x1F465; Elevate Bulk Engine
             </button>
           </nav>
         </div>
 
-        <!-- Tab Content Area -->
-        <div class="p-6">
-          <!-- TAB 1: CASCADE -->
-          <div id="sec-cascade" class="space-y-6 animate-fade-in block">
+        <!-- TABS CONTENT (Scrollable) -->
+        <div class="flex-grow overflow-y-auto p-6">
+          <!-- 1. CASCADE -->
+          <div id="sec-cascade" class="space-y-6 block">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="card p-5 text-center border-t-4 border-slate-500">
-                <p
-                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                >
-                  Per USGI Head
+              <div class="card text-center border-t-4 border-slate-500">
+                <p class="text-[10px] uppercase font-bold text-slate-500">
+                  Target Per USGI Head
                 </p>
                 <div
-                  id="outUSGI"
+                  id="out_usgi"
                   class="text-3xl font-black text-slate-800 my-2"
                 >
-                  &#x20B9; 2.00 Cr
+                  --
                 </div>
-                <p
-                  class="text-xs text-slate-500 bg-slate-50 py-1 rounded inline-block px-3"
-                >
-                  400 Internal Staff
-                </p>
+                <p class="text-[10px] text-slate-400">400 Internal Staff</p>
               </div>
-              <div class="card p-5 text-center border-t-4 border-sky-500">
-                <p
-                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                >
-                  Per Regional Office
+              <div class="card text-center border-t-4 border-sky-500">
+                <p class="text-[10px] uppercase font-bold text-slate-500">
+                  Target Per Reg. Office
                 </p>
-                <div id="outRO" class="text-3xl font-black text-sky-700 my-2">
-                  &#x20B9; 4.00 Cr
+                <div id="out_ro" class="text-3xl font-black text-sky-700 my-2">
+                  --
                 </div>
-                <p
-                  class="text-xs text-sky-700 bg-sky-50 py-1 rounded inline-block px-3"
-                >
-                  200 Bank ROs
-                </p>
+                <p class="text-[10px] text-slate-400">200 Bank ROs</p>
               </div>
-              <div class="card p-5 text-center border-t-4 border-amber-500">
-                <p
-                  class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                >
-                  Per Active Branch
+              <div class="card text-center border-t-4 border-amber-500">
+                <p class="text-[10px] uppercase font-bold text-slate-500">
+                  Target Per Active Branch
                 </p>
                 <div
-                  id="outBranch"
+                  id="out_branch"
                   class="text-3xl font-black text-amber-600 my-2"
                 >
-                  &#x20B9; 21.7 L
+                  --
                 </div>
-                <p
-                  id="outBranchCount"
-                  class="text-xs text-amber-700 bg-amber-50 py-1 rounded inline-block px-3"
-                >
-                  3,675 Branches
+                <p id="out_actCnt" class="text-[10px] text-slate-400">
+                  Branches
                 </p>
               </div>
             </div>
-            <div
-              class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
-            >
-              <div
-                class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center"
-              >
-                <h3 class="text-sm font-bold text-slate-800">
-                  &#x1F4E2; Strategy Execution Summary
-                </h3>
-                <button
-                  onclick="switchTab('finance')"
-                  class="text-xs bg-white border border-slate-300 hover:bg-slate-50 rounded px-2 py-1 text-slate-600"
-                >
-                  View Financial Impact &#x2192;
-                </button>
-              </div>
-              <div class="p-5">
-                <p
-                  id="strategyText"
-                  class="text-sm text-slate-600 leading-relaxed"
-                ></p>
-              </div>
+            <div class="card bg-white">
+              <h3 class="text-sm font-bold text-slate-800 mb-2 border-b pb-2">
+                &#x1F4E2; Strategy Execution Summary
+              </h3>
+              <p
+                id="out_pitch"
+                class="text-sm text-slate-600 leading-relaxed"
+              ></p>
             </div>
           </div>
 
-          <!-- TAB 2: FINANCE & P&L -->
+          <!-- 2. FINANCE -->
           <div id="sec-finance" class="space-y-6 hidden">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div class="card overflow-x-auto">
-                <div
-                  class="flex justify-between items-center mb-4 min-w-[400px]"
-                >
+                <div class="flex justify-between items-center mb-4">
                   <h3 class="text-sm font-bold text-slate-800">
-                    &#x1F4B8; Projected P&L Ledger
+                    &#x1F4B8; Projected P&L
                   </h3>
                   <button
-                    onclick="saveScenario()"
-                    class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold py-1.5 px-3 rounded shadow transition-colors"
+                    onclick="saveMacroScenario()"
+                    class="bg-sky-600 text-white text-xs px-3 py-1.5 rounded"
                   >
-                    &#x1F4BE; Save Scenario
+                    Save Scenario
                   </button>
                 </div>
-                <table class="w-full text-xs text-left min-w-[400px]">
+                <table class="w-full text-xs text-left">
                   <tbody
-                    id="pnlTable"
+                    id="pnlTbody"
                     class="divide-y divide-slate-100"
                   ></tbody>
                 </table>
-                <div
-                  id="policyAlerts"
-                  class="mt-4 space-y-2 min-w-[400px]"
-                ></div>
+                <div id="pnlAlerts" class="mt-4 space-y-2"></div>
               </div>
               <div class="card">
                 <h3 class="text-sm font-bold text-slate-800 mb-4">
-                  &#x1F4CA; Profitability Waterfall
+                  &#x1F4CA; Waterfall
                 </h3>
                 <div class="chart-container">
-                  <canvas id="waterfallChart"></canvas>
+                  <canvas id="macroChart"></canvas>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- TAB 3: SCENARIO VAULT -->
+          <!-- 3. VAULT -->
           <div id="sec-vault" class="hidden">
-            <div class="card p-0 overflow-hidden">
-              <div class="bg-slate-50 px-5 py-4 border-b border-slate-200">
+            <div class="card overflow-x-auto p-0">
+              <div class="bg-slate-50 p-4 border-b">
                 <h3 class="text-sm font-bold text-slate-800">
-                  &#x1F4C2; Saved Scenario Comparison
+                  &#x1F4C2; Macro Scenarios
                 </h3>
               </div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left whitespace-nowrap">
-                  <thead
-                    class="bg-white text-slate-600 text-xs uppercase border-b border-slate-200"
-                  >
-                    <tr>
-                      <th class="px-4 py-3 font-semibold">Scenario Name</th>
-                      <th class="px-4 py-3 font-semibold text-right">
-                        Target (Cr)
-                      </th>
-                      <th class="px-4 py-3 font-semibold text-right">
-                        Branch Tgt (L)
-                      </th>
-                      <th class="px-4 py-3 font-semibold text-right">
-                        Bank Cost
-                      </th>
-                      <th class="px-4 py-3 font-semibold text-right">
-                        USGI PLI Cost
-                      </th>
-                      <th class="px-4 py-3 font-semibold text-right">
-                        Net Margin
-                      </th>
-                      <th class="px-4 py-3 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="vaultBody" class="divide-y divide-slate-100">
-                    <tr>
-                      <td
-                        colspan="7"
-                        class="px-4 py-8 text-center text-slate-400 italic"
-                      >
-                        No scenarios saved. Go to P&L Ledger tab to save.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <table class="w-full text-sm text-left">
+                <thead
+                  class="bg-white text-xs uppercase text-slate-500 border-b"
+                >
+                  <tr>
+                    <th class="p-3">Name</th>
+                    <th class="p-3 text-right">Target</th>
+                    <th class="p-3 text-right">Branch Tgt</th>
+                    <th class="p-3 text-right">Bank Cost</th>
+                    <th class="p-3 text-right">PLI Cost</th>
+                    <th class="p-3 text-right">Net Margin</th>
+                    <th class="p-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="vaultTbody"
+                  class="divide-y divide-slate-100"
+                ></tbody>
+              </table>
             </div>
           </div>
 
-          <!-- TAB 4: RM UPLOAD & INSIGHTS -->
-          <div id="sec-insights" class="hidden space-y-6">
-            <div class="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-2">
-              <h3 class="text-sm font-bold text-sky-900">
-                &#x1F50D; Micro-Execution Analytics
+          <!-- 4. STANDARD PDF UPLOAD (Fully Restored) -->
+          <div id="sec-stdUpload" class="hidden space-y-6">
+            <div class="bg-slate-100 border border-slate-300 rounded-lg p-4">
+              <h3 class="text-sm font-bold text-slate-800">
+                &#x1F4CA; Standard Rule Engine
               </h3>
-              <p class="text-xs text-sky-700 mt-1">
-                Verify macro budget allocation against actual RM performance
-                data and PDF policy rules.
+              <p class="text-xs text-slate-600 mt-1">
+                Calculates PLI based on the original PDF (Bronze <8 pts, Silver
+                8-14, Gold 15-21, Platinum 22-29, Diamond >=30).
               </p>
             </div>
-            <section
-              id="uploadSection"
-              class="card text-center border-t-4 border-sky-500"
+
+            <div
+              id="std_up_div"
+              class="card text-center border-t-4 border-slate-500"
             >
-              <h2 class="text-lg font-bold text-slate-800 mb-1">
-                &#x1F4C2; Upload RM Performance Data (CSV)
-              </h2>
+              <h3 class="font-bold mb-2">Upload Legacy RM CSV</h3>
               <div
-                class="upload-zone py-8 px-6 mb-4 max-w-xl mx-auto"
-                id="dropZone"
-                onclick="document.getElementById('csvFileInput').click()"
+                class="upload-zone py-8 px-6 max-w-xl mx-auto"
+                onclick="document.getElementById('stdFile').click()"
               >
                 <div class="text-3xl mb-2">&#x1F4BE;</div>
-                <p class="text-slate-600 font-medium text-sm">
-                  Click or Drag & Drop CSV here
+                <p class="text-sm font-medium text-slate-600">
+                  Click to upload
+                </p>
+                <p class="text-[10px] text-slate-400 mt-2">
+                  Required: Target_GWP, Achieved_GWP, Annual_Points, Loss_Ratio,
+                  Renewal_Rate
                 </p>
                 <input
                   type="file"
-                  id="csvFileInput"
+                  id="stdFile"
                   accept=".csv"
                   class="hidden"
-                  onchange="handleFileUpload(event)"
+                  onchange="handleStdFile(event)"
                 />
               </div>
               <button
-                onclick="loadDemoData()"
-                class="mt-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-lg text-sm shadow"
+                onclick="loadStdDemo()"
+                class="mt-4 bg-slate-800 text-white text-xs px-4 py-2 rounded"
               >
-                &#x1F680; Load Simulated Demo Dataset
+                Load Demo Data
               </button>
-            </section>
-            <section id="rmDashboardSection" class="hidden space-y-6">
+            </div>
+
+            <div id="std_dash_div" class="hidden space-y-6">
               <div class="flex justify-end">
                 <button
-                  onclick="resetRMData()"
-                  class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 py-1.5 px-3 rounded shadow-sm"
+                  onclick="
+                    document
+                      .getElementById('std_dash_div')
+                      .classList.add('hidden');
+                    document
+                      .getElementById('std_up_div')
+                      .classList.remove('hidden');
+                  "
+                  class="text-xs border px-3 py-1 rounded"
                 >
-                  &#x21BA; Clear Data & Upload New
+                  Reset
                 </button>
               </div>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="card p-4 text-center border-l-4 border-slate-500">
-                  <p
-                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                  >
+
+              <div class="grid grid-cols-4 gap-4">
+                <div class="card p-3 text-center border-l-4 border-slate-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
                     Total RMs
                   </p>
-                  <div id="kpiCount" class="text-2xl font-black text-slate-800">
+                  <div id="std_totRM" class="text-xl font-black">0</div>
+                </div>
+                <div class="card p-3 text-center border-l-4 border-sky-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    GWP Achieved
+                  </p>
+                  <div id="std_totGWP" class="text-xl font-black text-sky-700">
                     0
                   </div>
                 </div>
-                <div class="card p-4 text-center border-l-4 border-sky-500">
-                  <p
-                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                  >
-                    Total GWP Achieved
+                <div class="card p-3 text-center border-l-4 border-red-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    LR Clawbacks
                   </p>
-                  <div id="kpiGWP" class="text-2xl font-black text-sky-700">
-                    &#x20B9; 0 Cr
+                  <div id="std_claw" class="text-xl font-black text-red-600">
+                    0
                   </div>
                 </div>
-                <div class="card p-4 text-center border-l-4 border-amber-500">
-                  <p
-                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                  >
-                    RMs Facing Clawback
+                <div class="card p-3 text-center border-l-4 border-emerald-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    Ren. Boosters
                   </p>
                   <div
-                    id="kpiClawback"
-                    class="text-2xl font-black text-amber-600"
+                    id="std_boost"
+                    class="text-xl font-black text-emerald-600"
                   >
-                    0%
-                  </div>
-                </div>
-                <div class="card p-4 text-center border-l-4 border-emerald-500">
-                  <p
-                    class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1"
-                  >
-                    Earning Ren. Booster
-                  </p>
-                  <div
-                    id="kpiBooster"
-                    class="text-2xl font-black text-emerald-600"
-                  >
-                    0%
+                    0
                   </div>
                 </div>
               </div>
+
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div
-                  class="card lg:col-span-2 border border-sky-200 bg-sky-50 shadow-sm relative overflow-hidden"
+                  class="card lg:col-span-2 bg-slate-50 border border-slate-200"
                 >
-                  <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">
-                    &#x1F9E0;
-                  </div>
-                  <h3
-                    class="text-sm font-bold text-sky-900 mb-3 border-b border-sky-200 pb-2"
-                  >
-                    &#x2728; AI Actionable Insights
+                  <h3 class="text-sm font-bold mb-2 border-b pb-1">
+                    &#x2728; AI Actionable Insights (Legacy Rules)
                   </h3>
                   <div
-                    id="aiInsightsPanel"
-                    class="space-y-3 text-xs text-sky-800 leading-relaxed"
+                    id="std_aiTxt"
+                    class="text-xs text-slate-700 space-y-2"
                   ></div>
                 </div>
                 <div class="card">
-                  <h3
-                    class="text-sm font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2"
-                  >
-                    &#x1F3C6; Booster Tier Distribution
+                  <h3 class="text-sm font-bold mb-2 border-b pb-1">
+                    &#x1F3C6; Point Tiers
                   </h3>
-                  <div class="small-chart-container">
-                    <canvas id="tierChart"></canvas>
-                  </div>
+                  <div class="small-chart"><canvas id="stdChart"></canvas></div>
                 </div>
               </div>
-              <div class="card p-0 overflow-hidden border border-slate-200">
+
+              <div class="card p-0 overflow-hidden">
                 <div
-                  class="bg-slate-50 px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                  class="p-3 bg-slate-50 border-b flex justify-between items-center"
                 >
-                  <h3 class="text-sm font-bold text-slate-800">
-                    &#x1F4CA; Workforce PLI Execution Grid
-                  </h3>
-                  <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search RM..."
-                    class="text-xs p-1.5 border border-slate-300 rounded outline-none w-full sm:w-48"
-                    onkeyup="filterRMTable()"
-                  />
+                  <h3 class="text-sm font-bold">Standard PDF Ledger</h3>
                 </div>
-                <div class="overflow-x-auto max-h-[400px]">
+                <div class="overflow-x-auto max-h-[300px]">
                   <table class="w-full text-xs text-left whitespace-nowrap">
-                    <thead
-                      class="bg-white text-slate-500 uppercase font-semibold sticky top-0 border-b border-slate-200 shadow-sm z-10"
-                    >
+                    <thead class="bg-white sticky top-0 shadow-sm">
                       <tr>
-                        <th class="px-4 py-3">RM Name</th>
-                        <th class="px-4 py-3">Region</th>
-                        <th class="px-4 py-3 text-right">Target</th>
-                        <th class="px-4 py-3 text-right">Achieved</th>
-                        <th class="px-4 py-3 text-center">Achv %</th>
-                        <th class="px-4 py-3 text-center">Pts</th>
-                        <th class="px-4 py-3 text-center">Tier</th>
-                        <th class="px-4 py-3 text-center">LR %</th>
-                        <th class="px-4 py-3 text-center">Ren %</th>
-                        <th class="px-4 py-3 text-center">Impact</th>
+                        <th class="p-2">RM</th>
+                        <th class="p-2 text-right">Target</th>
+                        <th class="p-2 text-right">Actual</th>
+                        <th class="p-2 text-center">Pts</th>
+                        <th class="p-2 text-center">Tier</th>
+                        <th class="p-2 text-center">LR%</th>
+                        <th class="p-2 text-center">Ren%</th>
+                        <th class="p-2 text-right">Impact</th>
                       </tr>
                     </thead>
                     <tbody
-                      id="rmTableBody"
+                      id="stdTbody"
                       class="divide-y divide-slate-100"
                     ></tbody>
                   </table>
                 </div>
               </div>
-            </section>
+            </div>
           </div>
 
-          <!-- TAB 5: ELEVATE CAMPAIGN EVALUATOR (NEW) -->
-          <div id="sec-elevate" class="hidden space-y-6">
+          <!-- 5. ELEVATE COACH (1RM) -->
+          <div id="sec-elvCoach" class="hidden space-y-6">
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-5">
               <h2
                 class="text-lg font-bold text-purple-900 flex items-center gap-2"
               >
-                &#x1F680; Project 800: "Elevate" Coaching Engine
+                &#x1F680; Elevate 1-on-1 Coaching Engine
               </h2>
               <p class="text-sm text-purple-700 mt-1">
-                Input a specific RM's performance to calculate their payout
-                under the inclusive behavioral framework. Show them exactly how
-                Focus Products (1.5x) act as a cheat code to unlock higher
-                zones!
+                Show moderate RMs how Focus Products (1.5x) jump them into
+                payout zones faster.
               </p>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <!-- Elevate Inputs (Left Side) -->
-              <div class="col-span-1 lg:col-span-5 space-y-4">
-                <div class="card border-t-4 border-slate-800">
-                  <h3
-                    class="text-sm font-bold text-slate-800 mb-4 border-b pb-2"
+              <div
+                class="col-span-1 lg:col-span-5 card border-t-4 border-slate-800 space-y-4"
+              >
+                <h3 class="text-sm font-bold border-b pb-2">RM Inputs</h3>
+                <div>
+                  <label class="text-xs font-bold">Target (Lakhs)</label
+                  ><input
+                    type="number"
+                    id="ec_tgt"
+                    value="200"
+                    class="w-full bg-slate-50 border p-2 text-sm"
+                  />
+                </div>
+                <div class="pt-2">
+                  <div class="flex justify-between text-xs font-bold">
+                    <span>Fresh (1.25x)</span><span id="ec_lF">80</span>
+                  </div>
+                  <input type="range" id="ec_f" min="0" max="300" value="80" />
+                </div>
+                <div class="pt-2">
+                  <div class="flex justify-between text-xs font-bold">
+                    <span>Renew (1.0x)</span><span id="ec_lR">40</span>
+                  </div>
+                  <input type="range" id="ec_r" min="0" max="300" value="40" />
+                </div>
+                <div class="pt-2">
+                  <div
+                    class="flex justify-between text-xs font-bold text-purple-700"
                   >
-                    &#x1F4DD; RM Performance Data
-                  </h3>
-
-                  <div class="mb-4">
-                    <label class="block text-xs font-bold text-slate-700 mb-1"
-                      >Base Assigned Target (\u20B9 Lakhs)</label
-                    >
-                    <input
-                      type="number"
-                      id="elv_target"
-                      value="200"
-                      class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-sm focus:border-purple-500 outline-none font-bold"
-                    />
+                    <span>Focus (1.5x)</span><span id="ec_lFoc">10</span>
                   </div>
-
-                  <div class="space-y-3 pt-3 border-t border-slate-100">
-                    <div>
-                      <div class="flex justify-between text-xs mb-1">
-                        <span class="font-bold text-slate-600"
-                          >Fresh GWP (1.25x Wt.)</span
-                        >
-                        <span id="elv_lblFresh" class="text-slate-800 font-bold"
-                          >\u20B9 80 L</span
-                        >
-                      </div>
-                      <input
-                        type="range"
-                        id="elv_fresh"
-                        min="0"
-                        max="300"
-                        step="5"
-                        value="80"
-                      />
-                    </div>
-                    <div>
-                      <div class="flex justify-between text-xs mb-1">
-                        <span class="font-bold text-slate-600"
-                          >Renewal GWP (1.0x Wt.)</span
-                        >
-                        <span id="elv_lblRenew" class="text-slate-800 font-bold"
-                          >\u20B9 40 L</span
-                        >
-                      </div>
-                      <input
-                        type="range"
-                        id="elv_renew"
-                        min="0"
-                        max="300"
-                        step="5"
-                        value="40"
-                      />
-                    </div>
-                    <div>
-                      <div class="flex justify-between text-xs mb-1">
-                        <span class="font-bold text-purple-700"
-                          >Focus Products
-                          <span class="bg-purple-100 px-1 rounded text-[10px]"
-                            >Retail Health, SME</span
-                          >
-                          (1.5x Accel.)</span
-                        >
-                        <span
-                          id="elv_lblFocus"
-                          class="text-purple-700 font-bold"
-                          >\u20B9 10 L</span
-                        >
-                      </div>
-                      <input
-                        type="range"
-                        id="elv_focus"
-                        class="slider-purple"
-                        min="0"
-                        max="150"
-                        step="2"
-                        value="10"
-                      />
-                    </div>
+                  <input
+                    type="range"
+                    id="ec_foc"
+                    class="slider-purple"
+                    min="0"
+                    max="150"
+                    value="10"
+                  />
+                </div>
+                <div class="pt-2 border-t">
+                  <div class="flex justify-between text-xs font-bold">
+                    <span>Loss Ratio</span><span id="ec_lLR">72%</span>
                   </div>
-
-                  <div class="space-y-3 pt-4 mt-2 border-t border-slate-200">
-                    <div>
-                      <div class="flex justify-between text-xs font-bold mb-1">
-                        <span class="text-slate-700">Loss Ratio</span
-                        ><span id="elv_lblLR" class="text-slate-800">72%</span>
-                      </div>
-                      <input
-                        type="range"
-                        id="elv_lr"
-                        class="slider-emerald"
-                        min="40"
-                        max="120"
-                        step="1"
-                        value="72"
-                      />
-                    </div>
-                    <div>
-                      <div class="flex justify-between text-xs font-bold mb-1">
-                        <span class="text-slate-700">Renewal Rate</span
-                        ><span id="elv_lblRen" class="text-slate-800">86%</span>
-                      </div>
-                      <input
-                        type="range"
-                        id="elv_ren"
-                        class="slider-emerald"
-                        min="50"
-                        max="100"
-                        step="1"
-                        value="86"
-                      />
-                    </div>
+                  <input
+                    type="range"
+                    id="ec_lr"
+                    class="slider-emerald"
+                    min="40"
+                    max="120"
+                    value="72"
+                  />
+                </div>
+                <div class="pt-2">
+                  <div class="flex justify-between text-xs font-bold">
+                    <span>Renew Rate</span><span id="ec_lRen">86%</span>
                   </div>
+                  <input
+                    type="range"
+                    id="ec_ren"
+                    class="slider-emerald"
+                    min="50"
+                    max="100"
+                    value="86"
+                  />
                 </div>
               </div>
-
-              <!-- Elevate Output & Coaching (Right Side) -->
               <div class="col-span-1 lg:col-span-7 flex flex-col gap-4">
-                <!-- Achievement Gauge Row -->
                 <div class="grid grid-cols-2 gap-4">
                   <div class="card text-center relative overflow-hidden">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">
-                      Adjusted Achievement
+                    <p class="text-[10px] font-bold uppercase">
+                      Adj. Achievement
                     </p>
-                    <div
-                      class="gauge-container flex items-center justify-center"
-                    >
-                      <canvas id="elvGaugeChart"></canvas>
+                    <div class="gauge-container">
+                      <canvas id="ecChart"></canvas>
                       <div
-                        class="absolute inset-0 flex flex-col items-center justify-center pt-8"
+                        class="absolute inset-0 flex flex-col items-center justify-center pt-6"
                       >
-                        <span
-                          id="elv_achvPct"
-                          class="text-4xl font-black text-slate-800"
-                          >77%</span
-                        >
-                        <span
-                          id="elv_zoneName"
-                          class="text-xs font-bold px-2 py-1 rounded mt-1 zone-ignition"
+                        <span id="ec_achv" class="text-4xl font-black">77%</span
+                        ><span
+                          id="ec_zone"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded mt-1 z-ign"
                           >Ignition Zone</span
                         >
                       </div>
                     </div>
                   </div>
-                  <div class="card flex flex-col justify-center">
-                    <p
-                      class="text-xs text-slate-500 uppercase font-bold mb-3 border-b pb-2"
-                    >
-                      Volume Breakdown
+                  <div
+                    class="card flex flex-col justify-center text-sm space-y-2"
+                  >
+                    <p class="text-[10px] font-bold uppercase border-b pb-1">
+                      Volume
                     </p>
-                    <div class="space-y-2 text-sm">
-                      <div class="flex justify-between">
-                        <span class="text-slate-600">Base Target:</span
-                        ><span
-                          class="font-bold text-slate-800"
-                          id="elv_outTarget"
-                          >\u20B9 200 L</span
-                        >
-                      </div>
-                      <div class="flex justify-between">
-                        <span class="text-slate-600">Actual Premium:</span
-                        ><span
-                          class="font-bold text-slate-800"
-                          id="elv_outActual"
-                          >\u20B9 130 L</span
-                        >
-                      </div>
-                      <div
-                        class="flex justify-between text-purple-700 font-bold bg-purple-50 p-1.5 rounded"
-                      >
-                        <span class="">Adjusted Premium (w/ 1.5x):</span
-                        ><span id="elv_outAdjusted">\u20B9 155 L</span>
-                      </div>
-                      <p class="text-[10px] text-slate-400 mt-2 leading-tight">
-                        Focus Products count 50% more towards target, getting
-                        RMs into payout zones faster.
-                      </p>
+                    <div class="flex justify-between">
+                      <span class="text-slate-500">Target:</span
+                      ><span id="ec_oTgt" class="font-bold">200</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-slate-500">Actual:</span
+                      ><span id="ec_oAct" class="font-bold">130</span>
+                    </div>
+                    <div
+                      class="flex justify-between text-purple-700 font-bold bg-purple-50 p-1 rounded"
+                    >
+                      <span>Adjusted:</span><span id="ec_oAdj">155</span>
                     </div>
                   </div>
                 </div>
-
-                <!-- Payout & Next Best Action -->
-                <div class="card border border-slate-200">
+                <div class="card border">
                   <div
-                    class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4"
+                    class="flex justify-between items-center border-b pb-2 mb-2"
                   >
                     <div>
-                      <h3 class="text-sm font-bold text-slate-800">
-                        Final Payout Calculation
-                      </h3>
-                      <p class="text-xs text-slate-500">
-                        Based on Base Incentive Pool (Assume 1.5% of Target =
-                        <span id="elv_basePool">\u20B9 3.0 L</span>)
+                      <h3 class="text-sm font-bold">Final Payout</h3>
+                      <p class="text-[10px] text-slate-500">
+                        Base pool = 1.5% of Target (<span id="ec_oPool"
+                          >3.0</span
+                        >)
                       </p>
                     </div>
-                    <div class="mt-2 md:mt-0 text-right">
+                    <div class="text-right">
                       <span
-                        class="block text-[10px] uppercase text-slate-500 font-bold"
-                        >Earned Incentive</span
-                      >
-                      <span
-                        id="elv_finalPayout"
+                        id="ec_oPay"
                         class="text-2xl font-black text-emerald-600"
-                        >\u20B9 1.50 L</span
+                        >1.50 L</span
                       >
                     </div>
                   </div>
-
-                  <!-- AI Coach -->
                   <div
-                    class="bg-slate-50 rounded-lg p-4 border-l-4 border-l-sky-500"
+                    class="bg-slate-50 p-3 rounded border-l-4 border-l-sky-500"
                   >
-                    <h4
-                      class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1"
-                    >
-                      &#x1F9D1;&#x200D;&#x1F3EB; Manager's Coaching Script
-                    </h4>
-                    <p
-                      id="elv_coachingText"
-                      class="text-sm text-slate-700 leading-relaxed"
-                    >
-                      <!-- Populated via JS -->
-                    </p>
+                    <h4 class="text-[10px] font-bold mb-1">Coaching Script</h4>
+                    <p id="ec_txt" class="text-xs text-slate-700"></p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- 6. ELEVATE BULK ENGINE -->
+          <div id="sec-elvBulk" class="hidden space-y-6">
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-5">
+              <h2
+                class="text-lg font-bold text-indigo-900 flex items-center gap-2"
+              >
+                &#x1F465; Elevate Bulk Team Engine
+              </h2>
+              <p class="text-sm text-indigo-700 mt-1">
+                Upload CSV to calculate payouts based on 1.5x Focus Multipliers
+                and 70% Ignition Zone.
+              </p>
+            </div>
+
+            <div
+              id="eb_up_div"
+              class="card text-center border-t-4 border-indigo-500"
+            >
+              <div
+                class="upload-zone py-8 px-6 max-w-xl mx-auto"
+                onclick="document.getElementById('ebFile').click()"
+              >
+                <div class="text-3xl mb-2 text-indigo-400">&#x21EA;</div>
+                <p class="text-sm font-medium text-slate-600">
+                  Click to upload
+                </p>
+                <p class="text-[10px] text-slate-400 mt-2">
+                  Required: Target_Lakhs, Fresh_Lakhs, Renewal_Lakhs,
+                  Focus_Lakhs, Loss_Ratio, Renewal_Rate
+                </p>
+                <input
+                  type="file"
+                  id="ebFile"
+                  accept=".csv"
+                  class="hidden"
+                  onchange="handleEbFile(event)"
+                />
+              </div>
+              <button
+                onclick="loadEbDemo()"
+                class="mt-4 bg-indigo-600 text-white text-xs px-4 py-2 rounded"
+              >
+                Load Demo Team
+              </button>
+            </div>
+
+            <div id="eb_dash_div" class="hidden space-y-6">
+              <div class="flex justify-end">
+                <button
+                  onclick="
+                    document
+                      .getElementById('eb_dash_div')
+                      .classList.add('hidden');
+                    document
+                      .getElementById('eb_up_div')
+                      .classList.remove('hidden');
+                  "
+                  class="text-xs border px-3 py-1 rounded"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <div class="grid grid-cols-4 gap-4">
+                <div class="card p-3 text-center border-l-4 border-slate-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    Team Target
+                  </p>
+                  <div id="eb_tTgt" class="text-xl font-black">0</div>
+                </div>
+                <div class="card p-3 text-center border-l-4 border-indigo-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    Actual Prem
+                  </p>
+                  <div id="eb_tAct" class="text-xl font-black">0</div>
+                </div>
+                <div
+                  class="card p-3 text-center border-l-4 border-purple-500 bg-purple-50"
+                >
+                  <p class="text-[10px] uppercase font-bold text-purple-700">
+                    Adj. Prem (1.5x)
+                  </p>
+                  <div id="eb_tAdj" class="text-xl font-black text-purple-700">
+                    0
+                  </div>
+                </div>
+                <div class="card p-3 text-center border-l-4 border-emerald-500">
+                  <p class="text-[10px] uppercase font-bold text-slate-500">
+                    Total Payout
+                  </p>
+                  <div id="eb_tPay" class="text-xl font-black text-emerald-600">
+                    0
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div
+                  class="card lg:col-span-2 bg-indigo-50 border border-indigo-200"
+                >
+                  <h3
+                    class="text-sm font-bold mb-2 border-b pb-1 text-indigo-900"
+                  >
+                    &#x2728; AI Execution Insights (Elevate Framework)
+                  </h3>
+                  <div
+                    id="eb_aiTxt"
+                    class="text-xs text-indigo-800 space-y-2"
+                  ></div>
+                </div>
+                <div class="card">
+                  <h3 class="text-sm font-bold mb-2 border-b pb-1">
+                    &#x1F3C6; Zone Distribution
+                  </h3>
+                  <div class="small-chart"><canvas id="ebChart"></canvas></div>
+                </div>
+              </div>
+
+              <div class="card p-0 overflow-hidden">
+                <div
+                  class="p-3 bg-slate-50 border-b flex justify-between items-center"
+                >
+                  <h3 class="text-sm font-bold">Elevate Bulk Ledger</h3>
+                </div>
+                <div class="overflow-x-auto max-h-[300px]">
+                  <table class="w-full text-xs text-left whitespace-nowrap">
+                    <thead class="bg-white sticky top-0 shadow-sm">
+                      <tr>
+                        <th class="p-2">RM</th>
+                        <th class="p-2 text-right">Target</th>
+                        <th class="p-2 text-right">Actual</th>
+                        <th class="p-2 text-right text-purple-700">
+                          Adj(1.5x)
+                        </th>
+                        <th class="p-2 text-center">Adj Achv%</th>
+                        <th class="p-2 text-center">Zone</th>
+                        <th class="p-2 text-center">LR%</th>
+                        <th class="p-2 text-right text-emerald-600">Payout</th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="ebTbody"
+                      class="divide-y divide-slate-100"
+                    ></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
 
     <script>
-      // ============================================================================
-      // MODULE 1: MACRO SIMULATOR LOGIC (Tabs 1-3)
-      // ============================================================================
-      const BASE_GWP = 433;
-      const USGI_STAFF = 400;
-      const BANK_ROS = 200;
-      const TOTAL_BRANCHES = 10500;
-      const BASE_PLI_RATE = 0.012;
-      const LR_THRESH = 75;
-      const REN_THRESH = 85;
-      const CLAWBACK_PCT = 0.2;
-      const REN_BOOSTER_PCT = 0.05;
-
-      const vault = [];
-      let scenarioId = 0;
-      let pnlChart = null;
-      const el = {
-        theme: document.getElementById("inpTheme"),
-        target: document.getElementById("inpTarget"),
-        active: document.getElementById("inpActive"),
-        bankBud: document.getElementById("inpBankBudget"),
-        perf: document.getElementById("inpPerformers"),
-        lr: document.getElementById("inpLR"),
-        ren: document.getElementById("inpRen"),
-        opex: document.getElementById("inpOpex"),
-      };
-
-      function calculateMacro() {
-        const tgt = parseFloat(el.target.value);
-        const act = parseFloat(el.active.value);
-        const bb = parseFloat(el.bankBud.value);
-        const perf = parseFloat(el.perf.value);
-        const lr = parseFloat(el.lr.value);
-        const ren = parseFloat(el.ren.value);
-        const op = parseFloat(el.opex.value);
-
-        const inc = tgt - BASE_GWP;
-        const ab = Math.floor(TOTAL_BRANCHES * (act / 100));
-        const bankRR = inc * (bb / 100);
-        const basePool = tgt * BASE_PLI_RATE;
-        const mult = 1 + (perf / 100) * 0.15;
-        let gPLI = basePool * mult;
-        const boostCost = gPLI - basePool;
-        let cb = 0,
-          rb = 0;
-        if (lr > LR_THRESH) cb = gPLI * CLAWBACK_PCT;
-        if (ren >= REN_THRESH) rb = gPLI * REN_BOOSTER_PCT;
-        const fPLI = gPLI - cb + rb;
-        return {
-          target: tgt,
-          incGWP: inc,
-          actBranches: ab,
-          perUSGI: tgt / USGI_STAFF,
-          perRO: tgt / BANK_ROS,
-          perBranch: (tgt * 100) / ab,
-          bankBudPct: bb,
-          bankRRCost: bankRR,
-          basePLIPool: basePool,
-          costOfBoosters: boostCost,
-          lr: lr,
-          isClawback: lr > LR_THRESH,
-          lrClawbackVal: cb,
-          ren: ren,
-          isBooster: ren >= REN_THRESH,
-          renBoosterVal: rb,
-          finalPLICost: fPLI,
-          claims: tgt * (lr / 100),
-          opex: tgt * (op / 100),
-          netMargin: tgt - tgt * (lr / 100) - tgt * (op / 100) - bankRR - fPLI,
-          theme: el.theme.value,
-        };
+      // ==========================================================
+      // 0. GLOBALS & TAB NAVIGATION
+      // ==========================================================
+      function tab(id) {
+        [
+          "cascade",
+          "finance",
+          "vault",
+          "stdUpload",
+          "elvCoach",
+          "elvBulk",
+        ].forEach((t) => {
+          document.getElementById("t-" + t).classList.remove("tab-active");
+          document.getElementById("sec-" + t).classList.add("hidden");
+        });
+        document.getElementById("t-" + id).classList.add("tab-active");
+        document.getElementById("sec-" + id).classList.remove("hidden");
       }
 
-      function updateMacroUI() {
-        const d = calculateMacro();
-        document.getElementById("lblTarget").innerText =
-          `\u20B9 ${d.target} Cr`;
-        document.getElementById("hdrSimGWP").innerText = d.target;
-        document.getElementById("lblActive").innerText = `${el.active.value}%`;
-        document.getElementById("lblBankBudget").innerText =
-          `${el.bankBud.value}%`;
-        document.getElementById("lblPerformers").innerText =
-          `${el.perf.value}%`;
-        document.getElementById("lblLR").innerText = `${d.lr}%`;
-        document.getElementById("lblRen").innerText = `${d.ren}%`;
-        document.getElementById("lblOpex").innerText = `${el.opex.value}%`;
-        document.getElementById("outUSGI").innerText =
-          `\u20B9 ${d.perUSGI.toFixed(2)} Cr`;
-        document.getElementById("outRO").innerText =
-          `\u20B9 ${d.perRO.toFixed(2)} Cr`;
-        document.getElementById("outBranch").innerText =
-          `\u20B9 ${d.perBranch.toFixed(1)} L`;
-        document.getElementById("outBranchCount").innerText =
-          `${d.actBranches.toLocaleString()} Branches`;
+      const LR_TH = 75;
+      const REN_TH = 85;
+      const BASE_PLI = 0.012; // 1.2% assumed base for macro
 
-        const titles = {
-          loan: "Credit-Shield Grand Prix",
-          casa: "CASA Activation League",
-          titans: "Titans of 800 (Top-Down)",
+      // ==========================================================
+      // 1-3. MACRO ENGINE
+      // ==========================================================
+      const mEl = {
+        thm: document.getElementById("m_theme"),
+        tgt: document.getElementById("m_tgt"),
+        act: document.getElementById("m_act"),
+        bud: document.getElementById("m_bud"),
+        prf: document.getElementById("m_perf"),
+        lr: document.getElementById("m_lr"),
+        ren: document.getElementById("m_ren"),
+        opx: document.getElementById("m_opex"),
+      };
+      const vaultData = [];
+      let macroChartIns = null;
+
+      function calcMacro() {
+        const t = parseFloat(mEl.tgt.value);
+        const a = parseFloat(mEl.act.value);
+        const b = parseFloat(mEl.bud.value);
+        const p = parseFloat(mEl.prf.value);
+        const lr = parseFloat(mEl.lr.value);
+        const rn = parseFloat(mEl.ren.value);
+        const op = parseFloat(mEl.opx.value);
+
+        document.getElementById("m_lblTgt").innerText = t;
+        document.getElementById("hdrSimGWP").innerText = t;
+        document.getElementById("m_lblAct").innerText = a + "%";
+        document.getElementById("m_lblBud").innerText = b + "%";
+        document.getElementById("m_lblPerf").innerText = p + "%";
+        document.getElementById("m_lblLR").innerText = lr + "%";
+        document.getElementById("m_lblRen").innerText = rn + "%";
+        document.getElementById("m_lblOpex").innerText = op + "%";
+
+        const inc = t - 433;
+        const ab = Math.floor(10500 * (a / 100));
+        const bankRR = inc * (b / 100);
+        const basePool = t * BASE_PLI;
+        let gPLI = basePool * (1 + (p / 100) * 0.15);
+        let cb = lr > LR_TH ? gPLI * 0.2 : 0;
+        let rb = rn >= REN_TH ? gPLI * 0.05 : 0;
+        const fPLI = gPLI - cb + rb;
+        const clm = t * (lr / 100);
+        const opex = t * (op / 100);
+        const net = t - clm - opex - bankRR - fPLI;
+
+        // Update UI
+        document.getElementById("out_usgi").innerText =
+          "\u20B9 " + (t / 400).toFixed(2) + " Cr";
+        document.getElementById("out_ro").innerText =
+          "\u20B9 " + (t / 200).toFixed(2) + " Cr";
+        document.getElementById("out_branch").innerText =
+          "\u20B9 " + ((t * 100) / ab).toFixed(1) + " L";
+        document.getElementById("out_actCnt").innerText =
+          ab.toLocaleString() + " Branches";
+
+        const ptxt = {
+          loan: "Credit-Shield Grand Prix (Loan ROs)",
+          casa: "CASA Activation",
+          titans: "Titans of 800",
         };
-        document.getElementById("strategyText").innerHTML =
-          `<strong>Strategic Narrative:</strong> To bridge the &#x20B9;${d.incGWP.toFixed(0)} Cr gap using <em>${titles[d.theme]}</em>...`;
+        document.getElementById("out_pitch").innerHTML =
+          `Focusing on <b>${ptxt[mEl.thm.value]}</b> requires \u20B9${bankRR.toFixed(1)}Cr R&R.`;
 
-        // P&L Logic (Truncated for space in comments, but fully functional in UI)
-        document.getElementById("pnlTable").innerHTML = `
-                <tr class="bg-slate-50 border-b border-slate-200"><td class="py-2 px-3 font-bold text-slate-800">1. Gross Target</td><td class="py-2 px-3 text-right font-bold text-sky-600">\u20B9 ${d.target.toFixed(1)} Cr</td></tr>
-                <tr class="border-b border-slate-100"><td class="py-2 px-3 text-slate-600 pl-6">Less: Claims Incurred (${d.lr}%)</td><td class="py-2 px-3 text-right text-red-500">(\u20B9 ${d.claims.toFixed(1)} Cr)</td></tr>
-                <tr class="border-b border-slate-100"><td class="py-2 px-3 text-slate-600 pl-6">Less: Standard Opex (${el.opex.value}%)</td><td class="py-2 px-3 text-right text-slate-500">(\u20B9 ${d.opex.toFixed(1)} Cr)</td></tr>
-                <tr class="border-b border-slate-100 bg-amber-50"><td class="py-2 px-3 font-semibold text-amber-800 pl-6">Less: Bank R&R Cost</td><td class="py-2 px-3 text-right font-semibold text-amber-600">(\u20B9 ${d.bankRRCost.toFixed(1)} Cr)</td></tr>
-                <tr class="bg-slate-50 border-y border-slate-200 mt-2"><td class="py-2 px-3 font-bold text-slate-700">2. Net USGI PLI Payout Cost</td><td class="py-2 px-3 text-right font-bold text-amber-700">(\u20B9 ${d.finalPLICost.toFixed(2)} Cr)</td></tr>
-                <tr class="border-y-2 border-slate-300 ${d.netMargin > 0 ? "bg-emerald-50" : "bg-red-50"}"><td class="py-3 px-3 font-bold text-slate-800">3. Final Net Profit Margin</td><td class="py-3 px-3 text-right font-black ${d.netMargin > 0 ? "text-emerald-600" : "text-red-600"}">\u20B9 ${d.netMargin.toFixed(1)} Cr</td></tr>
+        document.getElementById("pnlTbody").innerHTML = `
+                <tr><td class="p-2 font-bold">1. Gross Target</td><td class="p-2 text-right font-bold text-sky-600">\u20B9 ${t.toFixed(1)}</td></tr>
+                <tr><td class="p-2 pl-4 text-slate-600">Less: Claims Incurred</td><td class="p-2 text-right text-red-500">(\u20B9 ${clm.toFixed(1)})</td></tr>
+                <tr><td class="p-2 pl-4 text-slate-600">Less: Standard Opex</td><td class="p-2 text-right text-slate-500">(\u20B9 ${opex.toFixed(1)})</td></tr>
+                <tr class="bg-amber-50"><td class="p-2 pl-4 font-bold text-amber-800">Less: Bank R&R Cost</td><td class="p-2 text-right font-bold text-amber-600">(\u20B9 ${bankRR.toFixed(1)})</td></tr>
+                <tr class="bg-slate-50"><td class="p-2 font-bold">2. Net USGI PLI Cost</td><td class="p-2 text-right font-bold text-amber-700">(\u20B9 ${fPLI.toFixed(2)})</td></tr>
+                <tr class="${net > 0 ? "bg-emerald-50" : "bg-red-50"} border-t border-slate-300"><td class="p-2 font-bold">3. Net Profit Margin</td><td class="p-2 text-right font-black ${net > 0 ? "text-emerald-600" : "text-red-600"}">\u20B9 ${net.toFixed(1)}</td></tr>
             `;
 
-        if (pnlChart) {
-          pnlChart.data.datasets[0].data = [
-            d.target,
-            -(d.claims + d.opex),
-            -d.bankRRCost,
-            -d.finalPLICost,
-            d.netMargin,
-          ];
-          pnlChart.update();
+        let alerts = "";
+        if (cb > 0)
+          alerts += `<div class="p-2 bg-red-50 text-red-700 text-xs border rounded">\u26A0\uFE0F LR Clawback active (20% saved)</div>`;
+        if (rb > 0)
+          alerts += `<div class="p-2 bg-emerald-50 text-emerald-700 text-xs border rounded">\u2705 Ren Booster active (5% paid)</div>`;
+        document.getElementById("pnlAlerts").innerHTML = alerts;
+
+        const cData = [t, -(clm + opex), -bankRR, -fPLI, net];
+        if (macroChartIns) {
+          macroChartIns.data.datasets[0].data = cData;
+          macroChartIns.data.datasets[0].backgroundColor[4] =
+            net > 0 ? "#10b981" : "#ef4444";
+          macroChartIns.update();
         } else {
-          pnlChart = new Chart(
-            document.getElementById("waterfallChart").getContext("2d"),
-            {
-              type: "bar",
-              data: {
-                labels: [
-                  "Target",
-                  "Claims/Opex",
-                  "Bank R&R",
-                  "USGI PLI",
-                  "Net Margin",
-                ],
-                datasets: [
-                  {
-                    data: [
-                      d.target,
-                      -(d.claims + d.opex),
-                      -d.bankRRCost,
-                      -d.finalPLICost,
-                      d.netMargin,
-                    ],
-                    backgroundColor: [
-                      "#0ea5e9",
-                      "#94a3b8",
-                      "#f59e0b",
-                      "#f59e0b",
-                      d.netMargin > 0 ? "#10b981" : "#ef4444",
-                    ],
-                    borderRadius: 4,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-              },
-            },
-          );
-        }
-      }
-      function saveScenario() {
-        scenarioId++;
-        const d = calculateMacro();
-        vault.push({
-          id: scenarioId,
-          name: `Scen. ${scenarioId}`,
-          target: d.target,
-          branch: d.perBranch,
-          bankCost: d.bankRRCost,
-          pliCost: d.finalPLICost,
-          net: d.netMargin,
-        });
-        renderVault();
-        switchTab("vault");
-      }
-      function renderVault() {
-        document.getElementById("vaultBody").innerHTML = vault.length
-          ? vault
-              .map(
-                (v, i) =>
-                  `<tr class="border-b border-slate-100"><td class="px-4 py-3">${v.name}</td><td class="px-4 py-3 text-right">\u20B9 ${v.target}</td><td class="px-4 py-3 text-right">\u20B9 ${v.branch.toFixed(1)} L</td><td class="px-4 py-3 text-right">\u20B9 ${v.bankCost.toFixed(1)} Cr</td><td class="px-4 py-3 text-right">\u20B9 ${v.pliCost.toFixed(2)} Cr</td><td class="px-4 py-3 text-right font-bold ${v.net > 0 ? "text-emerald-600" : "text-red-600"}">\u20B9 ${v.net.toFixed(1)} Cr</td><td class="px-4 py-3 text-center"><button onclick="vault.splice(${i},1);renderVault()" class="text-xs text-red-500">X</button></td></tr>`,
-              )
-              .join("")
-          : `<tr><td colspan="7" class="px-4 py-8 text-center italic">No scenarios saved.</td></tr>`;
-      }
-      Object.keys(el).forEach((k) => {
-        el[k].addEventListener("input", updateMacroUI);
-        el[k].addEventListener("change", updateMacroUI);
-      });
-
-      // ============================================================================
-      // MODULE 2: MICRO RM INSIGHTS (Tab 4) - Simplified for brevity in this merge
-      // ============================================================================
-      function loadDemoData() {
-        document.getElementById("uploadSection").classList.add("hidden");
-        document
-          .getElementById("rmDashboardSection")
-          .classList.remove(
-            "hidden",
-          ); /* Actual parser code is retained in full scope in real file, omitted here strictly to save tokens for Tab 5 focus */
-      }
-      function resetRMData() {
-        document.getElementById("rmDashboardSection").classList.add("hidden");
-        document.getElementById("uploadSection").classList.remove("hidden");
-      }
-
-      // ============================================================================
-      // MODULE 3: NEW ELEVATE CAMPAIGN EVALUATOR (Tab 5) - ISOLATED SCOPE
-      // ============================================================================
-
-      const elv_inputs = {
-        target: document.getElementById("elv_target"),
-        fresh: document.getElementById("elv_fresh"),
-        renew: document.getElementById("elv_renew"),
-        focus: document.getElementById("elv_focus"),
-        lr: document.getElementById("elv_lr"),
-        ren: document.getElementById("elv_ren"),
-      };
-      let elv_gaugeChart = null;
-
-      function calcElevate() {
-        // Read Values
-        const t = parseFloat(elv_inputs.target.value) || 200; // Base Target in Lakhs
-        const f = parseFloat(elv_inputs.fresh.value);
-        const r = parseFloat(elv_inputs.renew.value);
-        const foc = parseFloat(elv_inputs.focus.value);
-        const lr = parseFloat(elv_inputs.lr.value);
-        const ren = parseFloat(elv_inputs.ren.value);
-
-        // Update Labels
-        document.getElementById("elv_lblFresh").innerText = `\u20B9 ${f} L`;
-        document.getElementById("elv_lblRenew").innerText = `\u20B9 ${r} L`;
-        document.getElementById("elv_lblFocus").innerText = `\u20B9 ${foc} L`;
-        document.getElementById("elv_lblLR").innerText = `${lr}%`;
-        document.getElementById("elv_lblRen").innerText = `${ren}%`;
-
-        // Core Logic: Accelerators
-        const actualPrem = f + r + foc;
-        const adjPrem = f * 1.25 + r * 1.0 + foc * 1.5; // The Elevate Formula
-        const achvPct = (adjPrem / t) * 100;
-
-        // Determine Zone & Base Payout %
-        let payoutPct = 0;
-        let zone = "";
-        let zoneClass = "";
-        if (achvPct < 70) {
-          payoutPct = 0;
-          zone = "Danger Zone";
-          zoneClass = "zone-danger";
-        } else if (achvPct < 85) {
-          payoutPct = 0.5;
-          zone = "Ignition Zone";
-          zoneClass = "zone-ignition";
-        } else if (achvPct < 100) {
-          payoutPct = 0.8;
-          zone = "Momentum Zone";
-          zoneClass = "zone-momentum";
-        } else if (achvPct < 116) {
-          payoutPct = 1.1;
-          zone = "Achiever Zone";
-          zoneClass = "zone-achiever";
-        } else if (achvPct <= 130) {
-          payoutPct = 1.3;
-          zone = "Rockstar Zone";
-          zoneClass = "zone-rockstar";
-        } else {
-          payoutPct = 1.5;
-          zone = "Max Capped";
-          zoneClass = "zone-rockstar";
-        } // 150% Hard Cap
-
-        // Calculate Final Payout (Base pool assumed 1.5% of target)
-        const basePool = t * 0.015;
-        let finalPayout = basePool * payoutPct;
-
-        // Apply Quality Guardrails
-        if (lr > LR_THRESH) finalPayout = finalPayout * 0.8; // 20% Penalty
-        if (ren >= REN_THRESH) finalPayout = finalPayout + finalPayout * 0.05; // 5% Boost
-
-        // Update UI Outputs
-        document.getElementById("elv_achvPct").innerText =
-          `${achvPct.toFixed(0)}%`;
-        document.getElementById("elv_zoneName").innerText = zone;
-        document.getElementById("elv_zoneName").className =
-          `text-xs font-bold px-2 py-1 rounded mt-1 ${zoneClass}`;
-
-        document.getElementById("elv_outTarget").innerText =
-          `\u20B9 ${t.toFixed(1)} L`;
-        document.getElementById("elv_outActual").innerText =
-          `\u20B9 ${actualPrem.toFixed(1)} L`;
-        document.getElementById("elv_outAdjusted").innerText =
-          `\u20B9 ${adjPrem.toFixed(1)} L`;
-
-        document.getElementById("elv_basePool").innerText =
-          `\u20B9 ${basePool.toFixed(2)} L`;
-        document.getElementById("elv_finalPayout").innerText =
-          `\u20B9 ${finalPayout.toFixed(2)} L`;
-
-        updateElvChart(achvPct, zoneClass);
-        generateElvCoaching(achvPct, t, adjPrem, f, r, foc, lr, ren, zone);
-      }
-
-      function updateElvChart(pct, zClass) {
-        // Map zone classes to colors for the gauge
-        let color = "#ef4444";
-        if (zClass === "zone-ignition") color = "#f59e0b";
-        if (zClass === "zone-momentum") color = "#0ea5e9";
-        if (zClass === "zone-achiever") color = "#10b981";
-        if (zClass === "zone-rockstar") color = "#8b5cf6";
-
-        const ctx = document.getElementById("elvGaugeChart").getContext("2d");
-        const clampedPct = Math.min(pct, 150); // Cap visual at 150
-        const remainder = 150 - clampedPct;
-
-        if (elv_gaugeChart) {
-          elv_gaugeChart.data.datasets[0].data = [clampedPct, remainder];
-          elv_gaugeChart.data.datasets[0].backgroundColor[0] = color;
-          elv_gaugeChart.update();
-        } else {
-          elv_gaugeChart = new Chart(ctx, {
-            type: "doughnut",
+          macroChartIns = new Chart(document.getElementById("macroChart"), {
+            type: "bar",
             data: {
-              labels: ["Achieved", "Remaining to Max"],
+              labels: [
+                "Target",
+                "Claims/Opex",
+                "Bank RR",
+                "USGI PLI",
+                "Net Margin",
+              ],
               datasets: [
                 {
-                  data: [clampedPct, remainder],
-                  backgroundColor: [color, "#e2e8f0"],
+                  data: cData,
+                  backgroundColor: [
+                    "#0ea5e9",
+                    "#94a3b8",
+                    "#f59e0b",
+                    "#f59e0b",
+                    net > 0 ? "#10b981" : "#ef4444",
+                  ],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+            },
+          });
+        }
+
+        return { t, bTgt: (t * 100) / ab, bankRR, fPLI, net };
+      }
+      function saveMacroScenario() {
+        const d = calcMacro();
+        vaultData.push({ name: `Scen ${vaultData.length + 1}`, ...d });
+        renderVault();
+        tab("vault");
+      }
+      function renderVault() {
+        document.getElementById("vaultTbody").innerHTML = vaultData
+          .map(
+            (v, i) =>
+              `<tr><td class="p-3">${v.name}</td><td class="p-3 text-right">${v.t}</td><td class="p-3 text-right">${v.bTgt.toFixed(1)}</td><td class="p-3 text-right">${v.bankRR.toFixed(1)}</td><td class="p-3 text-right">${v.fPLI.toFixed(2)}</td><td class="p-3 text-right font-bold ${v.net > 0 ? "text-emerald-600" : "text-red-600"}">${v.net.toFixed(1)}</td><td class="p-3 text-center"><button onclick="vaultData.splice(${i},1);renderVault()" class="text-xs text-red-500">X</button></td></tr>`,
+          )
+          .join("");
+      }
+      Object.keys(mEl).forEach((k) => {
+        mEl[k].addEventListener("input", calcMacro);
+      });
+
+      // ==========================================================
+      // 4. STANDARD PDF UPLOADER (Restored)
+      // ==========================================================
+      let stdChartIns = null;
+      function processStd(data) {
+        let totG = 0,
+          claw = 0,
+          boo = 0;
+        const tiers = {
+          "t-Bro": 0,
+          "t-Sil": 0,
+          "t-Gol": 0,
+          "t-Pla": 0,
+          "t-Dia": 0,
+        };
+
+        const html = data
+          .map((r) => {
+            const act = parseFloat(r.Achieved_GWP) || 0;
+            totG += act;
+            const pts = parseInt(r.Annual_Points) || 0;
+            const lr = parseFloat(r.Loss_Ratio) || 0;
+            const ren = parseFloat(r.Renewal_Rate) || 0;
+            let tr = "t-Bro";
+            let name = "Bronze";
+            if (pts >= 30) {
+              tr = "t-Dia";
+              name = "Diamond";
+            } else if (pts >= 22) {
+              tr = "t-Pla";
+              name = "Platinum";
+            } else if (pts >= 15) {
+              tr = "t-Gol";
+              name = "Gold";
+            } else if (pts >= 8) {
+              tr = "t-Sil";
+              name = "Silver";
+            }
+            tiers[tr]++;
+
+            let imp = "";
+            if (lr > LR_TH) {
+              claw++;
+              imp += '<span class="text-red-600">-20% </span>';
+            }
+            if (ren >= REN_TH) {
+              boo++;
+              imp += '<span class="text-emerald-600">+5%</span>';
+            }
+
+            return `<tr><td class="p-2">${r.RM_Name || "RM"}</td><td class="p-2 text-right">${r.Target_GWP}</td><td class="p-2 text-right">${act}</td><td class="p-2 text-center">${pts}</td><td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${tr}">${name}</span></td><td class="p-2 text-center ${lr > LR_TH ? "text-red-600" : ""}">${lr}%</td><td class="p-2 text-center ${ren >= REN_TH ? "text-emerald-600" : ""}">${ren}%</td><td class="p-2 text-right font-bold text-[10px]">${imp}</td></tr>`;
+          })
+          .join("");
+
+        document.getElementById("std_totRM").innerText = data.length;
+        document.getElementById("std_totGWP").innerText = totG.toFixed(1);
+        document.getElementById("std_claw").innerText = claw;
+        document.getElementById("std_boost").innerText = boo;
+        document.getElementById("stdTbody").innerHTML = html;
+
+        document.getElementById("std_aiTxt").innerHTML =
+          `<ul class="list-disc pl-4 space-y-1"><li>${((tiers["t-Bro"] / data.length) * 100).toFixed(0)}% of RMs are stuck in Bronze (0 points).</li><li>${claw} RMs face LR clawbacks.</li></ul>`;
+
+        if (stdChartIns) stdChartIns.destroy();
+        stdChartIns = new Chart(document.getElementById("stdChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Bronze", "Silver", "Gold", "Platinum", "Diamond"],
+            datasets: [
+              {
+                data: [
+                  tiers["t-Bro"],
+                  tiers["t-Sil"],
+                  tiers["t-Gol"],
+                  tiers["t-Pla"],
+                  tiers["t-Dia"],
+                ],
+                backgroundColor: [
+                  "#fed7aa",
+                  "#e2e8f0",
+                  "#fde68a",
+                  "#cbd5e1",
+                  "#bae6fd",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "60%",
+            plugins: { legend: { position: "right" } },
+          },
+        });
+
+        document.getElementById("std_up_div").classList.add("hidden");
+        document.getElementById("std_dash_div").classList.remove("hidden");
+      }
+      function loadStdDemo() {
+        processStd([
+          {
+            RM_Name: "RM 1",
+            Target_GWP: 2,
+            Achieved_GWP: 2.5,
+            Annual_Points: 32,
+            Loss_Ratio: 68,
+            Renewal_Rate: 88,
+          },
+          {
+            RM_Name: "RM 2",
+            Target_GWP: 2,
+            Achieved_GWP: 1.2,
+            Annual_Points: 6,
+            Loss_Ratio: 80,
+            Renewal_Rate: 75,
+          },
+          {
+            RM_Name: "RM 3",
+            Target_GWP: 1.5,
+            Achieved_GWP: 2.0,
+            Annual_Points: 16,
+            Loss_Ratio: 70,
+            Renewal_Rate: 86,
+          },
+        ]);
+      }
+      function handleStdFile(e) {
+        /* Basic CSV parser */ const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (evt) => {
+          const lines = evt.target.result.split("\n");
+          const hdrs = lines[0].split(",");
+          const d = [];
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const v = lines[i].split(",");
+            let obj = {};
+            hdrs.forEach(
+              (h, idx) => (obj[h.trim()] = v[idx] ? v[idx].trim() : ""),
+            );
+            if (obj.Target_GWP) d.push(obj);
+          }
+          processStd(d);
+        };
+        r.readAsText(f);
+      }
+
+      // ==========================================================
+      // 5. ELEVATE COACH (1 RM)
+      // ==========================================================
+      const eEl = {
+        t: document.getElementById("ec_tgt"),
+        f: document.getElementById("ec_f"),
+        r: document.getElementById("ec_r"),
+        foc: document.getElementById("ec_foc"),
+        lr: document.getElementById("ec_lr"),
+        ren: document.getElementById("ec_ren"),
+      };
+      let ecChartIns = null;
+      function calcElvCoach() {
+        const t = parseFloat(eEl.t.value) || 200;
+        const f = parseFloat(eEl.f.value);
+        const r = parseFloat(eEl.r.value);
+        const foc = parseFloat(eEl.foc.value);
+        const lr = parseFloat(eEl.lr.value);
+        const ren = parseFloat(eEl.ren.value);
+        document.getElementById("ec_lF").innerText = f;
+        document.getElementById("ec_lR").innerText = r;
+        document.getElementById("ec_lFoc").innerText = foc;
+        document.getElementById("ec_lLR").innerText = lr + "%";
+        document.getElementById("ec_lRen").innerText = ren + "%";
+
+        const act = f + r + foc;
+        const adj = f * 1.25 + r * 1.0 + foc * 1.5;
+        const pct = (adj / t) * 100;
+        let pOut = 0,
+          zCls = "z-dan",
+          zNm = "Danger Zone",
+          col = "#ef4444";
+        if (pct >= 130) {
+          pOut = 1.5;
+          zCls = "z-roc";
+          zNm = "Max Capped";
+          col = "#8b5cf6";
+        } else if (pct >= 116) {
+          pOut = 1.3;
+          zCls = "z-roc";
+          zNm = "Rockstar";
+          col = "#8b5cf6";
+        } else if (pct >= 100) {
+          pOut = 1.1;
+          zCls = "z-ach";
+          zNm = "Achiever";
+          col = "#10b981";
+        } else if (pct >= 85) {
+          pOut = 0.8;
+          zCls = "z-mom";
+          zNm = "Momentum";
+          col = "#0ea5e9";
+        } else if (pct >= 70) {
+          pOut = 0.5;
+          zCls = "z-ign";
+          zNm = "Ignition";
+          col = "#f59e0b";
+        }
+
+        const pool = t * 0.015;
+        let final = pool * pOut;
+        if (lr > LR_TH) final *= 0.8;
+        if (ren >= REN_TH) final *= 1.05;
+
+        document.getElementById("ec_achv").innerText = pct.toFixed(0) + "%";
+        document.getElementById("ec_zone").innerText = zNm;
+        document.getElementById("ec_zone").className =
+          `text-[10px] font-bold px-2 py-0.5 rounded mt-1 ${zCls}`;
+        document.getElementById("ec_oTgt").innerText = t;
+        document.getElementById("ec_oAct").innerText = act.toFixed(1);
+        document.getElementById("ec_oAdj").innerText = adj.toFixed(1);
+        document.getElementById("ec_oPool").innerText = pool.toFixed(2);
+        document.getElementById("ec_oPay").innerText = final.toFixed(2) + " L";
+
+        const cVal = Math.min(pct, 150);
+        if (ecChartIns) {
+          ecChartIns.data.datasets[0].data = [cVal, 150 - cVal];
+          ecChartIns.data.datasets[0].backgroundColor[0] = col;
+          ecChartIns.update();
+        } else {
+          ecChartIns = new Chart(document.getElementById("ecChart"), {
+            type: "doughnut",
+            data: {
+              labels: ["Achv", "Rem"],
+              datasets: [
+                {
+                  data: [cVal, 150 - cVal],
+                  backgroundColor: [col, "#e2e8f0"],
                   borderWidth: 0,
                   circumference: 180,
                   rotation: 270,
@@ -1339,70 +1381,179 @@
             },
           });
         }
+
+        document.getElementById("ec_txt").innerHTML =
+          pct < 70
+            ? `Tell them: "Sell \u20B9${((t * 0.7 - adj) / 1.5).toFixed(1)}L more of Focus Product to unlock your first bonus (70% zone)." `
+            : `Great job in the ${zNm}. Using 1.5x Focus Products got you here faster!`;
       }
-
-      function generateElvCoaching(
-        pct,
-        target,
-        adjPrem,
-        f,
-        r,
-        foc,
-        lr,
-        ren,
-        zone,
-      ) {
-        let coachHtml = "";
-        const gapTo85 = target * 0.85 - adjPrem; // Gap to Momentum Zone (80% payout)
-        const gapTo100 = target - adjPrem; // Gap to 100%
-
-        if (pct < 70) {
-          const focusNeeded = (target * 0.7 - adjPrem) / 1.5; // Math: How much 1.5x product is needed
-          coachHtml = `Right now, this RM earns \u20B9 0. However, they are in the game! Tell them: <strong>"You only need to sell \u20B9 ${focusNeeded.toFixed(1)} Lakhs of Retail Health (Focus Product) to hit 70% and unlock your first payout tier!"</strong> The 1.5x multiplier is their fastest way out of the Danger Zone.`;
-        } else if (pct >= 70 && pct < 85) {
-          const focusNeeded = gapTo85 / 1.5;
-          coachHtml = `Great, they are on the board in the Ignition Zone (50% payout). Let's push them up: <strong>"If you close just \u20B9 ${focusNeeded.toFixed(1)} Lakhs in SME/Retail Health, the 1.5x multiplier jumps you to 85% achievement, boosting your payout from 50% to 80% of your base pool."</strong>`;
-        } else if (pct >= 85 && pct < 100) {
-          const focusNeeded = gapTo100 / 1.5;
-          coachHtml = `Strong momentum. They are close to the standard goal. Remind them: <strong>"Selling \u20B9 ${focusNeeded.toFixed(1)} Lakhs in Focus Products is all it takes to cross 100%. Don't chase \u20B9 ${gapTo100.toFixed(1)}L of standard business when Focus Products get you there 50% faster!"</strong>`;
-        } else {
-          coachHtml = `Excellent performance in the ${zone}. They are capitalizing on the 1.5x multipliers effectively. Make sure they understand their payout is accelerated.`;
-        }
-
-        // Quality checks
-        if (lr > LR_THRESH) {
-          coachHtml += `<br><br><span class="text-red-600 font-bold">\u26A0\uFE0F Critical Alert:</span> Despite volume, their Loss Ratio is ${lr}%. <strong>A 20% clawback is currently active.</strong> They must acquire cleaner risks immediately or forfeit a chunk of this hard-earned incentive.`;
-        }
-        if (ren >= REN_THRESH) {
-          coachHtml += `<br><br><span class="text-emerald-700 font-bold">\u2705 Retention Win:</span> Their ${ren}% renewal rate is securing them a 5% payout booster. Acknowledge this effort.`;
-        } else {
-          coachHtml += `<br><br><span class="text-amber-600 font-bold">\u26A0\uFE0F Missed Money:</span> Their renewal rate (${ren}%) is just shy of the 85% goal. Remind them they are leaving a free 5% booster on the table.`;
-        }
-
-        document.getElementById("elv_coachingText").innerHTML = coachHtml;
-      }
-
-      // Bind Elevate inputs
-      Object.keys(elv_inputs).forEach((k) => {
-        elv_inputs[k].addEventListener("input", calcElevate);
-        elv_inputs[k].addEventListener("change", calcElevate);
+      Object.keys(eEl).forEach((k) => {
+        eEl[k].addEventListener("input", calcElvCoach);
       });
 
-      // ============================================================================
-      // GLOBAL NAVIGATION & INIT
-      // ============================================================================
-      function switchTab(tabId) {
-        ["cascade", "finance", "vault", "insights", "elevate"].forEach((t) => {
-          document.getElementById(`tab-${t}`).classList.remove("tab-active");
-          document.getElementById(`sec-${t}`).classList.add("hidden");
+      // ==========================================================
+      // 6. ELEVATE BULK ENGINE
+      // ==========================================================
+      let ebChartIns = null;
+      function processEb(data) {
+        let tTgt = 0,
+          tAct = 0,
+          tAdj = 0,
+          tPay = 0;
+        const zs = {
+          "z-dan": 0,
+          "z-ign": 0,
+          "z-mom": 0,
+          "z-ach": 0,
+          "z-roc": 0,
+        };
+
+        const html = data
+          .map((r) => {
+            const tgt = parseFloat(r.Target_Lakhs) || 0;
+            const f = parseFloat(r.Fresh_Lakhs) || 0;
+            const rn = parseFloat(r.Renewal_Lakhs) || 0;
+            const foc = parseFloat(r.Focus_Lakhs) || 0;
+            const lr = parseFloat(r.Loss_Ratio) || 0;
+            const ren = parseFloat(r.Renewal_Rate) || 0;
+
+            const act = f + rn + foc;
+            const adj = f * 1.25 + rn * 1.0 + foc * 1.5;
+            const pct = (adj / tgt) * 100;
+            tTgt += tgt;
+            tAct += act;
+            tAdj += adj;
+
+            let pOut = 0,
+              zNm = "Dan",
+              zCls = "z-dan";
+            if (pct >= 116) {
+              pOut = 1.3;
+              zNm = "Roc";
+              zCls = "z-roc";
+            } else if (pct >= 100) {
+              pOut = 1.1;
+              zNm = "Ach";
+              zCls = "z-ach";
+            } else if (pct >= 85) {
+              pOut = 0.8;
+              zNm = "Mom";
+              zCls = "z-mom";
+            } else if (pct >= 70) {
+              pOut = 0.5;
+              zNm = "Ign";
+              zCls = "z-ign";
+            }
+            zs[zCls]++;
+
+            let final = tgt * 0.015 * pOut;
+            if (lr > LR_TH) final *= 0.8;
+            if (ren >= REN_TH) final *= 1.05;
+            tPay += final;
+
+            return `<tr><td class="p-2">${r.RM_Name || "RM"}</td><td class="p-2 text-right">${tgt}</td><td class="p-2 text-right">${act}</td><td class="p-2 text-right font-bold text-purple-700">${adj}</td><td class="p-2 text-center">${pct.toFixed(0)}%</td><td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${zCls}">${zNm}</span></td><td class="p-2 text-center ${lr > LR_TH ? "text-red-600" : ""}">${lr}%</td><td class="p-2 text-right font-bold text-emerald-600">${final.toFixed(2)}</td></tr>`;
+          })
+          .join("");
+
+        document.getElementById("eb_tTgt").innerText = tTgt.toFixed(0);
+        document.getElementById("eb_tAct").innerText = tAct.toFixed(0);
+        document.getElementById("eb_tAdj").innerText = tAdj.toFixed(0);
+        document.getElementById("eb_tPay").innerText = tPay.toFixed(1);
+        document.getElementById("ebTbody").innerHTML = html;
+
+        document.getElementById("eb_aiTxt").innerHTML =
+          `<ul class="list-disc pl-4 space-y-1"><li>The 1.5x multiplier added \u20B9${(tAdj - tAct).toFixed(0)} Lakhs of 'synthetic' achievement, pushing more RMs into payout zones.</li><li>${zs["z-dan"]} RMs are still at 0 payout.</li></ul>`;
+
+        if (ebChartIns) ebChartIns.destroy();
+        ebChartIns = new Chart(document.getElementById("ebChart"), {
+          type: "bar",
+          data: {
+            labels: ["Dan", "Ign", "Mom", "Ach", "Roc"],
+            datasets: [
+              {
+                data: [
+                  zs["z-dan"],
+                  zs["z-ign"],
+                  zs["z-mom"],
+                  zs["z-ach"],
+                  zs["z-roc"],
+                ],
+                backgroundColor: [
+                  "#ef4444",
+                  "#f59e0b",
+                  "#0ea5e9",
+                  "#10b981",
+                  "#8b5cf6",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
         });
-        document.getElementById(`tab-${tabId}`).classList.add("tab-active");
-        document.getElementById(`sec-${tabId}`).classList.remove("hidden");
+
+        document.getElementById("eb_up_div").classList.add("hidden");
+        document.getElementById("eb_dash_div").classList.remove("hidden");
+      }
+      function loadEbDemo() {
+        processEb([
+          {
+            RM_Name: "RM A",
+            Target_Lakhs: 200,
+            Fresh_Lakhs: 80,
+            Renewal_Lakhs: 40,
+            Focus_Lakhs: 20,
+            Loss_Ratio: 70,
+            Renewal_Rate: 88,
+          },
+          {
+            RM_Name: "RM B",
+            Target_Lakhs: 150,
+            Fresh_Lakhs: 50,
+            Renewal_Lakhs: 30,
+            Focus_Lakhs: 5,
+            Loss_Ratio: 78,
+            Renewal_Rate: 82,
+          },
+          {
+            RM_Name: "RM C",
+            Target_Lakhs: 250,
+            Fresh_Lakhs: 100,
+            Renewal_Lakhs: 80,
+            Focus_Lakhs: 40,
+            Loss_Ratio: 65,
+            Renewal_Rate: 90,
+          },
+        ]);
+      }
+      function handleEbFile(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (evt) => {
+          const lines = evt.target.result.split("\n");
+          const hdrs = lines[0].split(",");
+          const d = [];
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const v = lines[i].split(",");
+            let obj = {};
+            hdrs.forEach(
+              (h, idx) => (obj[h.trim()] = v[idx] ? v[idx].trim() : ""),
+            );
+            if (obj.Target_Lakhs) d.push(obj);
+          }
+          processEb(d);
+        };
+        r.readAsText(f);
       }
 
-      // Initialize All
-      updateMacroUI();
-      calcElevate();
+      // INIT
+      calcMacro();
+      calcElvCoach();
     </script>
   </body>
 </html>
