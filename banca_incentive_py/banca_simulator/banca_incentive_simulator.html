@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>USGI Incentive Transition Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+      }
+
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        margin: 10px 0;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: #0ea5e9;
+        cursor: pointer;
+        margin-top: -6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      input[type="range"]:focus {
+        outline: none;
+      }
+
+      .slider-emerald::-webkit-slider-thumb {
+        background: #10b981;
+      }
+      .slider-purple::-webkit-slider-thumb {
+        background: #8b5cf6;
+      }
+      .slider-pink::-webkit-slider-thumb {
+        background: #ec4899;
+      }
+
+      .tab-btn {
+        border-bottom: 3px solid transparent;
+        color: #64748b;
+        font-weight: 600;
+        padding-bottom: 0.75rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-size: 0.875rem;
+      }
+      .tab-btn:hover {
+        color: #0ea5e9;
+      }
+      .tab-active {
+        border-bottom-color: #0ea5e9;
+        color: #0ea5e9;
+      }
+
+      .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      .upload-zone:hover {
+        border-color: #0ea5e9;
+        background-color: #f0f9ff;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col antialiased">
+    <header class="bg-slate-900 text-white shadow-md z-20">
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+      >
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-emerald-400">
+            &#x1F680; USGI Incentive Transition Engine
+          </h1>
+          <p class="text-[11px] text-slate-300 mt-1 uppercase tracking-widest">
+            Migrating from Legacy Flat-Rupee (JPEG) to Elevate 2.0
+          </p>
+        </div>
+        <div class="hidden md:flex gap-4">
+          <div
+            class="bg-slate-800 rounded px-3 py-1 text-center border border-slate-700"
+          >
+            <span class="text-[10px] text-slate-400 uppercase"
+              >Legacy Max Cap</span
+            >
+            <span class="font-bold text-slate-200">&#x20B9; 24,000</span>
+          </div>
+          <div
+            class="bg-emerald-900 rounded px-3 py-1 text-center border border-emerald-700 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+          >
+            <span class="text-[10px] text-emerald-200 uppercase"
+              >New Horizon Cap</span
+            >
+            <span class="font-bold text-emerald-400"
+              >&#x20B9; <span id="hdrMaxCap">35,000</span></span
+            >
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white border-b border-slate-200 px-6 pt-3 flex overflow-x-auto shadow-sm hide-scrollbar"
+      >
+        <nav class="flex space-x-6 max-w-7xl mx-auto w-full" aria-label="Tabs">
+          <button
+            onclick="switchTab('curve')"
+            id="tab-curve"
+            class="tab-btn tab-active"
+          >
+            &#x1F4C8; 1. Policy Curve Designer
+          </button>
+          <button onclick="switchTab('rm')" id="tab-rm" class="tab-btn">
+            &#x1F464; 2. 1-on-1 RM Paycheck Tester
+          </button>
+          <button
+            onclick="switchTab('bulk')"
+            id="tab-bulk"
+            class="tab-btn font-bold text-indigo-600 hover:text-indigo-800"
+          >
+            &#x1F4BE; 3. Bulk Team Uploader & Exporter
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+      <!-- TAB 1: CURVE COMPARATOR -->
+      <div id="sec-curve" class="space-y-6 block animate-fade-in">
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+          <h2 class="text-lg font-bold text-slate-800 mb-2">
+            &#x1F3AF; Objective: "Do No Harm" Transition
+          </h2>
+          <p class="text-sm text-slate-600">
+            Ensure the
+            <strong class="text-emerald-600"
+              >Green Line (New Elevate Flat-Rupee Curve)</strong
+            >
+            stays above the
+            <strong class="text-rose-500">Red Line (Legacy JPEG Curve)</strong>.
+            This guarantees your RMs earn more money while keeping company
+            budgets safe.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="col-span-1 lg:col-span-4 space-y-4">
+            <div class="card border-t-4 border-emerald-500">
+              <h3 class="text-sm font-bold text-slate-800 mb-4 border-b pb-2">
+                Design New Payout Grid (₹)
+              </h3>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">70% Ach (Ignition Zone)</span
+                    ><span id="lbl_70" class="text-emerald-600 font-bold"
+                      >\u20B9 5,000</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_70"
+                    class="slider-emerald"
+                    min="0"
+                    max="10000"
+                    step="500"
+                    value="5000"
+                  />
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">90% Ach (Leg. = ₹11.5k)</span
+                    ><span id="lbl_90" class="text-emerald-600 font-bold"
+                      >\u20B9 12,000</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_90"
+                    class="slider-emerald"
+                    min="10000"
+                    max="15000"
+                    step="100"
+                    value="12000"
+                  />
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">100% Ach (Leg. = ₹12.8k)</span
+                    ><span id="lbl_100" class="text-emerald-600 font-bold"
+                      >\u20B9 15,000</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_100"
+                    class="slider-emerald"
+                    min="12000"
+                    max="20000"
+                    step="100"
+                    value="15000"
+                  />
+                </div>
+                <!-- NEW 125% SLIDER -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">125% Ach (Leg. = ₹15.3k)</span
+                    ><span id="lbl_125" class="text-emerald-600 font-bold"
+                      >\u20B9 22,000</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_125"
+                    class="slider-emerald"
+                    min="15000"
+                    max="28000"
+                    step="500"
+                    value="22000"
+                  />
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">150% Ach (Target Max)</span
+                    ><span id="lbl_150" class="text-emerald-600 font-bold"
+                      >\u20B9 35,000</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_150"
+                    class="slider-emerald"
+                    min="20000"
+                    max="50000"
+                    step="1000"
+                    value="35000"
+                  />
+                </div>
+                <div class="pt-3 border-t">
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold">Tapering (Per 10% > 150%)</span
+                    ><span id="lbl_taper" class="font-bold">+\u20B9 1,000</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="inp_taper"
+                    min="0"
+                    max="3000"
+                    step="250"
+                    value="1000"
+                  />
+                </div>
+
+                <!-- Saved Variants UI -->
+                <div class="pt-4 mt-2 border-t border-slate-200">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-slate-700"
+                      >Saved Scenario Variants</span
+                    >
+                    <button
+                      onclick="saveCurveVariant()"
+                      class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-[10px] font-bold py-1 px-2 rounded transition-colors"
+                    >
+                      + Save Grid
+                    </button>
+                  </div>
+                  <div
+                    id="variantsList"
+                    class="space-y-2 max-h-32 overflow-y-auto"
+                  >
+                    <p class="text-[10px] text-slate-400 italic">
+                      No variants saved yet.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-span-1 lg:col-span-8">
+            <div class="card h-full flex flex-col">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-slate-800">
+                  &#x1F4CA; Visual Compensation Curve
+                </h3>
+                <div class="flex gap-4 text-xs font-bold">
+                  <span class="text-rose-500 border-b-2 border-rose-500 pb-1"
+                    >Legacy Banca</span
+                  ><span
+                    class="text-emerald-600 border-b-2 border-emerald-600 pb-1"
+                    >Elevate 2.0</span
+                  >
+                </div>
+              </div>
+              <div class="chart-container flex-grow">
+                <canvas id="curveChart"></canvas>
+              </div>
+              <div
+                id="curveAlert"
+                class="mt-4 p-3 rounded text-sm font-medium"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: RM PAYCHECK TESTER -->
+      <div id="sec-rm" class="space-y-6 hidden animate-fade-in">
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-5">
+          <h2 class="text-lg font-bold text-purple-900 mb-1">
+            &#x1F4B4; 1-on-1 RM Paycheck Simulator
+          </h2>
+          <p class="text-sm text-purple-700">
+            Show RMs exactly how their "Base Premium + Free Bonus Credit" pushes
+            them into higher payout zones utilizing the dual focus multipliers!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div
+            class="col-span-1 lg:col-span-5 card border-t-4 border-slate-800"
+          >
+            <h3 class="text-md font-bold text-slate-800 mb-4 border-b pb-2">
+              RM Monthly Performance
+            </h3>
+            <div class="mb-4">
+              <label class="block text-sm font-bold text-slate-700 mb-1"
+                >Target (\u20B9 Lakhs)</label
+              ><input
+                type="number"
+                id="rm_tgt"
+                value="10"
+                class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-md font-bold focus:border-purple-500 outline-none"
+              />
+            </div>
+            <div class="space-y-4 pt-2">
+              <div>
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="font-bold">Fresh Business</span
+                  ><span id="rm_lblFresh" class="font-bold">\u20B9 3.0 L</span>
+                </div>
+                <input
+                  type="range"
+                  id="rm_fresh"
+                  min="0"
+                  max="20"
+                  step="0.5"
+                  value="3.0"
+                />
+                <p class="text-[10px] text-slate-400">
+                  Legacy: Standard | Elevate:
+                  <span class="font-bold text-sky-600">+25% Bonus Credit</span>
+                </p>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="font-bold">Renewal / Other</span
+                  ><span id="rm_lblRen" class="font-bold">\u20B9 2.0 L</span>
+                </div>
+                <input
+                  type="range"
+                  id="rm_ren"
+                  min="0"
+                  max="20"
+                  step="0.5"
+                  value="2.0"
+                />
+                <p class="text-[10px] text-slate-400">
+                  Legacy: Standard | Elevate: Standard
+                </p>
+              </div>
+
+              <!-- TWO FOCUS PRODUCTS -->
+              <div class="pt-2 border-t">
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="font-bold text-purple-700"
+                    >Focus 1 (e.g. SME)</span
+                  ><span id="rm_lblFoc1" class="font-bold text-purple-700"
+                    >\u20B9 2.0 L</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="rm_foc1"
+                  class="slider-purple"
+                  min="0"
+                  max="20"
+                  step="0.5"
+                  value="2.0"
+                />
+                <p class="text-[10px] text-slate-400">
+                  Legacy: Standard | Elevate:
+                  <span class="font-bold text-purple-600"
+                    >+50% Bonus Credit (1.5x)</span
+                  >
+                </p>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1">
+                  <span class="font-bold text-pink-600"
+                    >Focus 2 (e.g. Pure Health)</span
+                  ><span id="rm_lblFoc2" class="font-bold text-pink-600"
+                    >\u20B9 1.0 L</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="rm_foc2"
+                  class="slider-pink"
+                  min="0"
+                  max="20"
+                  step="0.5"
+                  value="1.0"
+                />
+                <p class="text-[10px] text-slate-400">
+                  Legacy: Standard | Elevate:
+                  <span class="font-bold text-pink-600"
+                    >+100% Bonus Credit (2.0x)</span
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="col-span-1 lg:col-span-7 space-y-4 flex flex-col justify-between"
+          >
+            <div class="grid grid-cols-2 gap-4">
+              <div class="card text-center bg-rose-50 border border-rose-200">
+                <p class="text-xs uppercase font-bold text-rose-700 mb-1">
+                  Legacy Banca (JPEG)
+                </p>
+                <div
+                  id="out_leg_pay"
+                  class="text-4xl font-black text-rose-600 my-2"
+                >
+                  \u20B9 0
+                </div>
+                <div id="out_leg_achv" class="text-sm font-bold text-rose-800">
+                  Raw Achv: 0%
+                </div>
+              </div>
+              <div
+                class="card text-center bg-emerald-50 border border-emerald-200"
+              >
+                <p class="text-xs uppercase font-bold text-emerald-700 mb-1">
+                  Elevate 2.0 Hybrid
+                </p>
+                <div
+                  id="out_new_pay"
+                  class="text-4xl font-black text-emerald-600 my-2"
+                >
+                  \u20B9 0
+                </div>
+                <div
+                  id="out_new_achv"
+                  class="text-sm font-bold text-emerald-800"
+                >
+                  Adj. Achv: 0%
+                </div>
+              </div>
+            </div>
+            <div class="card flex-grow">
+              <h3 class="text-sm font-bold text-slate-800 mb-2 border-b pb-2">
+                &#x1F4CA; Behind the Math
+              </h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-slate-600">Base Premium Collected:</span
+                  ><span id="out_raw_prem" class="font-bold text-slate-800"
+                    >\u20B9 8.0 L</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between text-indigo-700 bg-indigo-50 p-1.5 rounded"
+                >
+                  <span class="font-semibold">Free Bonus Credit Earned:</span
+                  ><span id="out_bonus_credit" class="font-bold"
+                    >+ \u20B9 2.75 L</span
+                  >
+                </div>
+                <div class="flex justify-between border-t pt-2">
+                  <span class="text-emerald-600 font-semibold"
+                    >Total Adjusted Premium:</span
+                  ><span id="out_adj_prem" class="font-bold text-emerald-700"
+                    >\u20B9 10.75 L</span
+                  >
+                </div>
+                <p class="text-xs text-slate-500 mt-1">
+                  Elevate rewards specific behaviors by generating +25% free
+                  credit for Fresh policies, +50% for Focus 1, and +100% for
+                  Focus 2, pushing your total adjusted achievement higher!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: BULK TEAM UPLOADER & EXPORTER -->
+      <div id="sec-bulk" class="hidden space-y-6 animate-fade-in">
+        <div
+          class="bg-indigo-50 border border-indigo-200 rounded-lg p-5 flex justify-between items-center"
+        >
+          <div>
+            <h2 class="text-lg font-bold text-indigo-900">
+              &#x1F4BE; Bulk Team Transition Engine
+            </h2>
+            <p class="text-sm text-indigo-700 mt-1">
+              Upload the updated RM CSV to compute payouts under BOTH the old
+              Legacy rules and the new Elevate 2.0 rules, then download the
+              results.
+            </p>
+          </div>
+          <button
+            onclick="downloadCSV()"
+            id="btnDownload"
+            class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded shadow transition-colors duration-200"
+          >
+            &#x2B07;&#xFE0F; Download Computed Payouts (CSV)
+          </button>
+        </div>
+
+        <div
+          id="bulk_up_div"
+          class="card text-center border-t-4 border-indigo-500"
+        >
+          <p
+            class="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded inline-block"
+          >
+            Required Columns:
+            <code class="font-bold text-slate-700"
+              >RM_ID, RM_Name, Region, Target_Lakhs, Fresh_Lakhs, Renewal_Lakhs,
+              Focus1_Lakhs, Focus2_Lakhs, Loss_Ratio, Renewal_Rate</code
+            >
+          </p>
+          <div
+            class="upload-zone py-8 px-6 max-w-xl mx-auto"
+            onclick="document.getElementById('bulkFile').click()"
+          >
+            <div class="text-3xl mb-2 text-indigo-400">&#x21EA;</div>
+            <p class="text-sm font-medium text-slate-600">
+              Click to upload CSV
+            </p>
+            <input
+              type="file"
+              id="bulkFile"
+              accept=".csv"
+              class="hidden"
+              onchange="handleBulkFile(event)"
+            />
+          </div>
+          <button
+            onclick="loadBulkDemo()"
+            class="mt-4 bg-slate-800 text-white text-xs px-4 py-2 rounded shadow"
+          >
+            Load 300-Row Demo Dataset
+          </button>
+        </div>
+
+        <div id="bulk_dash_div" class="hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Team Payroll Comparison</h3>
+            <button
+              onclick="resetBulk()"
+              class="text-xs border px-3 py-1.5 rounded bg-white hover:bg-slate-50 shadow-sm"
+            >
+              &#x21BA; Reset Data
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="card p-3 text-center border-l-4 border-slate-500">
+              <p class="text-[10px] uppercase font-bold text-slate-500">
+                Total RMs
+              </p>
+              <div id="b_totRM" class="text-xl font-black">0</div>
+            </div>
+            <div class="card p-3 text-center border-l-4 border-rose-500">
+              <p class="text-[10px] uppercase font-bold text-rose-600">
+                Total Legacy Payroll
+              </p>
+              <div id="b_legPay" class="text-xl font-black text-rose-600">
+                0
+              </div>
+            </div>
+            <div class="card p-3 text-center border-l-4 border-emerald-500">
+              <p class="text-[10px] uppercase font-bold text-emerald-600">
+                Total Elevate Payroll
+              </p>
+              <div id="b_elvPay" class="text-xl font-black text-emerald-600">
+                0
+              </div>
+            </div>
+            <div
+              class="card p-3 text-center border-l-4 border-sky-500 bg-sky-50"
+            >
+              <p class="text-[10px] uppercase font-bold text-sky-700">
+                RMs Earning MORE Money
+              </p>
+              <div id="b_winCount" class="text-xl font-black text-sky-700">
+                0%
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-0 overflow-hidden border border-slate-200">
+            <div
+              class="p-3 bg-slate-50 border-b flex justify-between items-center"
+            >
+              <h3 class="text-sm font-bold">Computed Incentive Ledger</h3>
+              <input
+                type="text"
+                id="b_search"
+                placeholder="Search RM..."
+                class="text-xs p-1.5 border rounded w-48"
+                onkeyup="filterBulk()"
+              />
+            </div>
+            <div class="overflow-x-auto max-h-[500px]">
+              <table class="w-full text-xs text-left whitespace-nowrap">
+                <thead class="bg-white sticky top-0 shadow-sm z-10 border-b">
+                  <tr>
+                    <th class="p-3">RM Name</th>
+                    <th class="p-3 text-right">Target (L)</th>
+                    <th class="p-3 text-right">Actual (L)</th>
+                    <th class="p-3 text-right text-indigo-700">Bonus (L)</th>
+                    <th class="p-3 text-right">Adj Achv %</th>
+                    <th class="p-3 text-right text-rose-600">
+                      Legacy Payout (₹)
+                    </th>
+                    <th class="p-3 text-right text-emerald-600">
+                      Elevate Payout (₹)
+                    </th>
+                    <th class="p-3 text-right font-bold">Net Diff</th>
+                  </tr>
+                </thead>
+                <tbody id="b_tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ==========================================
+      // UI NAVIGATION
+      // ==========================================
+      function switchTab(id) {
+        ["curve", "rm", "bulk"].forEach((t) => {
+          document.getElementById("tab-" + t).classList.remove("tab-active");
+          document.getElementById("sec-" + t).classList.add("hidden");
+        });
+        document.getElementById("tab-" + id).classList.add("tab-active");
+        document.getElementById("sec-" + id).classList.remove("hidden");
+      }
+
+      // ==========================================
+      // CORE MATH FUNCTIONS
+      // ==========================================
+      function getLegacyPayout(achvPct) {
+        if (achvPct < 90) return 0;
+        if (achvPct < 100) return 11529;
+        if (achvPct < 110) return 12810;
+        if (achvPct < 120) return 14091;
+        if (achvPct < 130) return 15372;
+        if (achvPct < 140) return 16653;
+        if (achvPct < 150) return 17934;
+        return 24000; // Flat cap for >= 150
+      }
+
+      function getElevatePayout(achvPct, v = null) {
+        if (!v) {
+          v = {
+            v70: parseInt(document.getElementById("inp_70").value),
+            v90: parseInt(document.getElementById("inp_90").value),
+            v100: parseInt(document.getElementById("inp_100").value),
+            v125: parseInt(document.getElementById("inp_125").value),
+            v150: parseInt(document.getElementById("inp_150").value),
+            vTaper: parseInt(document.getElementById("inp_taper").value),
+          };
+        }
+        if (achvPct >= 150)
+          return v.v150 + Math.floor((achvPct - 150) / 10) * v.vTaper;
+        if (achvPct >= 125)
+          return v.v125 + ((achvPct - 125) / 25) * (v.v150 - v.v125);
+        if (achvPct >= 100)
+          return v.v100 + ((achvPct - 100) / 25) * (v.v125 - v.v100);
+        if (achvPct >= 90)
+          return v.v90 + ((achvPct - 90) / 10) * (v.v100 - v.v90);
+        if (achvPct >= 70)
+          return v.v70 + ((achvPct - 70) / 20) * (v.v90 - v.v70);
+        return 0;
+      }
+
+      // ==========================================
+      // MODULE 1: CURVE DESIGNER
+      // ==========================================
+      let curveChart = null;
+      let curveVariants = [];
+      const variantColors = [
+        "#8b5cf6",
+        "#f59e0b",
+        "#0ea5e9",
+        "#ec4899",
+        "#14b8a6",
+      ];
+
+      function saveCurveVariant() {
+        if (curveVariants.length >= 5)
+          return alert("Maximum 5 variants can be compared at once.");
+        curveVariants.push({
+          name: "Variant " + (curveVariants.length + 1),
+          v70: parseInt(document.getElementById("inp_70").value),
+          v90: parseInt(document.getElementById("inp_90").value),
+          v100: parseInt(document.getElementById("inp_100").value),
+          v125: parseInt(document.getElementById("inp_125").value),
+          v150: parseInt(document.getElementById("inp_150").value),
+          vTaper: parseInt(document.getElementById("inp_taper").value),
+        });
+        renderCurveVariants();
+        drawCurve();
+      }
+
+      function loadCurveVariant(index) {
+        const v = curveVariants[index];
+        document.getElementById("inp_70").value = v.v70;
+        document.getElementById("inp_90").value = v.v90;
+        document.getElementById("inp_100").value = v.v100;
+        document.getElementById("inp_125").value = v.v125;
+        document.getElementById("inp_150").value = v.v150;
+        document.getElementById("inp_taper").value = v.vTaper;
+        drawCurve();
+      }
+
+      function deleteCurveVariant(index) {
+        curveVariants.splice(index, 1);
+        curveVariants.forEach((v, i) => (v.name = "Variant " + (i + 1)));
+        renderCurveVariants();
+        drawCurve();
+      }
+
+      function renderCurveVariants() {
+        const list = document.getElementById("variantsList");
+        if (curveVariants.length === 0) {
+          list.innerHTML =
+            '<p class="text-[10px] text-slate-400 italic">No variants saved yet.</p>';
+          return;
+        }
+        list.innerHTML = curveVariants
+          .map(
+            (v, i) => `
+                <div class="flex justify-between items-center bg-white border border-slate-200 p-2 rounded">
+                    <span class="text-[10px] font-bold" style="color: ${variantColors[i % variantColors.length]}">${v.name}</span>
+                    <div class="flex gap-2">
+                        <button onclick="loadCurveVariant(${i})" class="text-[10px] text-sky-600 hover:underline">Load</button>
+                        <button onclick="deleteCurveVariant(${i})" class="text-[10px] text-rose-500 hover:underline">Del</button>
+                    </div>
+                </div>
+            `,
+          )
+          .join("");
+      }
+
+      function drawCurve() {
+        document.getElementById("lbl_70").innerText =
+          `\u20B9 ${parseInt(document.getElementById("inp_70").value).toLocaleString()}`;
+        document.getElementById("lbl_90").innerText =
+          `\u20B9 ${parseInt(document.getElementById("inp_90").value).toLocaleString()}`;
+        document.getElementById("lbl_100").innerText =
+          `\u20B9 ${parseInt(document.getElementById("inp_100").value).toLocaleString()}`;
+        document.getElementById("lbl_125").innerText =
+          `\u20B9 ${parseInt(document.getElementById("inp_125").value).toLocaleString()}`;
+        document.getElementById("lbl_150").innerText =
+          `\u20B9 ${parseInt(document.getElementById("inp_150").value).toLocaleString()}`;
+        document.getElementById("hdrMaxCap").innerText =
+          `${parseInt(document.getElementById("inp_150").value).toLocaleString()}`;
+        document.getElementById("lbl_taper").innerText =
+          `+\u20B9 ${parseInt(document.getElementById("inp_taper").value).toLocaleString()}`;
+
+        const xAxis = [
+          50, 60, 70, 80, 90, 100, 110, 120, 125, 130, 140, 150, 160, 170,
+        ];
+        const legData = xAxis.map((x) => getLegacyPayout(x));
+        const newData = xAxis.map((x) => getElevatePayout(x));
+
+        let isLower = false;
+        for (let i = 0; i < xAxis.length; i++) {
+          if (legData[i] > 0 && newData[i] < legData[i]) isLower = true;
+        }
+
+        const alertDiv = document.getElementById("curveAlert");
+        if (isLower) {
+          alertDiv.className =
+            "mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 text-sm rounded font-medium";
+          alertDiv.innerHTML =
+            "&#x26A0;&#xFE0F; Warning: New curve drops below Legacy. Increase sliders.";
+        } else {
+          alertDiv.className =
+            "mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded font-medium";
+          alertDiv.innerHTML =
+            "&#x2705; Perfect Transition! New curve protects payouts.";
+        }
+
+        const datasets = [
+          {
+            label: "Legacy (JPEG)",
+            data: legData,
+            borderColor: "#f43f5e",
+            backgroundColor: "rgba(244, 63, 94, 0.1)",
+            borderWidth: 3,
+            fill: true,
+            borderDash: [5, 5],
+            tension: 0.1,
+          },
+          {
+            label: "Elevate 2.0 (Active)",
+            data: newData,
+            borderColor: "#10b981",
+            backgroundColor: "rgba(16, 185, 129, 0.2)",
+            borderWidth: 4,
+            fill: true,
+            tension: 0.2,
+          },
+        ];
+
+        curveVariants.forEach((v, index) => {
+          datasets.push({
+            label: v.name,
+            data: xAxis.map((x) => getElevatePayout(x, v)),
+            borderColor: variantColors[index % variantColors.length],
+            borderWidth: 2,
+            borderDash: [2, 2],
+            fill: false,
+            tension: 0.2,
+          });
+        });
+
+        const ctx = document.getElementById("curveChart").getContext("2d");
+        if (curveChart) {
+          curveChart.data.labels = xAxis.map((x) => x + "%");
+          curveChart.data.datasets = datasets;
+          curveChart.update();
+        } else {
+          curveChart = new Chart(ctx, {
+            type: "line",
+            data: { labels: xAxis.map((x) => x + "%"), datasets: datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "bottom",
+                  labels: { boxWidth: 12, font: { size: 10 } },
+                },
+              },
+              scales: { y: { min: 0 } },
+            },
+          });
+        }
+
+        calcRM(); // Sync tab 2
+        if (bulkParsedData.length > 0) processBulk(bulkParsedData); // Sync tab 3 if data exists
+      }
+      [
+        "inp_70",
+        "inp_90",
+        "inp_100",
+        "inp_125",
+        "inp_150",
+        "inp_taper",
+      ].forEach((id) =>
+        document.getElementById(id).addEventListener("input", drawCurve),
+      );
+
+      // ==========================================
+      // MODULE 2: 1-on-1 RM TESTER
+      // ==========================================
+      function calcRM() {
+        const tgt = parseFloat(document.getElementById("rm_tgt").value) || 10;
+        const fr = parseFloat(document.getElementById("rm_fresh").value) || 0;
+        const rn = parseFloat(document.getElementById("rm_ren").value) || 0;
+        const fo1 = parseFloat(document.getElementById("rm_foc1").value) || 0;
+        const fo2 = parseFloat(document.getElementById("rm_foc2").value) || 0;
+
+        document.getElementById("rm_lblFresh").innerText =
+          `\u20B9 ${fr.toFixed(1)} L`;
+        document.getElementById("rm_lblRen").innerText =
+          `\u20B9 ${rn.toFixed(1)} L`;
+        document.getElementById("rm_lblFoc1").innerText =
+          `\u20B9 ${fo1.toFixed(1)} L`;
+        document.getElementById("rm_lblFoc2").innerText =
+          `\u20B9 ${fo2.toFixed(1)} L`;
+
+        const rawPrem = fr + rn + fo1 + fo2;
+        const bonusCredit = fr * 0.25 + fo1 * 0.5 + fo2 * 1.0; // Elevate Multipliers
+        const adjPrem = rawPrem + bonusCredit;
+
+        document.getElementById("out_raw_prem").innerText =
+          `\u20B9 ${rawPrem.toFixed(1)} L`;
+        document.getElementById("out_bonus_credit").innerText =
+          `+ \u20B9 ${bonusCredit.toFixed(1)} L`;
+        document.getElementById("out_adj_prem").innerText =
+          `\u20B9 ${adjPrem.toFixed(1)} L`;
+
+        const rawPct = tgt > 0 ? (rawPrem / tgt) * 100 : 0;
+        const adjPct = tgt > 0 ? (adjPrem / tgt) * 100 : 0;
+
+        document.getElementById("out_leg_achv").innerText =
+          `Raw Achv: ${rawPct.toFixed(0)}%`;
+        document.getElementById("out_new_achv").innerText =
+          `Adj. Achv: ${adjPct.toFixed(0)}%`;
+
+        let legPay = getLegacyPayout(rawPct);
+        if (legPay > 24000) legPay = 24000;
+        const elvPay = getElevatePayout(adjPct);
+
+        document.getElementById("out_leg_pay").innerText =
+          `\u20B9 ${legPay.toLocaleString()}`;
+        document.getElementById("out_new_pay").innerText =
+          `\u20B9 ${elvPay.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      }
+      ["rm_tgt", "rm_fresh", "rm_ren", "rm_foc1", "rm_foc2"].forEach((id) =>
+        document.getElementById(id).addEventListener("input", calcRM),
+      );
+
+      // ==========================================
+      // MODULE 3: BULK TEAM UPLOADER & EXPORTER
+      // ==========================================
+      let bulkParsedData = [];
+
+      function processBulk(data) {
+        bulkParsedData = data;
+        let tLeg = 0,
+          tElv = 0,
+          winners = 0;
+
+        const html = data
+          .map((r) => {
+            const tgt = parseFloat(r.Target_Lakhs) || 0;
+            const fr = parseFloat(r.Fresh_Lakhs) || 0;
+            const ren = parseFloat(r.Renewal_Lakhs) || 0;
+            const foc1 = parseFloat(r.Focus1_Lakhs) || 0;
+            const foc2 = parseFloat(r.Focus2_Lakhs) || 0;
+            const lr = parseFloat(r.Loss_Ratio) || 0;
+            const rRate = parseFloat(r.Renewal_Rate) || 0;
+
+            const act = fr + ren + foc1 + foc2;
+            const bonus = fr * 0.25 + foc1 * 0.5 + foc2 * 1.0; // 1.25x, 1.5x, 2.0x
+            const adj = act + bonus;
+
+            const rawPct = tgt > 0 ? (act / tgt) * 100 : 0;
+            const adjPct = tgt > 0 ? (adj / tgt) * 100 : 0;
+
+            // Legacy Pay
+            let legPay = getLegacyPayout(rawPct);
+            if (lr > 75) legPay *= 0.8;
+            if (rRate >= 85) legPay *= 1.05;
+            if (legPay > 24000) legPay = 24000; // Hard Cap applied
+
+            // Elevate Pay
+            let elvPay = getElevatePayout(adjPct);
+            if (lr > 75) elvPay *= 0.8;
+            if (rRate >= 85) elvPay *= 1.05;
+
+            const diff = elvPay - legPay;
+
+            tLeg += legPay;
+            tElv += elvPay;
+            if (diff > 0) winners++;
+
+            // Store computed values for CSV
+            r.act = act;
+            r.bonus = bonus;
+            r.adj = adj;
+            r.rawPct = rawPct;
+            r.adjPct = adjPct;
+            r.legPay = legPay;
+            r.elvPay = elvPay;
+            r.diff = diff;
+
+            const diffClass =
+              diff > 0
+                ? "text-emerald-600"
+                : diff < 0
+                  ? "text-rose-600"
+                  : "text-slate-500";
+            const diffSym = diff > 0 ? "+" : "";
+
+            return `
+                    <tr class="hover:bg-slate-50 b-row">
+                        <td class="p-3">${r.RM_Name || "RM"} <span class="text-[10px] text-slate-400 block">${r.Region || ""}</span></td>
+                        <td class="p-3 text-right">${tgt.toFixed(1)}</td>
+                        <td class="p-3 text-right">${act.toFixed(1)}</td>
+                        <td class="p-3 text-right font-bold text-indigo-700">+${bonus.toFixed(1)}</td>
+                        <td class="p-3 text-right font-bold text-emerald-700">${adjPct.toFixed(0)}%</td>
+                        <td class="p-3 text-right text-rose-600">\u20B9 ${legPay.toFixed(0)}</td>
+                        <td class="p-3 text-right font-bold text-emerald-600">\u20B9 ${elvPay.toFixed(0)}</td>
+                        <td class="p-3 text-right font-bold ${diffClass}">${diffSym}\u20B9 ${diff.toFixed(0)}</td>
+                    </tr>
+                `;
+          })
+          .join("");
+
+        document.getElementById("b_totRM").innerText = data.length;
+        document.getElementById("b_legPay").innerText =
+          `\u20B9 ${(tLeg / 100000).toFixed(2)} L`;
+        document.getElementById("b_elvPay").innerText =
+          `\u20B9 ${(tElv / 100000).toFixed(2)} L`;
+        document.getElementById("b_winCount").innerText =
+          `${((winners / data.length) * 100).toFixed(0)}%`;
+
+        document.getElementById("b_tbody").innerHTML = html;
+        document.getElementById("bulk_up_div").classList.add("hidden");
+        document.getElementById("bulk_dash_div").classList.remove("hidden");
+        document.getElementById("btnDownload").classList.remove("hidden");
+      }
+
+      function filterBulk() {
+        const q = document.getElementById("b_search").value.toLowerCase();
+        document
+          .querySelectorAll(".b-row")
+          .forEach(
+            (r) =>
+              (r.style.display = r.innerText.toLowerCase().includes(q)
+                ? ""
+                : "none"),
+          );
+      }
+
+      function downloadCSV() {
+        if (bulkParsedData.length === 0) return;
+        let csv = "data:text/csv;charset=utf-8,";
+        const hdrs = [
+          "RM_ID",
+          "RM_Name",
+          "Region",
+          "Target_Lakhs",
+          "Fresh_Lakhs",
+          "Renewal_Lakhs",
+          "Focus1_Lakhs",
+          "Focus2_Lakhs",
+          "Actual_Premium",
+          "Bonus_Credit",
+          "Adjusted_Premium",
+          "Raw_Achv_Pct",
+          "Adj_Achv_Pct",
+          "Loss_Ratio",
+          "Renewal_Rate",
+          "Legacy_Payout_INR",
+          "Elevate_Payout_INR",
+          "Net_Difference_INR",
+        ];
+        csv += hdrs.join(",") + "\r\n";
+
+        bulkParsedData.forEach((r) => {
+          const row = [
+            r.RM_ID || "",
+            r.RM_Name || "",
+            r.Region || "",
+            r.Target_Lakhs || 0,
+            r.Fresh_Lakhs || 0,
+            r.Renewal_Lakhs || 0,
+            r.Focus1_Lakhs || 0,
+            r.Focus2_Lakhs || 0,
+            r.act.toFixed(1),
+            r.bonus.toFixed(1),
+            r.adj.toFixed(1),
+            r.rawPct.toFixed(1),
+            r.adjPct.toFixed(1),
+            r.Loss_Ratio || 0,
+            r.Renewal_Rate || 0,
+            r.legPay.toFixed(0),
+            r.elvPay.toFixed(0),
+            r.diff.toFixed(0),
+          ];
+          csv += row.join(",") + "\r\n";
+        });
+
+        const enc = encodeURI(csv);
+        const a = document.createElement("a");
+        a.setAttribute("href", enc);
+        a.setAttribute("download", "Computed_Team_Payouts.csv");
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      function handleBulkFile(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (evt) => {
+          const lines = evt.target.result.split("\n");
+          if (lines.length < 2) return alert("Invalid CSV.");
+          const hdrs = lines[0].split(",").map((h) => h.trim());
+          const d = [];
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const vals = lines[i].split(",");
+            let obj = {};
+            hdrs.forEach((h, idx) => {
+              obj[h] = vals[idx] ? vals[idx].trim() : "";
+            });
+            if (obj.Target_Lakhs) d.push(obj);
+          }
+          if (d.length) processBulk(d);
+          else alert("Check CSV headers match required structure.");
+        };
+        r.readAsText(f);
+      }
+
+      function loadBulkDemo() {
+        const regions = ["North", "South", "East", "West", "Central"];
+        const names = [
+          "Amit",
+          "Priya",
+          "Rahul",
+          "Sneha",
+          "Vikram",
+          "Neha",
+          "Sanjay",
+          "Divya",
+          "Rohan",
+          "Pooja",
+        ];
+        const d = [];
+        for (let i = 1; i <= 300; i++) {
+          const isRoc = i % 10 === 0;
+          const isDan = i % 7 === 0;
+          const t = 10 + Math.floor(Math.random() * 15); // Reduced targets to 10-25L for more realistic monthly numbers
+          let fr = t * (isRoc ? 0.9 : isDan ? 0.2 : 0.5);
+          let ren = t * 0.3;
+          let foc1 = t * (isRoc ? 0.3 : isDan ? 0.05 : 0.1);
+          let foc2 = t * (isRoc ? 0.2 : isDan ? 0.0 : 0.05);
+          d.push({
+            RM_ID: `USG${i.toString().padStart(3, "0")}`,
+            RM_Name: `${names[i % 10]} ${i}`,
+            Region: regions[i % 5],
+            Target_Lakhs: t,
+            Fresh_Lakhs: fr.toFixed(1),
+            Renewal_Lakhs: ren.toFixed(1),
+            Focus1_Lakhs: foc1.toFixed(1),
+            Focus2_Lakhs: foc2.toFixed(1),
+            Loss_Ratio: i % 15 === 0 ? 80 : 68,
+            Renewal_Rate: i % 8 === 0 ? 70 : 88,
+          });
+        }
+        processBulk(d);
+      }
+
+      function resetBulk() {
+        bulkParsedData = [];
+        document.getElementById("bulkFile").value = "";
+        document.getElementById("bulk_dash_div").classList.add("hidden");
+        document.getElementById("btnDownload").classList.add("hidden");
+        document.getElementById("bulk_up_div").classList.remove("hidden");
+      }
+
+      // Drag/Drop Setup
+      const bDz = document.getElementById("bulk_up_div");
+      bDz.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        bDz.classList.add("dragover");
+      });
+      bDz.addEventListener("dragleave", () => {
+        bDz.classList.remove("dragover");
+      });
+      bDz.addEventListener("drop", (e) => {
+        e.preventDefault();
+        bDz.classList.remove("dragover");
+        if (e.dataTransfer.files.length) {
+          document.getElementById("bulkFile").files = e.dataTransfer.files;
+          handleBulkFile({ target: { files: e.dataTransfer.files } });
+        }
+      });
+
+      // INIT
+      drawCurve();
+      calcRM();
+    </script>
+  </body>
+</html>
