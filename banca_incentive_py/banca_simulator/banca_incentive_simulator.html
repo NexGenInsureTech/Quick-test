@@ -733,7 +733,11 @@
       // MODULE 1: CURVE DESIGNER
       // ==========================================
       let curveChart = null;
-      let curveVariants = [];
+
+      // NEW: Load saved variants from localStorage on startup, or start empty.
+      let curveVariants =
+        JSON.parse(localStorage.getItem("usgi_curve_variants")) || [];
+
       const variantColors = [
         "#8b5cf6",
         "#f59e0b",
@@ -743,8 +747,12 @@
       ];
 
       function saveCurveVariant() {
-        if (curveVariants.length >= 5)
-          return alert("Maximum 5 variants can be compared at once.");
+        // NEW: Cap enforced to 3 scenarios
+        if (curveVariants.length >= 3)
+          return alert(
+            "Maximum 3 variants can be saved. Please delete one first.",
+          );
+
         curveVariants.push({
           name: "Variant " + (curveVariants.length + 1),
           v70: parseInt(document.getElementById("inp_70").value),
@@ -754,6 +762,13 @@
           v150: parseInt(document.getElementById("inp_150").value),
           vTaper: parseInt(document.getElementById("inp_taper").value),
         });
+
+        // NEW: Save the updated array directly to the browser's persistent storage
+        localStorage.setItem(
+          "usgi_curve_variants",
+          JSON.stringify(curveVariants),
+        );
+
         renderCurveVariants();
         drawCurve();
       }
@@ -772,6 +787,13 @@
       function deleteCurveVariant(index) {
         curveVariants.splice(index, 1);
         curveVariants.forEach((v, i) => (v.name = "Variant " + (i + 1)));
+
+        // NEW: Update persistent storage after deletion
+        localStorage.setItem(
+          "usgi_curve_variants",
+          JSON.stringify(curveVariants),
+        );
+
         renderCurveVariants();
         drawCurve();
       }
@@ -1214,6 +1236,7 @@
       });
 
       // INIT
+      renderCurveVariants(); // NEW: Render the saved list immediately when the page loads
       drawCurve();
       calcRM();
     </script>
