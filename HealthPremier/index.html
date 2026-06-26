@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health Premier Insurance Calculator</title>
+
+<style>
+body { font-family: system-ui; background:#f5f7fb; margin:0;}
+.container { max-width:500px; margin:auto; padding:16px;}
+
+.card {
+  background:#fff; padding:16px; border-radius:14px;
+  margin-bottom:12px; box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+.label { font-size:13px; margin-bottom:8px;}
+
+.chips { display:flex; flex-wrap:wrap; gap:8px;}
+.chip {
+  padding:10px 14px; border-radius:20px;
+  background:#eef2ff; cursor:pointer;
+  font-size:13px;
+}
+.active { background:#2a9d8f; color:#fff;}
+
+.result {
+  position:sticky; bottom:10px;
+  background:#fff; padding:16px;
+  text-align:center; border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.15);
+}
+
+.price { font-size:30px; color:#2a9d8f; font-weight:bold;}
+
+input {
+  width:100%; padding:10px; margin-top:8px;
+  border-radius:10px; border:1px solid #ddd;
+}
+button {
+  width:100%; padding:12px; margin-top:10px;
+  border:none; border-radius:10px;
+  background:#264653; color:white;
+}
+
+/* ✅ Premium Section */
+.toggle { display:flex; justify-content:flex-end; font-size:13px;}
+
+.perday-box {
+  margin-top:12px;
+  padding:18px;
+  background: linear-gradient(135deg, #2a9d8f, #38b2ac);
+  color:#fff;
+  border-radius:16px;
+  text-align:center;
+}
+
+.price-big { font-size:32px; font-weight:700;}
+.perday-text { font-size:14px; opacity:.9;}
+
+.subtext {
+  margin-top:8px;
+  font-size:13px;
+  color:#6b7280;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>USGI Health Premier Calculator</h2>
+
+<!-- Selection -->
+<div class="card">
+<div class="label">Family</div>
+<div id="family" class="chips"></div>
+
+<div class="label">Age Band</div>
+<div id="age" class="chips"></div>
+
+<div class="label">Sum Insured</div>
+<div id="si" class="chips"></div>
+</div>
+
+<!-- Customer -->
+<div class="card">
+<div class="label">Customer Details</div>
+<input id="name" placeholder="Full Name">
+<input id="phone" placeholder="Mobile Number">
+</div>
+
+<!-- ✅ Premium UI -->
+<div class="card">
+  <input type="hidden" id="gst" checked>
+
+  <div class="toggle">
+    <label>
+      <input type="checkbox" id="monthly"> Monthly
+    </label>
+  </div>
+
+  <div class="perday-box" id="perdayBox">
+    <div class="price-big">₹ --</div>
+    <div class="perday-text">per day</div>
+  </div>
+
+  <div class="subtext" id="anchorText">
+    Affordable protection
+  </div>
+</div>
+
+<!-- Result -->
+<div class="result">
+<div>Premium</div>
+<div id="premium" class="price">₹ --</div>
+
+<button onclick="sendWhatsApp()">Share on WhatsApp</button>
+<button onclick="saveLead()">Save Lead</button>
+</div>
+
+</div>
+
+<!-- ✅ RATES (Make sure file is correct) -->
+<script src="rates.json"></script>
+
+<script>
+// ✅ GLOBAL STATE
+let selected = {};
+let currentAnnualPremium = 0;
+let currentDisplayPremium = 0;
+
+// ✅ INIT
+window.onload = function () {
+  if (!window.rates) {
+    console.error("Rates not loaded");
+    return;
+  }
+  initSelection();
+  renderAll();
+};
+
+// ✅ INIT SELECTION
+function initSelection() {
+  const f = Object.keys(rates)[0];
+  const a = Object.keys(rates[f])[0];
+  const s = Object.keys(rates[f][a])[0];
+  selected = { family: f, age: a, si: s };
+}
+
+// ✅ FILTER
+function filterSI(list){
+  const preferred = ["100000","300000","500000","1000000","2000000","3000000","5000000"];
+  return preferred.filter(v => list.includes(v));
+}
+
+// ✅ FORMAT
+function format(val){
+  return Number(val) >= 100000 ? (val/100000)+"L" : val;
+}
+
+// ✅ RENDER CHIPS
+function renderChips(id, items, key){
+  let el = document.getElementById(id);
+  el.innerHTML = "";
+
+  items.forEach(v=>{
+    let chip = document.createElement("div");
+    chip.className = "chip" + (selected[key] == v ? " active" : "");
+    chip.innerText = format(v);
+
+    chip.onclick = ()=>{
+      selected[key] = v;
+
+      if(key === "family"){
+        selected.age = Object.keys(rates[v])[0];
+      }
+
+      if(key === "age"){
+        const siList = filterSI(Object.keys(rates[selected.family][selected.age]));
+        selected.si = siList[0];
+      }
+
+      renderAll();
+    };
+
+    el.appendChild(chip);
+  });
+}
+
+// ✅ RENDER ALL
+function renderAll(){
+  renderChips("family", Object.keys(rates), "family");
+  renderChips("age", Object.keys(rates[selected.family]), "age");
+
+  const allSI = Object.keys(rates[selected.family][selected.age]);
+  renderChips("si", filterSI(allSI), "si");
+
+  calculate();
+}
+
+// ✅ ✅ ✅ CLEAN CALCULATE
+function calculate(){
+
+  let base = rates?.[selected.family]?.[selected.age]?.[selected.si];
+
+  if(!base){
+    document.getElementById("premium").innerText = "N/A";
+    updatePerDay(null);
+    return;
+  }
+
+  let annualPremium = base * 1.18;
+
+  let displayPremium = annualPremium;
+
+  if(document.getElementById("monthly").checked){
+    displayPremium = annualPremium / 12;
+  }
+
+  // store globally
+  currentAnnualPremium = annualPremium;
+  currentDisplayPremium = displayPremium;
+
+  document.getElementById("premium").innerText =
+    "₹ " + Math.round(displayPremium).toLocaleString();
+
+  updatePerDay(annualPremium);
+}
+
+// ✅ PER DAY
+function updatePerDay(premium){
+
+  if (!premium) {
+    document.getElementById("perdayBox").innerHTML =
+      `<div class="price-big">₹ --</div><div class="perday-text">per day</div>`;
+    return;
+  }
+
+  const perDay = Math.round(premium / 365);
+
+  document.getElementById("perdayBox").innerHTML =
+    `<div class="price-big">₹ ${perDay}</div>
+     <div class="perday-text">per day</div>`;
+
+  updateAnchor(perDay);
+}
+
+// ✅ PSYCHOLOGY TEXT
+function updateAnchor(val){
+  let text = "Affordable protection";
+
+  if(val < 20) text = "Cheaper than a snack 🍪";
+  else if(val < 50) text = "Less than your daily tea ☕";
+  else if(val < 100) text = "Less than a quick meal 🍛";
+  else text = "Value-packed protection ✅";
+
+  document.getElementById("anchorText").innerText = text;
+}
+
+// ✅ WHATSAPP
+function sendWhatsApp(){
+
+  let premium = document.getElementById("premium").innerText;
+
+  let msg =
+`Health Insurance Quote
+
+Family: ${selected.family}
+Age: ${selected.age}
+Cover: ${format(selected.si)}
+
+Premium: ${premium}
+Only ₹ ${Math.round(currentAnnualPremium/365)} per day
+
+Reply YES to proceed`;
+
+  window.open("https://wa.me/?text="+encodeURIComponent(msg));
+}
+
+// ✅ SAVE LEAD
+function saveLead(){
+
+  let name = document.getElementById("name").value;
+  let phone = document.getElementById("phone").value;
+
+  if(!name || phone.length !== 10){
+    alert("Enter valid details");
+    return;
+  }
+
+  let lead = {
+    name,
+    phone,
+    selection: selected,
+    annualPremium: Math.round(currentAnnualPremium),
+    displayPremium: Math.round(currentDisplayPremium),
+    timestamp: new Date().toISOString()
+  };
+
+  console.log("Lead:", lead);
+  alert("Lead Saved ✅");
+}
+
+// ✅ EVENTS
+document.getElementById("monthly").onchange = calculate;
+
+</script>
+</body>
+</html>
