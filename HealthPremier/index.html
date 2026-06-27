@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Health Premier Insurance Calculator</title>
+<title>Indian Bank Health Care Premier Calculator</title>
+
 
 <style>
 body { font-family: system-ui; background:#f5f7fb; margin:0;}
@@ -68,7 +69,10 @@ button {
 <body>
 <div class="container">
 
-<h2>USGI Health Premier Calculator</h2>
+<hgroup>
+  <h2>USGI Health Premier Calculator</h2>
+  <p>Premium Calculator</p>
+</hgroup>
 
 <!-- Selection -->
 <div class="card">
@@ -80,13 +84,6 @@ button {
 
 <div class="label">Sum Insured</div>
 <div id="si" class="chips"></div>
-</div>
-
-<!-- Customer -->
-<div class="card">
-<div class="label">Customer Details</div>
-<input id="name" placeholder="Full Name">
-<input id="phone" placeholder="Mobile Number">
 </div>
 
 <!-- ✅ Premium UI -->
@@ -113,6 +110,13 @@ button {
 <div class="result">
 <div>Premium</div>
 <div id="premium" class="price">₹ --</div>
+
+<!-- Customer -->
+<div class="card">
+<div class="label">Customer Details</div>
+<input id="name" placeholder="Full Name">
+<input id="phone" placeholder="Mobile Number">
+</div>
 
 <button onclick="sendWhatsApp()">Share on WhatsApp</button>
 <button onclick="saveLead()">Save Lead</button>
