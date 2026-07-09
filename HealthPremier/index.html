@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!doctype html>
 <html lang="en">
   <head>
@@ -28,6 +29,219 @@
         --shadow-card: 0 6px 18px rgba(15, 61, 58, 0.08);
         --shadow-float: 0 10px 30px rgba(15, 61, 58, 0.18);
       }
+=======
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Indian Bank Health Care Premier Calculator</title>
+
+
+  <style>
+    body {
+      font-family: system-ui;
+      background: #f5f7fb;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .label {
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 20px;
+      background: #eef2ff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .active {
+      background: #2a9d8f;
+      color: #fff;
+    }
+
+/* ✅ Premium Section */
+.toggle { display:flex; align-items: center; gap: 6px; font-size:13px;}
+
+    .price {
+      font-size: 30px;
+      color: #2a9d8f;
+      font-weight: bold;
+    }
+
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #38b2ac;
+      color: white;
+    }
+
+    /* ✅ Premium Section */
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+      font-size: 13px;
+    }
+
+    .perday-box {
+      margin-top: 12px;
+      padding: 18px;
+      background: linear-gradient(135deg, #2a9d8f, #38b2ac);
+      color: #fff;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .price-big {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .perday-text {
+      font-size: 14px;
+      opacity: .9;
+    }
+
+
+    .subtext {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #065f46;
+      background: #d1fae5;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* Floating button container */
+    .fab-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .fab-container button {
+      background-color: #25D366;
+      /* WhatsApp green */
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .fab-container button:hover {
+      background-color: #128C7E;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      /* hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-content .label {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <hgroup>
+      <h2>Indian Bank Health Care Premier</h2>
+      <p style="color: #2a9d8f;">Premium Calculator</p>
+    </hgroup>
+
+    <!-- Selection -->
+    <div class="card">
+      <div class="label">Family</div>
+      <div id="family" class="chips"></div>
+
+      <div class="label">Age Band</div>
+      <div id="age" class="chips"></div>
+
+      <div class="label">Sum Insured</div>
+      <div id="si" class="chips"></div>
+    </div>
+>>>>>>> 6fd7721656e1886fcda924198e3bb8967e48e4ca
 
       * {
         box-sizing: border-box;
