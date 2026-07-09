@@ -77,7 +77,7 @@ button {
 }
 
 button.secondary {
-  background: #eef2ff;
+  background: #d7d9e1;
   color: #1f2937;
 }
 
@@ -201,13 +201,13 @@ button.text-link {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 6px 14px;
   border-radius: 10px;
   background: #f9fafb;
   font-size: 14px;
   flex: 0 1 auto;
-  min-height: 44px;
+  min-height: 24px;
 }
 
 .summary-item strong {
@@ -289,7 +289,10 @@ button.text-link {
   }
 
   .pkg {
-    min-width: 100%;
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .summary-card {
