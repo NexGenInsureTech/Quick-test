@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Indian Bank Health Care Premier</title>
+
+<style>
+
+:root{
+  --primary:#2a9d8f;
+  --dark:#264653;
+  --bg:#f5f7fb;
+  --card:#ffffff;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:#222;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+.hero{
+  text-align:center;
+  padding:20px 0;
+}
+
+.hero h1{
+  margin:0;
+  color:var(--dark);
+}
+
+.hero p{
+  color:#666;
+}
+
+.package-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  margin:20px 0;
+}
+
+.package{
+  background:#fff;
+  border-radius:16px;
+  padding:16px;
+  cursor:pointer;
+  border:2px solid transparent;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);
+  transition:.2s;
+}
+
+.package:hover{
+  transform:translateY(-3px);
+}
+
+.package.active{
+  border-color:var(--primary);
+}
+
+.package.recommended{
+  border-color:#f4b400;
+}
+
+.package-title{
+  font-weight:700;
+}
+
+.package-tag{
+  font-size:13px;
+  color:#555;
+  margin-top:8px;
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 4px 18px rgba(0,0,0,.08);
+  margin-bottom:15px;
+}
+
+.reco-title{
+  font-size:22px;
+  font-weight:700;
+  color:var(--dark);
+}
+
+.reco-tagline{
+  margin-top:5px;
+  color:#666;
+}
+
+.perday{
+  margin-top:15px;
+  background:linear-gradient(135deg,#2a9d8f,#38b2ac);
+  border-radius:16px;
+  color:white;
+  text-align:center;
+  padding:18px;
+}
+
+.perday-price{
+  font-size:38px;
+  font-weight:700;
+}
+
+.perday-text{
+  opacity:.9;
+}
+
+.anchor{
+  margin-top:12px;
+  display:inline-block;
+  background:#d1fae5;
+  color:#065f46;
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+label{
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:5px;
+  display:block;
+}
+
+select,input{
+  width:100%;
+  padding:10px;
+  border:1px solid #ddd;
+  border-radius:10px;
+}
+
+.result{
+  text-align:center;
+}
+
+.premium{
+  color:var(--primary);
+  font-size:42px;
+  font-weight:700;
+}
+
+.sub{
+  color:#777;
+}
+
+.buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+button{
+  flex:1;
+  min-width:150px;
+  border:none;
+  border-radius:10px;
+  padding:12px;
+  cursor:pointer;
+  color:white;
+}
+
+.btn-share{
+  background:#25D366;
+}
+
+.btn-save{
+  background:var(--dark);
+}
+
+.benefits{
+  margin-top:15px;
+  display:grid;
+  gap:8px;
+  font-size:14px;
+}
+
+.benefit{
+  background:#f8fafc;
+  border-radius:10px;
+  padding:10px;
+}
+
+</style>
+
+data/rates.js
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="hero">
+
+<h1>Indian Bank Health Care Premier</h1>
+
+<p>One Product. Multiple Life Stages.</p>
+
+</div>
+
+<div class="package-grid" id="packageGrid"></div>
+
+<div class="card">
+
+<div class="reco-title" id="packageTitle"></div>
+
+<div class="reco-tagline" id="packageTagline"></div>
+
+<div class="perday">
+
+<div class="perday-price" id="perDay">₹ --</div>
+
+<div class="perday-text">per day</div>
+
+<div class="anchor" id="anchorText">
+Protect your savings from medical inflation
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="grid">
+
+<div>
+<label>Family Type</label>
+<select id="family"></select>
+</div>
+
+<div>
+<label>Age Band</label>
+<select id="age"></select>
+</div>
+
+<div>
+<label>Sum Insured</label>
+<select id="si"></select>
+</div>
+
+<div>
+<label>Customer Name</label>
+<input id="customerName">
+</div>
+
+<div>
+<label>Mobile Number</label>
+<input id="mobile">
+</div>
+
+</div>
+
+</div>
+
+<div class="card result">
+
+<div class="sub">Annual Premium</div>
+
+<div class="premium" id="premium">
+₹ --
+</div>
+
+<div class="sub">
+Indicative Quote Only
+</div>
+
+<div class="buttons">
+
+<button class="btn-share" onclick="shareQuote()">
+Share on WhatsApp
+</button>
+
+<button class="btn-save" onclick="saveLead()">
+Save Lead
+</button>
+
+</div>
+
+<div class="benefits">
+
+<div class="benefit">✅ No Co-Pay</div>
+
+<div class="benefit">✅ Restore Benefit</div>
+
+<div class="benefit">✅ OPD Cover</div>
+
+<div class="benefit">✅ Wellness Benefits</div>
+
+<div class="benefit">✅ Daily Hospital Cash</div>
+
+<div class="benefit">✅ Cashless Network Across India</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const packages = [
+
+{
+ id:"young",
+ title:"NEW YOUNG",
+ tagline:"Start before health problems start",
+ defaultSI:"1000000",
+ anchor:"For the cost of a tea a day, start protecting your future"
+},
+
+{
+ id:"lite",
+ title:"HEALTH PROTECT LITE",
+ tagline:"Health cover for every account holder",
+ defaultSI:"500000",
+ anchor:"Affordable protection for every family"
+},
+
+{
+ id:"smart",
+ title:"SMART HEALTH PLUS ⭐",
+ tagline:"Today's sensible minimum cover",
+ defaultSI:"1000000",
+ anchor:"Most popular choice among working families"
+},
+
+{
+ id:"senior",
+ title:"SENIOR CARE SECURE",
+ tagline:"Retirement deserves protection",
+ defaultSI:"500000",
+ anchor:"Health security beyond retirement"
+}
+
+];
+
+let activePackage = packages[2];
+
+function loadPackages(){
+
+ let html="";
+
+ packages.forEach(p=>{
+
+   html+=`
+   <div
+      class="package ${p.id==='smart'?'recommended':''}"
+      onclick="selectPackage('${p.id}')"
+      id="pkg-${p.id}">
+      <div class="package-title">${p.title}</div>
+      <div class="package-tag">${p.tagline}</div>
+   </div>`;
+ });
+
+ document.getElementById("packageGrid").innerHTML=html;
+
+ highlightPackage();
+}
+
+function highlightPackage(){
+
+ document.querySelectorAll('.package')
+ .forEach(x=>x.classList.remove('active'));
+
+ document
+ .getElementById('pkg-'+activePackage.id)
+ .classList.add('active');
+
+ document.getElementById('packageTitle').innerText=
+ activePackage.title;
+
+ document.getElementById('packageTagline').innerText=
+ activePackage.tagline;
+
+ document.getElementById('anchorText').innerText=
+ activePackage.anchor;
+}
+
+function selectPackage(id){
+
+ activePackage =
+ packages.find(x=>x.id===id);
+
+ highlightPackage();
+
+ let si=document.getElementById("si");
+
+ if([...si.options].some(o=>o.value===activePackage.defaultSI))
+ {
+   si.value=activePackage.defaultSI;
+ }
+
+ calculate();
+}
+
+const rates = window.rates;
+
+function populateFamilies(){
+
+ const family=document.getElementById("family");
+
+ family.innerHTML="";
+
+ Object.keys(rates).forEach(f=>{
+
+  family.add(
+    new Option(f,f)
+  );
+
+ });
+
+ populateAge();
+}
+
+function populateAge(){
+
+ const family=document.getElementById("family").value;
+
+ const age=document.getElementById("age");
+
+ age.innerHTML="";
+
+ Object.keys(rates[family]).forEach(a=>{
+
+   age.add(
+    new Option(a,a)
+   );
+
+ });
+
+ populateSI();
+}
+
+function populateSI(){
+
+ const family=document.getElementById("family").value;
+ const age=document.getElementById("age").value;
+
+ const si=document.getElementById("si");
+
+ si.innerHTML="";
+
+ Object.keys(rates[family][age])
+ .forEach(s=>{
+
+   si.add(
+    new Option(
+      (s/100000)+" Lakh",
+      s
+    )
+   );
+
+ });
+
+ if(activePackage.defaultSI &&
+    rates[family][age][activePackage.defaultSI]){
+
+    si.value=activePackage.defaultSI;
+ }
+
+ calculate();
+}
+
+function calculate(){
+
+ const family=
+ document.getElementById("family").value;
+
+ const age=
+ document.getElementById("age").value;
+
+ const si=
+ document.getElementById("si").value;
+
+ const premium=
+ rates?.[family]?.[age]?.[si];
+
+ if(!premium) return;
+
+ document.getElementById("premium")
+ .innerText=
+ "₹ "+premium.toLocaleString();
+
+ const pd=Math.round(premium/365);
+
+ document.getElementById("perDay")
+ .innerText=
+ "₹ "+pd;
+}
+
+function shareQuote(){
+
+ const family=
+ document.getElementById("family").value;
+
+ const age=
+ document.getElementById("age").value;
+
+ const si=
+ document.getElementById("si").value;
+
+ const premium=
+ document.getElementById("premium").innerText;
+
+ const msg=
+`Indian Bank Health Care Premier
+
+Package:
+${activePackage.title}
+
+Family:
+${family}
+
+Age:
+${age}
+
+Cover:
+₹ ${(si/100000)} Lakh
+
+Premium:
+${premium}
+
+Approx:
+₹ ${Math.round(
+parseInt(
+premium.replace(/[^\d]/g,'')
+)/365
+)}/day
+
+Indicative Quote`;
+
+ window.open(
+ "https://wa.me/?text="+encodeURIComponent(msg)
+ );
+}
+
+function saveLead(){
+
+ const lead = {
+
+   name:
+   document.getElementById("customerName").value,
+
+   mobile:
+   document.getElementById("mobile").value,
+
+   package:
+   activePackage.title,
+
+   family:
+   document.getElementById("family").value,
+
+   age:
+   document.getElementById("age").value,
+
+   si:
+   document.getElementById("si").value,
+
+   premium:
+   document.getElementById("premium").innerText
+
+ };
+
+ console.log(lead);
+
+ alert("Lead saved ✅");
+}
+
+document
+.getElementById("family")
+.addEventListener("change",populateAge);
+
+document
+.getElementById("age")
+.addEventListener("change",populateSI);
+
+document
+.getElementById("si")
+.addEventListener("change",calculate);
+
+window.onload=function(){
+
+ loadPackages();
+
+ populateFamilies();
+
+};
+
+</script>
+
+</body>
+</html>
