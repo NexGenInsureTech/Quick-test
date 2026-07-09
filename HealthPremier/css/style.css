@@ -1,0 +1,46 @@
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.chip {
+    padding: 8px 12px;
+    background: #eef;
+    border-radius: 20px;
+    cursor: pointer
+}
+
+.active {
+    background: #2a9d8f;
+    color: #fff
+}
+
+body {
+    font-family: Arial;
+    background: #f5f7fb
+}
+
+.container {
+    max-width: 900px;
+    margin: auto
+}
+
+.card {
+    background: #fff;
+    padding: 16px;
+    margin: 10px;
+    border-radius: 12px
+}
+
+.packages {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.pkg {
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer
+}
