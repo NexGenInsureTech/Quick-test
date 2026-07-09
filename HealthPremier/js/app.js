@@ -21,6 +21,8 @@ const UI_FILTERS = {
   ],
 };
 
+const SENIOR_AGE_BANDS = ["56-60", "61-65", "66-70", "71-75", "76-80", "81+"];
+
 // Reusable filter functions
 function filterFamily(list) {
   return UI_FILTERS.family.filter((v) => list.includes(v));
@@ -32,6 +34,15 @@ function filterAge(list) {
 
 function filterSI(list) {
   return UI_FILTERS.si.filter((v) => list.includes(v));
+}
+
+function getVisibleAgeBands(list, packageKey) {
+  const baseAgeBands = filterAge(list);
+  if (packageKey === "senior") {
+    const seniorBands = list.filter((age) => SENIOR_AGE_BANDS.includes(age));
+    return seniorBands.length ? seniorBands : baseAgeBands;
+  }
+  return baseAgeBands;
 }
 
 const familyLabels = {
@@ -53,12 +64,35 @@ let selected = {};
 let selectedPackage = "smart";
 
 const rates = window.rates;
+const STORAGE_KEY = "healthPremierSavedQuote";
+
 function init() {
   renderPackages();
   const f = Object.keys(rates)[0];
   const a = Object.keys(rates[f])[0];
   const s = Object.keys(rates[f][a])[0];
   selected = { family: f, age: a, si: s };
+
+  document.getElementById("shareQuoteBtn").onclick = () =>
+    openCustomerModal("share");
+  document.getElementById("saveQuoteBtn").onclick = () =>
+    openCustomerModal("save");
+  document.getElementById("resetQuoteBtn").onclick = resetSelection;
+  document.getElementById("learnMoreBtn").onclick = () => openInfoModal();
+  document.getElementById("modalSubmitBtn").onclick = submitCustomerModal;
+  document.getElementById("modalCancelBtn").onclick = closeCustomerModal;
+  document.getElementById("infoCloseBtn").onclick = closeInfoModal;
+  document.querySelectorAll("[data-close='true']").forEach((el) => {
+    el.onclick = (event) => {
+      const modal = event.currentTarget.closest(".modal");
+      if (modal?.id === "customerModal") {
+        closeCustomerModal();
+      } else if (modal?.id === "infoModal") {
+        closeInfoModal();
+      }
+    };
+  });
+
   renderAll();
 }
 function renderPackages() {
@@ -70,6 +104,7 @@ function renderPackages() {
     d.innerHTML = `
   <div class="package-title">${v.title}</div>
   <div class="package-subtitle">${v.subtitle}</div>
+  ${v.recommended ? '<div class="package-badge">Recommended</div>' : ""}
 `;
     d.className =
       "pkg" +
@@ -80,16 +115,139 @@ function renderPackages() {
     el.appendChild(d);
   });
 }
+
+function renderRecommendation() {
+  const packageInfo = packageDefs[selectedPackage] || {
+    title: "Custom Health Cover",
+    subtitle: "Choose your preferred family, age band, and sum insured",
+    anchor: "Tailor your protection",
+  };
+
+  document.getElementById("anchor").innerText = packageInfo.anchor;
+  document.getElementById("recommendationTitle").innerText = packageInfo.title;
+  document.getElementById("recommendationText").innerText =
+    packageInfo.subtitle;
+}
+
+function renderSummary() {
+  const packageInfo = packageDefs[selectedPackage] || {
+    title: "Custom Health Cover",
+    subtitle: "Custom combination selected",
+  };
+  const familyLabel = familyLabels[selected.family] || selected.family;
+  const sumInsuredLabel = `₹${Number(selected.si) / 100000}L`;
+
+  document.getElementById("quoteSummary").innerHTML = `
+    <div class="summary-item"><strong>Plan</strong><span>${packageInfo.title}</span></div>
+    <div class="summary-item"><strong>Family</strong><span>${familyLabel}</span></div>
+    <div class="summary-item"><strong>Age</strong><span>${selected.age}</span></div>
+    <div class="summary-item"><strong>Cover</strong><span>${sumInsuredLabel}</span></div>
+    <div class="summary-item"><strong>Premium</strong><span>${document.getElementById("premium").innerText}</span></div>
+  `;
+}
+
+let pendingAction = null;
+
+function getCustomerDetails() {
+  return {
+    name: document.getElementById("customerName").value.trim(),
+    mobile: document.getElementById("customerMobile").value.trim(),
+  };
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function openCustomerModal(action) {
+  pendingAction = action;
+  openModal("customerModal");
+  document.getElementById("customerName").focus();
+}
+
+function closeCustomerModal() {
+  pendingAction = null;
+  closeModal("customerModal");
+}
+
+function openInfoModal() {
+  openModal("infoModal");
+}
+
+function closeInfoModal() {
+  closeModal("infoModal");
+}
+
+function submitCustomerModal() {
+  const customer = getCustomerDetails();
+  if (!customer.name || !customer.mobile) {
+    document.getElementById("saveStatus").innerText =
+      "Please enter name and mobile number to continue";
+    return;
+  }
+
+  if (pendingAction === "save") {
+    saveQuote(customer);
+  } else if (pendingAction === "share") {
+    shareQuote(customer);
+  }
+
+  closeCustomerModal();
+}
+
+function saveQuote(customer = getCustomerDetails()) {
+  if (!customer.name || !customer.mobile) {
+    document.getElementById("saveStatus").innerText =
+      "Please enter name and mobile number to save the quote";
+    return;
+  }
+
+  const quote = {
+    packageKey: selectedPackage,
+    family: selected.family,
+    age: selected.age,
+    si: selected.si,
+    premium: document.getElementById("premium").innerText,
+    perDay: document.getElementById("perday").innerText,
+    customerName: customer.name,
+    customerMobile: customer.mobile,
+    savedAt: new Date().toLocaleString(),
+  };
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(quote));
+    document.getElementById("saveStatus").innerText = "Quote saved for later";
+  } catch (error) {
+    document.getElementById("saveStatus").innerText =
+      "Saving is not available right now";
+  }
+}
+
+function resetSelection() {
+  document.getElementById("customerName").value = "";
+  document.getElementById("customerMobile").value = "";
+  selectPackage("smart");
+  document.getElementById("saveStatus").innerText = "";
+}
+
 function selectPackage(k) {
   selectedPackage = k;
 
   const p = packageDefs[k];
-  document.getElementById("anchor").innerText = p.anchor;
-  document.getElementById("recommendationTitle").innerText = p.title;
-  document.getElementById("recommendationText").innerText = p.subtitle;
+  const ageList = getVisibleAgeBands(Object.keys(rates[p.family] || {}), k);
   // selected.si = p.si;
   selected.family = p.family;
-  selected.age = p.age;
+  selected.age = ageList.includes(p.age) ? p.age : ageList[0];
   selected.si = p.si;
   renderPackages();
   renderAll();
@@ -100,14 +258,6 @@ function renderChips(id, items, key) {
   items.forEach((v) => {
     const c = document.createElement("div");
     c.className = "chip" + (selected[key] == v ? " active" : "");
-    // c.innerText = key === "si" ? Number(v) / 100000 + "L" : v;
-    // c.onclick = () => {
-    //   selected[key] = v;
-    //   if (key === "family") selected.age = Object.keys(rates[v])[0];
-    //   if (key === "age")
-    //     selected.si = Object.keys(rates[selected.family][v])[0];
-    //   renderAll();
-    // };
     if (key === "family") {
       c.innerText = familyLabels[v] || v;
     } else if (key === "si") {
@@ -115,6 +265,29 @@ function renderChips(id, items, key) {
     } else {
       c.innerText = v;
     }
+
+    c.onclick = () => {
+      selected[key] = v;
+      selectedPackage = null;
+
+      if (key === "family") {
+        const ageList = filterAge(Object.keys(rates[v] || {}));
+        if (!ageList.includes(selected.age)) {
+          selected.age = ageList[0];
+        }
+        const siList = filterSI(Object.keys(rates[v][selected.age] || {}));
+        if (!siList.includes(selected.si)) {
+          selected.si = siList[0];
+        }
+      } else if (key === "age") {
+        const siList = filterSI(Object.keys(rates[selected.family][v] || {}));
+        if (!siList.includes(selected.si)) {
+          selected.si = siList[0];
+        }
+      }
+
+      renderAll();
+    };
 
     el.appendChild(c);
   });
@@ -127,7 +300,10 @@ function renderAll() {
   if (!familyList.includes(selected.family)) selected.family = familyList[0];
   renderChips("family", familyList, "family");
 
-  const ageList = filterAge(Object.keys(rates[selected.family]));
+  const ageList = getVisibleAgeBands(
+    Object.keys(rates[selected.family] || {}),
+    selectedPackage,
+  );
   if (!ageList.includes(selected.age)) selected.age = ageList[0];
   renderChips("age", ageList, "age");
 
@@ -142,7 +318,9 @@ function renderAll() {
   renderChips("age", ageList, "age");
   renderChips("si", siList, "si");
 
+  renderRecommendation();
   calc();
+  renderSummary();
 }
 function calc() {
   let p = rates?.[selected.family]?.[selected.age]?.[selected.si];
@@ -151,23 +329,32 @@ function calc() {
   document.getElementById("premium").innerText = "₹ " + annual.toLocaleString();
   document.getElementById("perday").innerText = "₹ " + Math.round(annual / 365);
 }
-// function shareQuote() {
-//   const txt = `Indian Bank Health Care Premier % 0AFamily:${ selected.family }% 0AAge:${ selected.age }% 0ACover:${ selected.si } `;
-//   window.open("https://wa.me/?text=" + txt);
-// }
 
-function shareQuote() {
+function shareQuote(customer = getCustomerDetails()) {
+  if (!customer.name || !customer.mobile) {
+    document.getElementById("saveStatus").innerText =
+      "Please enter name and mobile number before sharing";
+    return;
+  }
+
   const premium = document.getElementById("premium").innerText;
 
   const perDay = document.getElementById("perday").innerText;
+  const pkg = packageDefs[selectedPackage] || {
+    title: "Custom Health Cover",
+    subtitle: "Custom combination selected",
+  };
 
   const txt = `
 
 🏦 Indian Bank Health Care Premier
 
-⭐ ${packageDefs[selectedPackage].title}
+Customer: ${customer.name}
+Mobile: ${customer.mobile}
 
-${packageDefs[selectedPackage].subtitle}
+⭐ ${pkg.title}
+
+${pkg.subtitle}
 
   Family:
 ${familyLabels[selected.family] || selected.family}

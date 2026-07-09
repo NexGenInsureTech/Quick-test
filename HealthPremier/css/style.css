@@ -28,19 +28,19 @@ body {
   cursor: pointer;
 }
 
-.pkg{
-  min-width:180px;
-  padding:14px;
-  border-radius:16px;
-  background:#fff;
-  border:2px solid #e5e7eb;
-  cursor:pointer;
-  transition:.2s;
+.pkg {
+  min-width: 180px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.pkg:hover{
-  transform:translateY(-2px);
-  box-shadow:0 4px 12px rgba(0,0,0,.08);
+.pkg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .active {
   background: #2a9d8f;
@@ -73,6 +73,173 @@ button {
   border-radius: 10px;
   background: #25d366;
   color: #fff;
+  font-weight: 600;
+}
+
+button.secondary {
+  background: #eef2ff;
+  color: #1f2937;
+}
+
+button.text-link {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #2a9d8f;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.actions button {
+  flex: 1 1 120px;
+  width: auto;
+  min-width: 0;
+  margin-top: 0;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.save-status {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #2a9d8f;
+  min-height: 18px;
+}
+
+.customer-form {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 8px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.modal-card {
+  position: relative;
+  width: min(90vw, 420px);
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.modal-actions button {
+  margin-top: 0;
+}
+
+.customer-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.customer-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.summary-card {
+  position: sticky;
+  top: 12px;
+  z-index: 2;
+}
+
+.summary-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.summary-title {
+  font-weight: 700;
+}
+
+.summary-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 14px;
+  flex: 0 1 auto;
+  min-height: 44px;
+}
+
+.summary-item strong {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-item span {
+  font-weight: 600;
+  color: #111827;
+}
+
+.package-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #374151;
+  line-height: 1.5;
 }
 
 .package-title {
@@ -102,11 +269,48 @@ button {
   color: rgba(255, 255, 255, 0.85);
 }
 
-.active-package{
-  background:#2a9d8f;
-  color:white;
-  border:2px solid #2a9d8f;
+.active-package {
+  background: #2a9d8f;
+  color: white;
+  border: 2px solid #2a9d8f;
 }
-.active-package .package-subtitle{
-  color:rgba(255,255,255,.8);
+.active-package .package-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 14px;
+    margin: 10px 0;
+  }
+
+  .pkg {
+    min-width: 100%;
+  }
+
+  .summary-card {
+    position: static;
+  }
+
+  .summary-list {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .actions {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .modal-card {
+    padding: 16px;
+  }
 }

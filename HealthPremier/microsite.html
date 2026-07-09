@@ -19,6 +19,22 @@
         <div class="label">Sum Insured</div>
         <div id="si" class="chips"></div>
       </div>
+      <div class="card summary-card">
+        <div class="summary-title-row">
+          <div class="summary-title">Your current quote</div>
+          <button id="learnMoreBtn" type="button" class="text-link">
+            Learn more
+          </button>
+        </div>
+        <div id="quoteSummary" class="summary-list"></div>
+        <div class="actions">
+          <button id="saveQuoteBtn" type="button">Save Quote</button>
+          <button id="resetQuoteBtn" type="button" class="secondary">
+            Reset
+          </button>
+        </div>
+        <div id="saveStatus" class="save-status" aria-live="polite"></div>
+      </div>
       <div class="card">
         <div id="perdayBox" class="heroBox">
           <div id="perday" class="big">₹ --</div>
@@ -31,7 +47,59 @@
           <div id="recommendationText">Today's sensible family cover</div>
         </div>
         <div id="premium" class="premium">₹ --</div>
-        <button onclick="shareQuote()">Share on WhatsApp</button>
+        <button id="shareQuoteBtn" type="button" class="secondary">
+          Share on WhatsApp
+        </button>
+      </div>
+    </div>
+    <div id="customerModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
+        <h3 id="modalTitle">Customer details</h3>
+        <p>We only need this to save or share the quote.</p>
+        <div class="customer-form">
+          <label for="customerName">Customer Name</label>
+          <input id="customerName" type="text" placeholder="Enter full name" />
+          <label for="customerMobile">Mobile Number</label>
+          <input
+            id="customerMobile"
+            type="tel"
+            placeholder="Enter mobile number"
+          />
+        </div>
+        <div class="modal-actions">
+          <button id="modalSubmitBtn" type="button">Continue</button>
+          <button id="modalCancelBtn" type="button" class="secondary">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="infoModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="infoTitle"
+      >
+        <h3 id="infoTitle">Why choose Health Care Premier?</h3>
+        <ul class="info-list">
+          <li>Flexible family and senior-friendly cover options</li>
+          <li>Cashless hospitalisation support</li>
+          <li>Restore benefit and OPD support</li>
+          <li>Affordable premiums with quick quote comparison</li>
+        </ul>
+        <div class="modal-actions">
+          <button id="infoCloseBtn" type="button" class="secondary">
+            Close
+          </button>
+        </div>
       </div>
     </div>
     <script src="data/rates.js"></script>
