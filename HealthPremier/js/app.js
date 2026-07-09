@@ -87,6 +87,9 @@ function selectPackage(k) {
   document.getElementById("anchor").innerText = p.anchor;
   document.getElementById("recommendationTitle").innerText = p.title;
   document.getElementById("recommendationText").innerText = p.subtitle;
+  // selected.si = p.si;
+  selected.family = p.family;
+  selected.age = p.age;
   selected.si = p.si;
   renderPackages();
   renderAll();
