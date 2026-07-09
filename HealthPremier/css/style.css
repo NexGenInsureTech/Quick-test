@@ -27,6 +27,21 @@ body {
   background: #eef2ff;
   cursor: pointer;
 }
+
+.pkg{
+  min-width:180px;
+  padding:14px;
+  border-radius:16px;
+  background:#fff;
+  border:2px solid #e5e7eb;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.pkg:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
 .active {
   background: #2a9d8f;
   color: #fff;
@@ -85,4 +100,13 @@ button {
 
 .pkg.active .package-subtitle {
   color: rgba(255, 255, 255, 0.85);
+}
+
+.active-package{
+  background:#2a9d8f;
+  color:white;
+  border:2px solid #2a9d8f;
+}
+.active-package .package-subtitle{
+  color:rgba(255,255,255,.8);
 }

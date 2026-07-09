@@ -12,10 +12,11 @@ const packageDefs = {
     anchor: "Affordable protection",
   },
   smart: {
-    title: "SMART HEALTH PLUS",
+    title: "SMART HEALTH PLUS ⭐",
     subtitle: "Today's Sensible Family Cover",
     si: "1000000",
     anchor: "Most popular choice",
+    recommended: true,
   },
   senior: {
     title: "SENIOR CARE SECURE",
