@@ -1,10 +1,5 @@
-const packageDefs = [
-  { id: "young", title: "NEW YOUNG", si: "1000000" },
-  { id: "lite", title: "HEALTH PROTECT LITE", si: "500000" },
-  { id: "smart", title: "SMART HEALTH PLUS", si: "1000000" },
-  { id: "senior", title: "SENIOR CARE SECURE", si: "500000" },
-];
 let selected = {};
+const rates = window.rates;
 function init() {
   renderPackages();
   const f = Object.keys(rates)[0];
@@ -14,37 +9,43 @@ function init() {
   renderAll();
 }
 function renderPackages() {
-  document.getElementById("packages").innerHTML = packageDefs
-    .map(
-      (p) =>
-        `<div class=pkg onclick="selectPackage('${p.id}')">${p.title}</div>`,
-    )
-    .join("");
-}
-function selectPackage(id) {
-  const p = packageDefs.find((x) => x.id === id);
-  selected.si = p.si;
-  renderAll();
-}
-function chips(id, items, key) {
-  const el = document.getElementById(id);
+  const el = document.getElementById("packages");
   el.innerHTML = "";
-  items.forEach((v) => {
+  Object.entries(packageDefs).forEach(([k, v]) => {
     const d = document.createElement("div");
-    d.className = "chip" + (selected[key] == v ? " active" : "");
-    d.textContent = v;
-    d.onclick = () => {
-      selected[key] = v;
-      if (key === "family") selected.age = Object.keys(rates[v])[0];
-      renderAll();
-    };
+    d.className = "pkg";
+    d.innerText = v.title;
+    d.onclick = () => selectPackage(k);
     el.appendChild(d);
   });
 }
+function selectPackage(k) {
+  const p = packageDefs[k];
+  document.getElementById("anchor").innerText = p.anchor;
+  selected.si = p.si;
+  renderAll();
+}
+function renderChips(id, items, key) {
+  const el = document.getElementById(id);
+  el.innerHTML = "";
+  items.forEach((v) => {
+    const c = document.createElement("div");
+    c.className = "chip" + (selected[key] == v ? " active" : "");
+    c.innerText = key === "si" ? Number(v) / 100000 + "L" : v;
+    c.onclick = () => {
+      selected[key] = v;
+      if (key === "family") selected.age = Object.keys(rates[v])[0];
+      if (key === "age")
+        selected.si = Object.keys(rates[selected.family][v])[0];
+      renderAll();
+    };
+    el.appendChild(c);
+  });
+}
 function renderAll() {
-  chips("family", Object.keys(rates), "family");
-  chips("age", Object.keys(rates[selected.family]), "age");
-  chips(
+  renderChips("family", Object.keys(rates), "family");
+  renderChips("age", Object.keys(rates[selected.family]), "age");
+  renderChips(
     "si",
     Object.keys(rates[selected.family][selected.age]).slice(0, 7),
     "si",
@@ -52,16 +53,16 @@ function renderAll() {
   calc();
 }
 function calc() {
-  let p = rates[selected.family][selected.age][selected.si];
+  let p = rates?.[selected.family]?.[selected.age]?.[selected.si];
   if (!p) return;
-  document.getElementById("premium").textContent = "₹ " + p;
-  document.getElementById("perday").textContent =
-    "₹ " + Math.round((p * 1.18) / 365) + " per day";
+  let annual = Math.round(p * 1.18);
+  document.getElementById("premium").innerText = "₹ " + annual.toLocaleString();
+  document.getElementById("perday").innerText = "₹ " + Math.round(annual / 365);
 }
 function shareQuote() {
-  window.open(
-    "https://wa.me/?text=" +
-      encodeURIComponent(document.getElementById("premium").textContent),
-  );
+  const txt = `Indian Bank Health Care Premier%0AFamily:${selected.family}%0AAge:${selected.age}%0ACover:${selected.si}`;
+  window.open("https://wa.me/?text=" + txt);
 }
-window.onload = init;
+window.onload = () => {
+  if (window.rates) init();
+};
