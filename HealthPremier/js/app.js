@@ -1,5 +1,39 @@
 console.log(packageDefs);
 
+// ==========================================
+// BUSINESS CONFIGURATION
+// Change these after pilot feedback
+// ==========================================
+
+const UI_FILTERS = {
+  family: ["1A", "2A", "2A1C", "2A2C"],
+
+  age: ["18-25", "26-35", "36-40", "41-45", "46-50", "51-55"],
+
+  si: [
+    "100000",
+    "300000",
+    "500000",
+    "1000000",
+    "2000000",
+    "3000000",
+    "5000000",
+  ],
+};
+
+// Reusable filter functions
+function filterFamily(list) {
+  return UI_FILTERS.family.filter((v) => list.includes(v));
+}
+
+function filterAge(list) {
+  return UI_FILTERS.age.filter((v) => list.includes(v));
+}
+
+function filterSI(list) {
+  return UI_FILTERS.si.filter((v) => list.includes(v));
+}
+
 const familyLabels = {
   "1A": "Self",
   "1A1C": "Parent + 1 Child",
@@ -83,18 +117,28 @@ function renderChips(id, items, key) {
   });
 }
 function renderAll() {
-  renderChips("family", Object.keys(rates), "family");
-  renderChips("age", Object.keys(rates[selected.family]), "age");
-  // renderChips(
-  //   "si",
-  //   Object.keys(rates[selected.family][selected.age]).slice(0, 7),
-  //   "si",
-  // );
-  const siList = Object.keys(rates[selected.family][selected.age]);
+  // renderChips("family", Object.keys(rates), "family");
+  // renderChips("age", Object.keys(rates[selected.family]), "age");
+  // const siList = Object.keys(rates[selected.family][selected.age]);
+  const familyList = filterFamily(Object.keys(rates));
+
+  renderChips("family", familyList, "family");
+
+  const ageList = filterAge(Object.keys(rates[selected.family]));
+
+  renderChips("age", ageList, "age");
+
+  const siList = filterSI(Object.keys(rates[selected.family][selected.age]));
 
   if (!siList.includes(selected.si)) {
     selected.si = siList[0];
   }
+
+  if (!familyList.includes(selected.family)) selected.family = familyList[0];
+
+  if (!ageList.includes(selected.age)) selected.age = ageList[0];
+
+  if (!siList.includes(selected.si)) selected.si = siList[0];
 
   renderChips("si", siList.slice(0, 7), "si");
   calc();
@@ -107,7 +151,7 @@ function calc() {
   document.getElementById("perday").innerText = "₹ " + Math.round(annual / 365);
 }
 // function shareQuote() {
-//   const txt = `Indian Bank Health Care Premier % 0AFamily:${selected.family}% 0AAge:${selected.age}% 0ACover:${selected.si} `;
+//   const txt = `Indian Bank Health Care Premier % 0AFamily:${ selected.family }% 0AAge:${ selected.age }% 0ACover:${ selected.si } `;
 //   window.open("https://wa.me/?text=" + txt);
 // }
 
@@ -124,7 +168,7 @@ function shareQuote() {
 
 ${packageDefs[selectedPackage].subtitle}
 
-Family:
+  Family:
 ${familyLabels[selected.family] || selected.family}
 
 Age Band:
@@ -133,23 +177,22 @@ ${selected.age}
 Sum Insured:
 ₹ ${(Number(selected.si) / 100000).toFixed(0)} Lakh
 
-Premium:
+  Premium:
 ${premium}
 
 Protection Starts From:
 ${perDay} per day
 
-✅ No Co-Pay
+✅ No Co - Pay
 ✅ Restore Benefit
 ✅ OPD Cover
 ✅ Cashless Hospitalisation
 
 Indicative Quote
-`;
+    `;
 
   window.open("https://wa.me/?text=" + encodeURIComponent(txt));
 }
-
 
 window.onload = () => {
   if (window.rates) init();
