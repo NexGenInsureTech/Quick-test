@@ -121,11 +121,11 @@ function renderAll() {
   // renderChips("age", Object.keys(rates[selected.family]), "age");
   // const siList = Object.keys(rates[selected.family][selected.age]);
   const familyList = filterFamily(Object.keys(rates));
-
+  if (!familyList.includes(selected.family)) selected.family = familyList[0];
   renderChips("family", familyList, "family");
 
   const ageList = filterAge(Object.keys(rates[selected.family]));
-
+  if (!ageList.includes(selected.age)) selected.age = ageList[0];
   renderChips("age", ageList, "age");
 
   const siList = filterSI(Object.keys(rates[selected.family][selected.age]));
@@ -134,13 +134,11 @@ function renderAll() {
     selected.si = siList[0];
   }
 
-  if (!familyList.includes(selected.family)) selected.family = familyList[0];
+  // renderChips("si", siList.slice(0, 7), "si");
+  renderChips("family", familyList, "family");
+  renderChips("age", ageList, "age");
+  renderChips("si", siList, "si");
 
-  if (!ageList.includes(selected.age)) selected.age = ageList[0];
-
-  if (!siList.includes(selected.si)) selected.si = siList[0];
-
-  renderChips("si", siList.slice(0, 7), "si");
   calc();
 }
 function calc() {
