@@ -1,483 +1,1093 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Indian Bank Health Care Premier — Premium Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --teal-900: #0f3d3a;
+        --teal-700: #146b63;
+        --teal-500: #2a9d8f;
+        --teal-400: #38b2ac;
+        --mint-100: #eef7f5;
+        --paper: #f5f7fb;
+        --ink: #122023;
+        --ink-soft: #5b6b6a;
+        --coral: #ef6f5b;
+        --line: #e3e9e8;
+        --white: #ffffff;
+        --radius-lg: 18px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+        --shadow-card: 0 6px 18px rgba(15, 61, 58, 0.08);
+        --shadow-float: 0 10px 30px rgba(15, 61, 58, 0.18);
+      }
 
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Indian Bank Health Care Premier Calculator</title>
+      * {
+        box-sizing: border-box;
+      }
 
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        margin: 0;
+        padding-bottom: 110px;
+      }
 
-  <style>
-    body {
-      font-family: system-ui;
-      background: #f5f7fb;
-      margin: 0;
-    }
+      .container {
+        max-width: 520px;
+        margin: auto;
+        padding: 20px 16px 32px;
+      }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 16px;
-    }
+      header.page-head {
+        padding: 6px 4px 18px;
+      }
 
-    .card {
-      background: #fff;
-      padding: 16px;
-      border-radius: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
+      header.page-head h1 {
+        font-family: "Sora", sans-serif;
+        font-size: 21px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: var(--teal-900);
+      }
 
-    .label {
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
+      header.page-head p {
+        margin: 0;
+        font-size: 13.5px;
+        color: var(--ink-soft);
+      }
 
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+      .card {
+        background: var(--white);
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 14px;
+        box-shadow: var(--shadow-card);
+        border: 1px solid var(--line);
+      }
 
-    .chip {
-      padding: 10px 14px;
-      border-radius: 20px;
-      background: #eef2ff;
-      cursor: pointer;
-      font-size: 13px;
-    }
+      .field + .field {
+        margin-top: 16px;
+      }
 
-    .active {
-      background: #2a9d8f;
-      color: #fff;
-    }
+      .label {
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--teal-700);
+        margin-bottom: 9px;
+      }
 
-    .result {
-      position: sticky;
-      bottom: 10px;
-      background: #fff;
-      padding: 16px;
-      text-align: center;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
 
-    .price {
-      font-size: 30px;
-      color: #2a9d8f;
-      font-weight: bold;
-    }
+      .chip {
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: var(--mint-100);
+        color: var(--teal-900);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1.5px solid transparent;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease,
+          border-color 0.15s ease;
+      }
 
-    input {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-    }
+      .chip:hover {
+        border-color: var(--teal-400);
+      }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #38b2ac;
-      color: white;
-    }
+      .chip:focus-visible {
+        outline: 2px solid var(--teal-700);
+        outline-offset: 2px;
+      }
 
-    /* ✅ Premium Section */
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      justify-content: flex-end;
-      font-size: 13px;
-    }
+      .chip.active {
+        background: var(--teal-500);
+        color: var(--white);
+      }
 
-    .perday-box {
-      margin-top: 12px;
-      padding: 18px;
-      background: linear-gradient(135deg, #2a9d8f, #38b2ac);
-      color: #fff;
-      border-radius: 16px;
-      text-align: center;
-    }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--ink-soft);
+        padding: 2px 2px;
+      }
 
-    .price-big {
-      font-size: 32px;
-      font-weight: 700;
-    }
+      .toggle-row + .toggle-row {
+        margin-top: 10px;
+      }
 
-    .perday-text {
-      font-size: 14px;
-      opacity: .9;
-    }
+      .switch {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        flex: none;
+      }
 
+      .switch input {
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        cursor: pointer;
+      }
 
-    .subtext {
-      display: inline-block;
-      margin-top: 10px;
-      font-size: 12px;
-      color: #065f46;
-      background: #d1fae5;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-weight: 600;
-    }
+      .switch .track {
+        position: absolute;
+        inset: 0;
+        background: #cfdcda;
+        border-radius: 999px;
+        transition: background 0.15s ease;
+        pointer-events: none;
+      }
 
-    /* Floating button container */
-    .fab-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+      .switch .thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: var(--white);
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        transition: transform 0.15s ease;
+        pointer-events: none;
+      }
 
-    .fab-container button {
-      background-color: #25D366;
-      /* WhatsApp green */
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 12px 20px;
-      cursor: pointer;
-      font-size: 14px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.3s;
-    }
+      .switch input:checked + .track {
+        background: var(--teal-500);
+      }
+      .switch input:checked + .track + .thumb {
+        transform: translateX(18px);
+      }
+      .switch input:focus-visible + .track {
+        outline: 2px solid var(--teal-700);
+        outline-offset: 2px;
+      }
 
-    .fab-container button:hover {
-      background-color: #128C7E;
-    }
+      /* Premium display */
+      .perday-box {
+        padding: 20px;
+        background: linear-gradient(135deg, var(--teal-700), var(--teal-400));
+        color: var(--white);
+        border-radius: var(--radius-lg);
+        text-align: center;
+      }
 
-    /* Modal styling */
-    .modal {
-      display: none;
-      /* hidden by default */
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
+      .price-big {
+        font-family: "Sora", sans-serif;
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.1;
+      }
 
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 8px;
-      width: 300px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
+      .perday-text {
+        font-size: 13px;
+        opacity: 0.85;
+        margin-top: 2px;
+      }
 
-    .modal-content .label {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+      .subtext {
+        display: block;
+        width: fit-content;
+        margin: 12px auto 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #065f46;
+        background: #d1fae5;
+        padding: 6px 14px;
+        border-radius: 999px;
+      }
 
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin: 6px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+      .gst-note {
+        text-align: center;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        margin-top: 10px;
+      }
 
-    .close {
-      float: right;
-      font-size: 20px;
-      cursor: pointer;
-    }
-  </style>
-</head>
+      /* Sticky result bar */
+      .result {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--white);
+        padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+        text-align: center;
+        box-shadow: 0 -8px 24px rgba(15, 61, 58, 0.12);
+        border-top: 1px solid var(--line);
+      }
 
-<body>
-  <div class="container">
+      .result-inner {
+        max-width: 520px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
 
-    <hgroup>
-      <h2>Indian Bank Health Care Premier</h2>
-      <p style="color: #2a9d8f;">Premium Calculator</p>
-    </hgroup>
+      .result-price-wrap {
+        text-align: left;
+      }
+      .result-price-wrap .label-sm {
+        font-size: 11.5px;
+        color: var(--ink-soft);
+      }
+      .price {
+        font-family: "Sora", sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--teal-700);
+      }
 
-    <!-- Selection -->
-    <div class="card">
-      <div class="label">Family</div>
-      <div id="family" class="chips"></div>
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
 
-      <div class="label">Age Band</div>
-      <div id="age" class="chips"></div>
+      button {
+        font-family: inherit;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 11px 16px;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          filter 0.15s ease,
+          transform 0.05s ease;
+      }
 
-      <div class="label">Sum Insured</div>
-      <div id="si" class="chips"></div>
-    </div>
+      button:active {
+        transform: scale(0.97);
+      }
 
-    <!-- ✅ Premium UI -->
-    <div class="card">
-      <!-- <input type="hidden" id="gst" checked>
+      .btn-primary {
+        background: var(--coral);
+        color: var(--white);
+      }
+      .btn-primary:hover {
+        filter: brightness(1.05);
+      }
 
-  <div class="toggle">
-    <label>
-      <input type="checkbox" id="monthly"> Monthly
-    </label>
-  </div> -->
+      .btn-secondary {
+        background: var(--mint-100);
+        color: var(--teal-900);
+      }
+      .btn-secondary:hover {
+        filter: brightness(0.97);
+      }
 
-      <div class="perday-box" id="perdayBox">
-        <div class="price-big">₹ --</div>
-        <div class="perday-text">per day</div>
+      input[type="text"],
+      input[type="tel"] {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 11px 12px;
+        margin-top: 6px;
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--line);
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus,
+      input[type="tel"]:focus {
+        outline: none;
+        border-color: var(--teal-500);
+      }
+
+      .field-error {
+        font-size: 12px;
+        color: var(--coral);
+        margin-top: 5px;
+        min-height: 14px;
+      }
+
+      /* Leads list */
+      .leads-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .leads-toggle .label {
+        margin-bottom: 0;
+      }
+
+      .lead-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .lead-item:last-child {
+        border-bottom: none;
+      }
+      .lead-name {
+        font-weight: 600;
+      }
+      .lead-meta {
+        color: var(--ink-soft);
+        font-size: 11.5px;
+      }
+      .empty-note {
+        color: var(--ink-soft);
+        font-size: 13px;
+        padding: 6px 0;
+      }
+
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(15, 61, 58, 0.45);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal.open {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 340px;
+        padding: 20px;
+        box-shadow: var(--shadow-float);
+      }
+
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .modal-head h3 {
+        font-family: "Sora", sans-serif;
+        font-size: 16px;
+        margin: 0;
+        color: var(--teal-900);
+      }
+
+      .close {
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--ink-soft);
+        background: none;
+        border: none;
+        padding: 4px;
+      }
+
+      .modal-summary {
+        background: var(--mint-100);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        font-size: 12.5px;
+        color: var(--teal-900);
+        margin-bottom: 14px;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="page-head">
+        <h1>Indian Bank Health Care Premier</h1>
+        <p>Get an instant premium quote and share it in seconds.</p>
+      </header>
+
+      <!-- Selection -->
+      <div class="card">
+        <div class="field">
+          <div class="label" id="family-label">Family</div>
+          <div
+            id="family"
+            class="chips"
+            role="radiogroup"
+            aria-labelledby="family-label"
+          ></div>
+        </div>
+        <div class="field">
+          <div class="label" id="age-label">Age Band</div>
+          <div
+            id="age"
+            class="chips"
+            role="radiogroup"
+            aria-labelledby="age-label"
+          ></div>
+        </div>
+        <div class="field">
+          <div class="label" id="si-label">Sum Insured</div>
+          <div
+            id="si"
+            class="chips"
+            role="radiogroup"
+            aria-labelledby="si-label"
+          ></div>
+        </div>
       </div>
 
-      <div class="subtext" id="anchorText">
-        Affordable protection
+      <!-- Options -->
+      <div class="card">
+        <div class="toggle-row">
+          <span>Show monthly premium</span>
+          <label class="switch">
+            <input type="checkbox" id="monthly" />
+            <span class="track"></span>
+            <span class="thumb"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>Include 18% GST</span>
+          <label class="switch">
+            <input type="checkbox" id="gst" checked />
+            <span class="track"></span>
+            <span class="thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Premium display -->
+      <div class="card">
+        <div class="perday-box" id="perdayBox">
+          <div class="price-big">₹ --</div>
+          <div class="perday-text">per day</div>
+        </div>
+        <span class="subtext" id="anchorText">Affordable protection</span>
+        <div class="gst-note" id="gstNote"></div>
+      </div>
+
+      <!-- Saved leads -->
+      <div class="card">
+        <div
+          class="leads-toggle"
+          id="leadsToggle"
+          role="button"
+          tabindex="0"
+          aria-expanded="false"
+          aria-controls="leadsPanel"
+        >
+          <div class="label" style="margin-bottom: 0">
+            Saved Leads (<span id="leadsCount">0</span>)
+          </div>
+          <span id="leadsChevron">▾</span>
+        </div>
+        <div id="leadsPanel" style="display: none; margin-top: 10px"></div>
       </div>
     </div>
 
-    <!-- Modal -->
-    <div id="customerModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <div class="card">
-          <div class="label">Customer Details</div>
-          <input id="name" placeholder="Full Name">
-          <input id="phone" placeholder="Mobile Number">
+    <!-- Sticky result / actions -->
+    <div class="result">
+      <div class="result-inner">
+        <div class="result-price-wrap">
+          <div class="label-sm">Premium</div>
+          <div id="premium" class="price">₹ --</div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-secondary" id="whatsappBtn" type="button">
+            Share
+          </button>
+          <button class="btn-primary" id="saveLeadBtn" type="button">
+            Save Lead
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Result -->
-    <div class="toggle">
-      <label>
-        <input type="checkbox" id="monthly"> Monthly
-      </label>
-    </div>
-
-    <div class="result">
-      <div>Premium</div>
-      <div id="premium" class="price">₹ --</div>
-
-      <!-- Customer -->
-      <!-- <div class="card">
-        <div class="label">Customer Details</div>
-        <input id="name" placeholder="Full Name">
-        <input id="phone" placeholder="Mobile Number">
-      </div> -->
-
-      <!-- Floating Buttons -->
-      <div class="fab-container">
-        <button onclick="sendWhatsApp()">Share on WhatsApp</button>
-        <button onclick="saveLead()">Save Lead</button>
+    <!-- Customer details modal -->
+    <div
+      id="customerModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+    >
+      <div class="modal-content">
+        <div class="modal-head">
+          <h3 id="modalTitle">Customer Details</h3>
+          <button class="close" id="closeModalBtn" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <div class="modal-summary" id="modalSummary"></div>
+        <label class="visually-hidden" for="name">Full name</label>
+        <input
+          type="text"
+          id="name"
+          placeholder="Full Name"
+          autocomplete="name"
+        />
+        <div class="field-error" id="nameError"></div>
+        <label class="visually-hidden" for="phone">Mobile number</label>
+        <input
+          type="tel"
+          id="phone"
+          placeholder="10-digit Mobile Number"
+          autocomplete="tel"
+          maxlength="10"
+        />
+        <div class="field-error" id="phoneError"></div>
+        <button
+          class="btn-primary"
+          id="confirmSaveBtn"
+          type="button"
+          style="width: 100%; margin-top: 6px"
+        >
+          Save Lead
+        </button>
       </div>
     </div>
 
-  </div>
+    <script>
+      (function () {
+        "use strict";
 
-  <!-- ✅ RATES (Make sure file is correct) -->
-  <script src="rates.json"></script>
-
-  <script>
-    // ✅ GLOBAL STATE
-    let selected = {};
-    let currentAnnualPremium = 0;
-    let currentDisplayPremium = 0;
-
-    // ✅ INIT
-    window.onload = function () {
-      if (!window.rates) {
-        console.error("Rates not loaded");
-        return;
-      }
-      initSelection();
-      renderAll();
-    };
-
-    // ✅ INIT SELECTION
-    function initSelection() {
-      const f = Object.keys(rates)[0];
-      const a = Object.keys(rates[f])[0];
-      const s = Object.keys(rates[f][a])[0];
-      selected = { family: f, age: a, si: s };
-    }
-
-    // ✅ FILTER
-    function filterSI(list) {
-      const preferred = ["100000", "300000", "500000", "1000000", "2000000", "3000000", "5000000"];
-      return preferred.filter(v => list.includes(v));
-    }
-
-    // ✅ FORMAT
-    function format(val) {
-      return Number(val) >= 100000 ? (val / 100000) + "L" : val;
-    }
-
-    // ✅ RENDER CHIPS
-    function renderChips(id, items, key) {
-      let el = document.getElementById(id);
-      el.innerHTML = "";
-
-      items.forEach(v => {
-        let chip = document.createElement("div");
-        chip.className = "chip" + (selected[key] == v ? " active" : "");
-        chip.innerText = format(v);
-
-        chip.onclick = () => {
-          selected[key] = v;
-
-          if (key === "family") {
-            selected.age = Object.keys(rates[v])[0];
-          }
-
-          if (key === "age") {
-            const siList = filterSI(Object.keys(rates[selected.family][selected.age]));
-            selected.si = siList[0];
-          }
-
-          renderAll();
+        // ---------------------------------------------------------------------
+        // Sample rate table — replace with the real Indian Bank Health Care
+        // Premier rate card. Structure: rates[family][ageBand][sumInsured] = basePremium
+        // ---------------------------------------------------------------------
+        const SAMPLE_RATES = {
+          Individual: {
+            "18-35": {
+              100000: 1450,
+              300000: 2650,
+              500000: 3950,
+              1000000: 6800,
+              2000000: 11200,
+              3000000: 15400,
+              5000000: 22800,
+            },
+            "36-45": {
+              100000: 1980,
+              300000: 3520,
+              500000: 5100,
+              1000000: 8600,
+              2000000: 13900,
+              3000000: 18700,
+              5000000: 27600,
+            },
+            "46-55": {
+              100000: 2870,
+              300000: 4980,
+              500000: 7050,
+              1000000: 11600,
+              2000000: 18500,
+              3000000: 24700,
+              5000000: 36200,
+            },
+            "56-65": {
+              100000: 4350,
+              300000: 7420,
+              500000: 10300,
+              1000000: 16800,
+              2000000: 26400,
+              3000000: 34900,
+              5000000: 50900,
+            },
+            "66-70": {
+              100000: 6220,
+              300000: 10480,
+              500000: 14400,
+              1000000: 23100,
+              2000000: 35800,
+              3000000: 47100,
+              5000000: 68200,
+            },
+          },
+          "Individual + Spouse": {
+            "18-35": {
+              100000: 2650,
+              300000: 4850,
+              500000: 7150,
+              1000000: 12200,
+              2000000: 19900,
+              3000000: 27100,
+              5000000: 39800,
+            },
+            "36-45": {
+              100000: 3620,
+              300000: 6350,
+              500000: 9200,
+              1000000: 15400,
+              2000000: 24700,
+              3000000: 33200,
+              5000000: 48600,
+            },
+            "46-55": {
+              100000: 5240,
+              300000: 8950,
+              500000: 12700,
+              1000000: 20700,
+              2000000: 32700,
+              3000000: 43600,
+              5000000: 63400,
+            },
+            "56-65": {
+              100000: 7880,
+              300000: 13300,
+              500000: 18400,
+              1000000: 29800,
+              2000000: 46500,
+              3000000: 61300,
+              5000000: 88900,
+            },
+            "66-70": {
+              100000: 11200,
+              300000: 18700,
+              500000: 25600,
+              1000000: 40900,
+              2000000: 63000,
+              3000000: 82600,
+              5000000: 119000,
+            },
+          },
+          "Family Floater (2A+2C)": {
+            "18-35": {
+              100000: 3450,
+              300000: 6250,
+              500000: 9200,
+              1000000: 15600,
+              2000000: 25300,
+              3000000: 34400,
+              5000000: 50200,
+            },
+            "36-45": {
+              100000: 4680,
+              300000: 8150,
+              500000: 11800,
+              1000000: 19700,
+              2000000: 31400,
+              3000000: 42100,
+              5000000: 61300,
+            },
+            "46-55": {
+              100000: 6720,
+              300000: 11450,
+              500000: 16200,
+              1000000: 26300,
+              2000000: 41300,
+              3000000: 54900,
+              5000000: 79600,
+            },
+            "56-65": {
+              100000: 10050,
+              300000: 16900,
+              500000: 23300,
+              1000000: 37600,
+              2000000: 58500,
+              3000000: 76900,
+              5000000: 111000,
+            },
+            "66-70": {
+              100000: 14200,
+              300000: 23600,
+              500000: 32200,
+              1000000: 51400,
+              2000000: 79000,
+              3000000: 103300,
+              5000000: 148500,
+            },
+          },
         };
 
-        el.appendChild(chip);
-      });
-    }
+        const PREFERRED_SI_ORDER = [
+          "100000",
+          "300000",
+          "500000",
+          "1000000",
+          "2000000",
+          "3000000",
+          "5000000",
+        ];
+        const LEAD_LIST_PREFIX = "leads:";
 
-    // ✅ RENDER ALL
-    function renderAll() {
-      renderChips("family", Object.keys(rates), "family");
-      renderChips("age", Object.keys(rates[selected.family]), "age");
+        let rates = null;
+        let selected = { family: null, age: null, si: null };
+        let currentAnnualPremium = 0;
+        let currentDisplayPremium = 0;
 
-      const allSI = Object.keys(rates[selected.family][selected.age]);
-      renderChips("si", filterSI(allSI), "si");
+        const $ = (id) => document.getElementById(id);
 
-      calculate();
-    }
+        // ---------------------------------------------------------------------
+        // Init
+        // ---------------------------------------------------------------------
+        async function init() {
+          rates = await loadRates();
+          if (!rates) {
+            $("premium").textContent = "Rates unavailable";
+            return;
+          }
+          selectDefaults();
+          renderAll();
+          await refreshLeadsList();
+          bindEvents();
+        }
 
-    // ✅ ✅ ✅ CLEAN CALCULATE
-    function calculate() {
+        async function loadRates() {
+          // Try to load a real rates.json served alongside this page.
+          try {
+            const res = await fetch("./rates.json", { cache: "no-store" });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && typeof data === "object") return data;
+            }
+          } catch (err) {
+            // No external rates.json available (e.g. running standalone) — fall back to sample data.
+          }
+          return SAMPLE_RATES;
+        }
 
-      let base = rates?.[selected.family]?.[selected.age]?.[selected.si];
+        function selectDefaults() {
+          const family = Object.keys(rates)[0];
+          const age = Object.keys(rates[family])[0];
+          const siList = filterSI(Object.keys(rates[family][age]));
+          selected = { family, age, si: siList[0] };
+        }
 
-      if (!base) {
-        document.getElementById("premium").innerText = "N/A";
-        updatePerDay(null);
-        return;
-      }
+        function filterSI(list) {
+          return PREFERRED_SI_ORDER.filter((v) => list.includes(v));
+        }
 
-      let annualPremium = base * 1.18;
+        function formatSI(val) {
+          return Number(val) >= 100000 ? val / 100000 + "L" : val;
+        }
 
-      let displayPremium = annualPremium;
+        function formatMoney(n) {
+          return "₹ " + Math.round(n).toLocaleString("en-IN");
+        }
 
-      if (document.getElementById("monthly").checked) {
-        displayPremium = annualPremium / 12;
-      }
+        // ---------------------------------------------------------------------
+        // Rendering
+        // ---------------------------------------------------------------------
+        function renderChips(containerId, items, key) {
+          const el = $(containerId);
+          el.innerHTML = "";
 
-      // store globally
-      currentAnnualPremium = annualPremium;
-      currentDisplayPremium = displayPremium;
+          items.forEach((v) => {
+            const chip = document.createElement("div");
+            const isActive = selected[key] === v;
+            chip.className = "chip" + (isActive ? " active" : "");
+            chip.textContent = key === "si" ? formatSI(v) : v;
+            chip.setAttribute("role", "radio");
+            chip.setAttribute("aria-checked", String(isActive));
+            chip.tabIndex = 0;
 
-      document.getElementById("premium").innerText =
-        "₹ " + Math.round(displayPremium).toLocaleString();
+            const select = () => {
+              selected[key] = v;
+              if (key === "family") {
+                selected.age = Object.keys(rates[v])[0];
+                const siList = filterSI(
+                  Object.keys(rates[selected.family][selected.age]),
+                );
+                selected.si = siList[0];
+              }
+              if (key === "age") {
+                const siList = filterSI(
+                  Object.keys(rates[selected.family][selected.age]),
+                );
+                selected.si = siList[0];
+              }
+              renderAll();
+            };
 
-      updatePerDay(annualPremium);
-    }
+            chip.addEventListener("click", select);
+            chip.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                select();
+              }
+            });
 
-    // ✅ PER DAY
-    function updatePerDay(premium) {
+            el.appendChild(chip);
+          });
+        }
 
-      if (!premium) {
-        document.getElementById("perdayBox").innerHTML =
-          `<div class="price-big">₹ --</div><div class="perday-text">per day</div>`;
-        return;
-      }
+        function renderAll() {
+          renderChips("family", Object.keys(rates), "family");
+          renderChips("age", Object.keys(rates[selected.family]), "age");
+          const allSI = Object.keys(rates[selected.family][selected.age]);
+          renderChips("si", filterSI(allSI), "si");
+          calculate();
+        }
 
-      const perDay = Math.round(premium / 365);
+        function calculate() {
+          const base = rates?.[selected.family]?.[selected.age]?.[selected.si];
 
-      document.getElementById("perdayBox").innerHTML =
-        `<div class="price-big">₹ ${perDay}</div>
-     <div class="perday-text">per day</div>`;
+          if (!base) {
+            $("premium").textContent = "N/A";
+            updatePerDay(null);
+            return;
+          }
 
-      updateAnchor(perDay);
-    }
+          const includeGST = $("gst").checked;
+          const annualPremium = includeGST ? base * 1.18 : base;
+          const displayPremium = $("monthly").checked
+            ? annualPremium / 12
+            : annualPremium;
 
-    // ✅ PSYCHOLOGY TEXT
-    function updateAnchor(val) {
-      let text = "Affordable protection";
+          currentAnnualPremium = annualPremium;
+          currentDisplayPremium = displayPremium;
 
-      if (val < 20) text = "Cheaper than a snack 🍪";
-      else if (val < 50) text = "Less than your daily tea ☕";
-      else if (val < 100) text = "Less than a quick meal 🍛";
-      else text = "Value-packed protection ✅";
+          $("premium").textContent = formatMoney(displayPremium);
+          $("gstNote").textContent = includeGST
+            ? "Inclusive of 18% GST"
+            : "Excludes GST";
+          updatePerDay(annualPremium);
+        }
 
-      document.getElementById("anchorText").innerText = text;
-    }
+        function updatePerDay(annualPremium) {
+          if (!annualPremium) {
+            $("perdayBox").innerHTML =
+              `<div class="price-big">₹ --</div><div class="perday-text">per day</div>`;
+            updateAnchor(null);
+            return;
+          }
+          const perDay = Math.round(annualPremium / 365);
+          $("perdayBox").innerHTML =
+            `<div class="price-big">₹ ${perDay}</div><div class="perday-text">per day</div>`;
+          updateAnchor(perDay);
+        }
 
-    // ✅ WHATSAPP
-    function sendWhatsApp() {
+        function updateAnchor(perDay) {
+          let text = "Affordable protection";
+          if (perDay === null) text = "Select a plan to see pricing";
+          else if (perDay < 20) text = "Cheaper than a snack 🍪";
+          else if (perDay < 50) text = "Less than your daily tea ☕";
+          else if (perDay < 100) text = "Less than a quick meal 🍛";
+          else text = "Value-packed protection ✅";
+          $("anchorText").textContent = text;
+        }
 
-      let premium = document.getElementById("premium").innerText;
-
-      let msg =
-        `Health Insurance Quote
+        // ---------------------------------------------------------------------
+        // Sharing
+        // ---------------------------------------------------------------------
+        function sendWhatsApp() {
+          const premiumText = $("premium").textContent;
+          const perDay = Math.round(currentAnnualPremium / 365);
+          const msg = `Health Insurance Quote — Indian Bank Health Care Premier
 
 Family: ${selected.family}
-Age: ${selected.age}
-Cover: ${format(selected.si)}
+Age Band: ${selected.age}
+Sum Insured: ${formatSI(selected.si)}
 
-Premium: ${premium}
-Only ₹ ${Math.round(currentAnnualPremium / 365)} per day
+Premium: ${premiumText}
+Only ₹ ${perDay} per day
 
 Reply YES to proceed`;
 
-      window.open("https://wa.me/?text=" + encodeURIComponent(msg));
-    }
+          window.open(
+            "https://wa.me/?text=" + encodeURIComponent(msg),
+            "_blank",
+            "noopener",
+          );
+        }
 
-    // ✅ SAVE LEAD
-    function saveLead() {
+        // ---------------------------------------------------------------------
+        // Lead capture modal
+        // ---------------------------------------------------------------------
+        function openModal() {
+          $("modalSummary").textContent =
+            `${selected.family} · ${selected.age} · ${formatSI(selected.si)} cover · ${$("premium").textContent}`;
+          $("nameError").textContent = "";
+          $("phoneError").textContent = "";
+          $("customerModal").classList.add("open");
+          $("name").focus();
+        }
 
-      let name = document.getElementById("name").value;
-      let phone = document.getElementById("phone").value;
+        function closeModal() {
+          $("customerModal").classList.remove("open");
+        }
 
-      if (!name || phone.length !== 10) {
-        alert("Enter valid details");
-        return;
-      }
+        function validateAndSaveLead() {
+          const name = $("name").value.trim();
+          const phone = $("phone").value.trim();
+          let valid = true;
 
-      let lead = {
-        name,
-        phone,
-        selection: selected,
-        annualPremium: Math.round(currentAnnualPremium),
-        displayPremium: Math.round(currentDisplayPremium),
-        timestamp: new Date().toISOString()
-      };
+          if (!name) {
+            $("nameError").textContent = "Enter the customer's name.";
+            valid = false;
+          } else {
+            $("nameError").textContent = "";
+          }
 
-      console.log("Lead:", lead);
-      alert("Lead Saved ✅");
-    }
+          if (!/^\d{10}$/.test(phone)) {
+            $("phoneError").textContent =
+              "Enter a valid 10-digit mobile number.";
+            valid = false;
+          } else {
+            $("phoneError").textContent = "";
+          }
 
-    function openModal(action) {
-      // You can use 'action' to differentiate behavior if needed
-      document.getElementById('customerModal').style.display = 'block';
-    }
+          if (!valid) return;
 
-    function closeModal() {
-      document.getElementById('customerModal').style.display = 'none';
-    }
+          saveLead(name, phone);
+        }
 
-    // Optional: close modal when clicking outside content
-    window.onclick = function (event) {
-      const modal = document.getElementById('customerModal');
-      if (event.target === modal) {
-        closeModal();
-      }
-    }
+        async function saveLead(name, phone) {
+          const lead = {
+            id: "lead_" + Date.now(),
+            name,
+            phone,
+            selection: { ...selected },
+            annualPremium: Math.round(currentAnnualPremium),
+            displayPremium: Math.round(currentDisplayPremium),
+            timestamp: new Date().toISOString(),
+          };
 
-    // ✅ EVENTS
-    document.getElementById("monthly").onchange = calculate;
+          try {
+            const result = await window.storage.set(
+              LEAD_LIST_PREFIX + lead.id,
+              JSON.stringify(lead),
+              false,
+            );
+            if (!result) throw new Error("Storage write failed");
+            $("name").value = "";
+            $("phone").value = "";
+            closeModal();
+            await refreshLeadsList();
+          } catch (err) {
+            $("phoneError").textContent =
+              "Could not save right now — please try again.";
+            console.error("Lead save error:", err);
+          }
+        }
 
-  </script>
-</body>
+        async function refreshLeadsList() {
+          const panel = $("leadsPanel");
+          try {
+            const listResult = await window.storage.list(
+              LEAD_LIST_PREFIX,
+              false,
+            );
+            const keys = listResult?.keys || [];
+            $("leadsCount").textContent = keys.length;
 
+            if (keys.length === 0) {
+              panel.innerHTML = `<div class="empty-note">No leads saved yet.</div>`;
+              return;
+            }
+
+            const leads = [];
+            for (const key of keys) {
+              try {
+                const entry = await window.storage.get(key, false);
+                if (entry) leads.push(JSON.parse(entry.value));
+              } catch (e) {
+                /* skip unreadable entry */
+              }
+            }
+            leads.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            panel.innerHTML = leads
+              .map(
+                (l) => `
+        <div class="lead-item">
+          <div>
+            <div class="lead-name">${escapeHtml(l.name)}</div>
+            <div class="lead-meta">${escapeHtml(l.phone)} · ${escapeHtml(l.selection.family)}, ${escapeHtml(formatSI(l.selection.si))}</div>
+          </div>
+          <div class="lead-meta">${formatMoney(l.displayPremium)}</div>
+        </div>
+      `,
+              )
+              .join("");
+          } catch (err) {
+            panel.innerHTML = `<div class="empty-note">Couldn't load saved leads.</div>`;
+            console.error("Lead list error:", err);
+          }
+        }
+
+        function escapeHtml(str) {
+          const div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
+
+        // ---------------------------------------------------------------------
+        // Events
+        // ---------------------------------------------------------------------
+        function bindEvents() {
+          $("monthly").addEventListener("change", calculate);
+          $("gst").addEventListener("change", calculate);
+          $("whatsappBtn").addEventListener("click", sendWhatsApp);
+          $("saveLeadBtn").addEventListener("click", openModal);
+          $("closeModalBtn").addEventListener("click", closeModal);
+          $("confirmSaveBtn").addEventListener("click", validateAndSaveLead);
+
+          $("customerModal").addEventListener("click", (e) => {
+            if (e.target.id === "customerModal") closeModal();
+          });
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeModal();
+          });
+
+          const leadsToggle = $("leadsToggle");
+          const leadsPanel = $("leadsPanel");
+          const toggleLeads = () => {
+            const isOpen = leadsPanel.style.display !== "none";
+            leadsPanel.style.display = isOpen ? "none" : "block";
+            $("leadsChevron").textContent = isOpen ? "▾" : "▴";
+            leadsToggle.setAttribute("aria-expanded", String(!isOpen));
+          };
+          leadsToggle.addEventListener("click", toggleLeads);
+          leadsToggle.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleLeads();
+            }
+          });
+        }
+
+        window.addEventListener("DOMContentLoaded", init);
+      })();
+    </script>
+  </body>
 </html>

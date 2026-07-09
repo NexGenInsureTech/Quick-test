@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Indian Bank Health Care Premier Calculator</title>
+
+
+  <style>
+    body {
+      font-family: system-ui;
+      background: #f5f7fb;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .label {
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 20px;
+      background: #eef2ff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .active {
+      background: #2a9d8f;
+      color: #fff;
+    }
+
+    .result {
+      position: sticky;
+      bottom: 10px;
+      background: #fff;
+      padding: 16px;
+      text-align: center;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .price {
+      font-size: 30px;
+      color: #2a9d8f;
+      font-weight: bold;
+    }
+
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #38b2ac;
+      color: white;
+    }
+
+    /* ✅ Premium Section */
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+      font-size: 13px;
+    }
+
+    .perday-box {
+      margin-top: 12px;
+      padding: 18px;
+      background: linear-gradient(135deg, #2a9d8f, #38b2ac);
+      color: #fff;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .price-big {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .perday-text {
+      font-size: 14px;
+      opacity: .9;
+    }
+
+
+    .subtext {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #065f46;
+      background: #d1fae5;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* Floating button container */
+    .fab-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .fab-container button {
+      background-color: #25D366;
+      /* WhatsApp green */
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .fab-container button:hover {
+      background-color: #128C7E;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      /* hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-content .label {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <hgroup>
+      <h2>Indian Bank Health Care Premier</h2>
+      <p style="color: #2a9d8f;">Premium Calculator</p>
+    </hgroup>
+
+    <!-- Selection -->
+    <div class="card">
+      <div class="label">Family</div>
+      <div id="family" class="chips"></div>
+
+      <div class="label">Age Band</div>
+      <div id="age" class="chips"></div>
+
+      <div class="label">Sum Insured</div>
+      <div id="si" class="chips"></div>
+    </div>
+
+    <!-- ✅ Premium UI -->
+    <div class="card">
+      <!-- <input type="hidden" id="gst" checked>
+
+  <div class="toggle">
+    <label>
+      <input type="checkbox" id="monthly"> Monthly
+    </label>
+  </div> -->
+
+      <div class="perday-box" id="perdayBox">
+        <div class="price-big">₹ --</div>
+        <div class="perday-text">per day</div>
+      </div>
+
+      <div class="subtext" id="anchorText">
+        Affordable protection
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="customerModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="card">
+          <div class="label">Customer Details</div>
+          <input id="name" placeholder="Full Name">
+          <input id="phone" placeholder="Mobile Number">
+        </div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="toggle">
+      <label>
+        <input type="checkbox" id="monthly"> Monthly
+      </label>
+    </div>
+
+    <div class="result">
+      <div>Premium</div>
+      <div id="premium" class="price">₹ --</div>
+
+      <!-- Customer -->
+      <!-- <div class="card">
+        <div class="label">Customer Details</div>
+        <input id="name" placeholder="Full Name">
+        <input id="phone" placeholder="Mobile Number">
+      </div> -->
+
+      <!-- Floating Buttons -->
+      <div class="fab-container">
+        <button onclick="sendWhatsApp()">Share on WhatsApp</button>
+        <button onclick="saveLead()">Save Lead</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ✅ RATES (Make sure file is correct) -->
+  <script src="rates.json"></script>
+
+  <script>
+    // ✅ GLOBAL STATE
+    let selected = {};
+    let currentAnnualPremium = 0;
+    let currentDisplayPremium = 0;
+
+    // ✅ INIT
+    window.onload = function () {
+      if (!window.rates) {
+        console.error("Rates not loaded");
+        return;
+      }
+      initSelection();
+      renderAll();
+    };
+
+    // ✅ INIT SELECTION
+    function initSelection() {
+      const f = Object.keys(rates)[0];
+      const a = Object.keys(rates[f])[0];
+      const s = Object.keys(rates[f][a])[0];
+      selected = { family: f, age: a, si: s };
+    }
+
+    // ✅ FILTER
+    function filterSI(list) {
+      const preferred = ["100000", "300000", "500000", "1000000", "2000000", "3000000", "5000000"];
+      return preferred.filter(v => list.includes(v));
+    }
+
+    // ✅ FORMAT
+    function format(val) {
+      return Number(val) >= 100000 ? (val / 100000) + "L" : val;
+    }
+
+    // ✅ RENDER CHIPS
+    function renderChips(id, items, key) {
+      let el = document.getElementById(id);
+      el.innerHTML = "";
+
+      items.forEach(v => {
+        let chip = document.createElement("div");
+        chip.className = "chip" + (selected[key] == v ? " active" : "");
+        chip.innerText = format(v);
+
+        chip.onclick = () => {
+          selected[key] = v;
+
+          if (key === "family") {
+            selected.age = Object.keys(rates[v])[0];
+          }
+
+          if (key === "age") {
+            const siList = filterSI(Object.keys(rates[selected.family][selected.age]));
+            selected.si = siList[0];
+          }
+
+          renderAll();
+        };
+
+        el.appendChild(chip);
+      });
+    }
+
+    // ✅ RENDER ALL
+    function renderAll() {
+      renderChips("family", Object.keys(rates), "family");
+      renderChips("age", Object.keys(rates[selected.family]), "age");
+
+      const allSI = Object.keys(rates[selected.family][selected.age]);
+      renderChips("si", filterSI(allSI), "si");
+
+      calculate();
+    }
+
+    // ✅ ✅ ✅ CLEAN CALCULATE
+    function calculate() {
+
+      let base = rates?.[selected.family]?.[selected.age]?.[selected.si];
+
+      if (!base) {
+        document.getElementById("premium").innerText = "N/A";
+        updatePerDay(null);
+        return;
+      }
+
+      let annualPremium = base * 1.18;
+
+      let displayPremium = annualPremium;
+
+      if (document.getElementById("monthly").checked) {
+        displayPremium = annualPremium / 12;
+      }
+
+      // store globally
+      currentAnnualPremium = annualPremium;
+      currentDisplayPremium = displayPremium;
+
+      document.getElementById("premium").innerText =
+        "₹ " + Math.round(displayPremium).toLocaleString();
+
+      updatePerDay(annualPremium);
+    }
+
+    // ✅ PER DAY
+    function updatePerDay(premium) {
+
+      if (!premium) {
+        document.getElementById("perdayBox").innerHTML =
+          `<div class="price-big">₹ --</div><div class="perday-text">per day</div>`;
+        return;
+      }
+
+      const perDay = Math.round(premium / 365);
+
+      document.getElementById("perdayBox").innerHTML =
+        `<div class="price-big">₹ ${perDay}</div>
+     <div class="perday-text">per day</div>`;
+
+      updateAnchor(perDay);
+    }
+
+    // ✅ PSYCHOLOGY TEXT
+    function updateAnchor(val) {
+      let text = "Affordable protection";
+
+      if (val < 20) text = "Cheaper than a snack 🍪";
+      else if (val < 50) text = "Less than your daily tea ☕";
+      else if (val < 100) text = "Less than a quick meal 🍛";
+      else text = "Value-packed protection ✅";
+
+      document.getElementById("anchorText").innerText = text;
+    }
+
+    // ✅ WHATSAPP
+    function sendWhatsApp() {
+
+      let premium = document.getElementById("premium").innerText;
+
+      let msg =
+        `Health Insurance Quote
+
+Family: ${selected.family}
+Age: ${selected.age}
+Cover: ${format(selected.si)}
+
+Premium: ${premium}
+Only ₹ ${Math.round(currentAnnualPremium / 365)} per day
+
+Reply YES to proceed`;
+
+      window.open("https://wa.me/?text=" + encodeURIComponent(msg));
+    }
+
+    // ✅ SAVE LEAD
+    function saveLead() {
+
+      let name = document.getElementById("name").value;
+      let phone = document.getElementById("phone").value;
+
+      if (!name || phone.length !== 10) {
+        alert("Enter valid details");
+        return;
+      }
+
+      let lead = {
+        name,
+        phone,
+        selection: selected,
+        annualPremium: Math.round(currentAnnualPremium),
+        displayPremium: Math.round(currentDisplayPremium),
+        timestamp: new Date().toISOString()
+      };
+
+      console.log("Lead:", lead);
+      alert("Lead Saved ✅");
+    }
+
+    function openModal(action) {
+      // You can use 'action' to differentiate behavior if needed
+      document.getElementById('customerModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('customerModal').style.display = 'none';
+    }
+
+    // Optional: close modal when clicking outside content
+    window.onclick = function (event) {
+      const modal = document.getElementById('customerModal');
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
+
+    // ✅ EVENTS
+    document.getElementById("monthly").onchange = calculate;
+
+  </script>
+</body>
+
+</html>
