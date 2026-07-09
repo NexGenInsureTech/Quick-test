@@ -60,20 +60,29 @@ button {
   color: #fff;
 }
 
-.package-title{
-    font-weight:700;
-    font-size:14px;
+.package-title {
+  font-weight: 700;
+  font-size: 14px;
 }
 
-.package-subtitle{
-    font-size:11px;
-    color:#6b7280;
-    margin-top:4px;
-    line-height:1.3;
+.package-subtitle {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.3;
 }
 
-.recommended{
-  border:2px solid #2a9d8f;
-  background:#f0fdfa;
+.recommended {
+  border: 2px solid #2a9d8f;
+  background: #f0fdfa;
 }
 
+.pkg.active {
+  background: #2a9d8f;
+  color: white;
+  border-color: #2a9d8f;
+}
+
+.pkg.active .package-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+}

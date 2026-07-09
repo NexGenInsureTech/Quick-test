@@ -1,4 +1,9 @@
+console.log(packageDefs);
+
 let selected = {};
+
+let selectedPackage = "smart";
+
 const rates = window.rates;
 function init() {
   renderPackages();
@@ -14,21 +19,26 @@ function renderPackages() {
   Object.entries(packageDefs).forEach(([k, v]) => {
     const d = document.createElement("div");
     d.className = "pkg";
-    // d.innerText = v.title;
     d.innerHTML = `
   <div class="package-title">${v.title}</div>
   <div class="package-subtitle">${v.subtitle}</div>
 `;
-    d.className = "pkg" + (v.recommended ? " recommended" : "");
+    d.className =
+      "pkg" +
+      (v.recommended ? " recommended" : "") +
+      (selectedPackage === k ? " active" : "");
 
     d.onclick = () => selectPackage(k);
     el.appendChild(d);
   });
 }
 function selectPackage(k) {
+  selectedPackage = k;
+
   const p = packageDefs[k];
   document.getElementById("anchor").innerText = p.anchor;
   selected.si = p.si;
+  renderPackages();
   renderAll();
 }
 function renderChips(id, items, key) {
