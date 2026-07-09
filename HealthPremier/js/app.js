@@ -14,7 +14,13 @@ function renderPackages() {
   Object.entries(packageDefs).forEach(([k, v]) => {
     const d = document.createElement("div");
     d.className = "pkg";
-    d.innerText = v.title;
+    // d.innerText = v.title;
+    d.innerHTML = `
+  <div class="package-title">${v.title}</div>
+  <div class="package-subtitle">${v.subtitle}</div>
+`;
+    d.className = "pkg" + (v.recommended ? " recommended" : "");
+
     d.onclick = () => selectPackage(k);
     el.appendChild(d);
   });
