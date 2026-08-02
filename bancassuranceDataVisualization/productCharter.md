@@ -1,13 +1,3 @@
-Excellent. I think this is where the project truly begins.
-
-From this point onward, I want us to think less like "developer + user" and more like **Product Owner + Chief Architect**.
-
-We are not building a dashboard.
-
-We are building a **business operating platform**.
-
----
-
 # Phase 0.1 – Banc360 Product Charter
 
 **Version:** 0.1 (Foundation)
