@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--==========================================================
+    DOCUMENT
+    ==========================================================-->
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="Banc360 Enterprise Bancassurance Intelligence Platform"
+    />
+
+    <meta name="application-name" content="Banc360" />
+
+    <meta name="theme-color" content="#0f172a" />
+
+    <title>Banc360 | Executive Dashboard</title>
+
+    <!--==========================================================
+    FAVICON
+    ==========================================================-->
+
+    <!--
+    Add the production favicon when the asset is available.
+
+    Example:
+
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="assets/images/favicon.svg">
+    -->
+
+    <!--==========================================================
+    CSS
+    ==========================================================-->
+
+    <!--
+    IMPORTANT
+    ----------
+    CSS loading order follows the design-system hierarchy:
+
+        reset
+          ↓
+        variables
+          ↓
+        theme
+          ↓
+        base
+          ↓
+        typography
+          ↓
+        layout
+          ↓
+        navigation
+          ↓
+        components
+          ↓
+        utilities
+          ↓
+        dashboard
+    -->
+
+    <link rel="stylesheet" href="assets/css/reset.css" />
+
+    <link rel="stylesheet" href="assets/css/variables.css" />
+
+    <link rel="stylesheet" href="assets/css/theme.css" />
+
+    <link rel="stylesheet" href="assets/css/base.css" />
+
+    <link rel="stylesheet" href="assets/css/typography.css" />
+
+    <link rel="stylesheet" href="assets/css/layout.css" />
+
+    <link rel="stylesheet" href="assets/css/navigation.css" />
+
+    <link rel="stylesheet" href="assets/css/components.css" />
+
+    <link rel="stylesheet" href="assets/css/utilities.css" />
+
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
+  </head>
+
+  <body class="theme-light">
+    <!--==============================================================
+APPLICATION ROOT
+===============================================================-->
+
+    <div id="app" class="app-shell">
+      <!--==========================================================
+    MOBILE OVERLAY
+    ===========================================================-->
+
+      <div class="mobile-overlay" data-mobile-overlay aria-hidden="true"></div>
+
+      <!--==========================================================
+    SIDEBAR
+    ===========================================================-->
+
+      <aside id="sidebar" class="sidebar" aria-label="Primary navigation">
+        <!--======================================================
+        BRAND
+        =======================================================-->
+
+        <div class="sidebar-brand">
+          <a
+            href="#/dashboard"
+            class="brand-link"
+            data-route="/dashboard"
+            aria-label="Banc360 Dashboard"
+          >
+            <span class="brand-mark" aria-hidden="true"> B </span>
+
+            <span class="brand-text">
+              <span class="brand-name"> Banc360 </span>
+
+              <span class="brand-subtitle"> Intelligence Platform </span>
+            </span>
+          </a>
+
+          <!-- Sidebar collapse -->
+
+          <button
+            type="button"
+            class="sidebar-toggle"
+            data-action="toggle-sidebar"
+            aria-label="Collapse navigation"
+            aria-expanded="true"
+            title="Collapse navigation"
+          >
+            <span aria-hidden="true"> ‹ </span>
+          </button>
+        </div>
+
+        <!--======================================================
+        NAVIGATION
+        =======================================================-->
+
+        <nav
+          class="sidebar-navigation"
+          data-navigation
+          aria-label="Main navigation"
+        >
+          <!--==================================================
+            OVERVIEW
+            ===================================================-->
+
+          <div class="nav-section">
+            <div class="nav-section-label">Overview</div>
+
+            <a
+              href="#/dashboard"
+              class="nav-link active"
+              data-route="/dashboard"
+              aria-current="page"
+            >
+              <span class="nav-icon" aria-hidden="true"> ▦ </span>
+
+              <span class="nav-label"> Executive Dashboard </span>
+            </a>
+          </div>
+
+          <!--==================================================
+            BUSINESS
+            ===================================================-->
+
+          <div class="nav-section">
+            <div class="nav-section-label">Business</div>
+
+            <a href="#/partners" class="nav-link" data-route="/partners">
+              <span class="nav-icon" aria-hidden="true"> ◉ </span>
+
+              <span class="nav-label"> Partners </span>
+            </a>
+
+            <a href="#/analytics" class="nav-link" data-route="/analytics">
+              <span class="nav-icon" aria-hidden="true"> ◫ </span>
+
+              <span class="nav-label"> Analytics </span>
+            </a>
+
+            <a href="#/reports" class="nav-link" data-route="/reports">
+              <span class="nav-icon" aria-hidden="true"> ▤ </span>
+
+              <span class="nav-label"> Reports </span>
+            </a>
+          </div>
+
+          <!--==================================================
+            MANAGEMENT
+            ===================================================-->
+
+          <div class="nav-section">
+            <div class="nav-section-label">Management</div>
+
+            <a href="#/settings" class="nav-link" data-route="/settings">
+              <span class="nav-icon" aria-hidden="true"> ⚙ </span>
+
+              <span class="nav-label"> Settings </span>
+            </a>
+          </div>
+        </nav>
+
+        <!--======================================================
+        SIDEBAR FOOTER
+        =======================================================-->
+
+        <div class="sidebar-footer">
+          <div class="sidebar-status">
+            <span class="status-dot status-dot-success" aria-hidden="true">
+            </span>
+
+            <span class="nav-label"> System Online </span>
+          </div>
+
+          <div class="sidebar-version">v0.1.0</div>
+        </div>
+      </aside>
+
+      <!--==========================================================
+    MAIN APPLICATION AREA
+    ===========================================================-->
+
+      <div class="app-main">
+        <!--======================================================
+        TOPBAR
+        =======================================================-->
+
+        <header class="topbar" role="banner">
+          <!-- Mobile menu -->
+
+          <button
+            type="button"
+            class="mobile-menu-button"
+            data-action="toggle-mobile-menu"
+            aria-label="Open navigation"
+            aria-expanded="false"
+          >
+            <span aria-hidden="true"> ☰ </span>
+          </button>
+
+          <!--==================================================
+            PAGE CONTEXT
+            ===================================================-->
+
+          <div class="topbar-context">
+            <div class="topbar-page-title" data-page-title>
+              Executive Dashboard
+            </div>
+
+            <nav class="breadcrumb" data-breadcrumb aria-label="Breadcrumb">
+              <span class="breadcrumb-item">
+                <a href="#/dashboard" data-route="/dashboard"> Banc360 </a>
+              </span>
+
+              <span class="breadcrumb-separator" aria-hidden="true"> / </span>
+
+              <span class="breadcrumb-item"> Executive Dashboard </span>
+            </nav>
+          </div>
+
+          <!--==================================================
+            TOPBAR ACTIONS
+            ===================================================-->
+
+          <div class="topbar-actions">
+            <!-- Theme -->
+
+            <button
+              type="button"
+              class="icon-button"
+              data-action="toggle-theme"
+              aria-label="Switch theme"
+              title="Switch theme"
+            >
+              <span data-theme-icon aria-hidden="true"> ☀ </span>
+            </button>
+
+            <!-- Notifications -->
+
+            <button
+              type="button"
+              class="icon-button notification-button"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <span aria-hidden="true"> ◌ </span>
+
+              <span class="notification-indicator" aria-hidden="true"> </span>
+            </button>
+
+            <!-- User -->
+
+            <button
+              type="button"
+              class="user-menu"
+              aria-label="User menu"
+              title="User menu"
+            >
+              <span class="user-avatar"> U </span>
+
+              <span class="user-details">
+                <span class="user-name"> User </span>
+
+                <span class="user-role"> Banc360 User </span>
+              </span>
+            </button>
+          </div>
+        </header>
+
+        <!--======================================================
+        MAIN CONTENT
+        =======================================================-->
+
+        <main id="main-content" class="main-content" role="main">
+          <!--==================================================
+            VIEW CONTAINER
+
+            Router renders feature modules here.
+            ===================================================-->
+
+          <div id="view" class="view-container" tabindex="-1">
+            <!--
+                Initial loading state.
+
+                Router replaces this content once the application
+                starts.
+                -->
+
+            <section class="empty-state initial-loading">
+              <div class="loading-spinner" aria-hidden="true"></div>
+
+              <h2 class="empty-state-title">Loading Banc360</h2>
+
+              <p class="empty-state-text">Initializing the application...</p>
+            </section>
+          </div>
+        </main>
+
+        <!--======================================================
+        FOOTER
+        =======================================================-->
+
+        <footer class="app-footer">
+          <span> Banc360 Enterprise Bancassurance Platform </span>
+
+          <span> v0.1.0 </span>
+        </footer>
+      </div>
+
+      <!--==========================================================
+    GLOBAL LOADING LAYER
+    ===========================================================-->
+
+      <div
+        class="loading-layer"
+        data-loading
+        hidden
+        aria-hidden="true"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="loading-card">
+          <div class="loading-spinner" aria-hidden="true"></div>
+
+          <span> Loading... </span>
+        </div>
+      </div>
+    </div>
+
+    <!--==============================================================
+NOSCRIPT
+===============================================================-->
+
+    <noscript>
+      <div class="noscript-message">
+        <h1>JavaScript Required</h1>
+
+        <p>Banc360 requires JavaScript to be enabled in your browser.</p>
+      </div>
+    </noscript>
+
+    <!--==============================================================
+JAVASCRIPT
+===============================================================-->
+
+    <!--
+IMPORTANT
+----------
+Do NOT change this order.
+
+Dependencies flow from core → application → modules →
+bootstrap.
+-->
+
+    <script src="assets/js/core/config.js"></script>
+
+    <script src="assets/js/core/storage.js"></script>
+
+    <script src="assets/js/core/state.js"></script>
+
+    <script src="assets/js/core/events.js"></script>
+
+    <script src="assets/js/core/router.js"></script>
+
+    <script src="assets/js/app/app.js"></script>
+
+    <script src="assets/js/modules/dashboard/dashboard.config.js"></script>
+    <script src="assets/js/modules/dashboard/dashboard.data.js"></script>
+    <script src="assets/js/modules/dashboard/dashboard.js"></script>
+
+    <script src="assets/js/modules/partners/partners.js"></script>
+
+    <script src="assets/js/app/bootstrap.js"></script>
+  </body>
+</html>

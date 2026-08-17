@@ -1,0 +1,30 @@
+# Sprint 1
+
+## Objective
+
+Build the application shell for Banc360.
+
+## Deliverables
+
+- Application Layout
+- Navigation Framework
+- Theme Engine
+- Workspace Manager
+- Module Registry
+- Upload Center (UI)
+- Configuration Engine
+- Event Bus
+- Local Storage
+- Empty Business Applications
+
+## Exit Criteria
+
+Application launches successfully.
+
+Navigation works.
+
+Theme loads.
+
+Modules load.
+
+No analytics yet.
