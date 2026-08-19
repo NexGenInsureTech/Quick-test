@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width,initial-scale=1'>
+    <title>BancaTracker Enterprise v7</title>
+    <link rel='stylesheet' href='style.css'>
+</head>
+
+<body>
+    <h1>BancaTracker Enterprise v7</h1>
+    <div class='toolbar'><input type='file' id='csvFile' accept='.csv'><select id='monthFilter'>
+            <option value='ALL'>All Months</option>
+        </select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><span
+            id='status'>Upload CSV</span></div>
+    <div id='misPage'>
+        <section id='kpis' class='cards'></section>
+        <div class='panel'>
+            <h2>Monthly Business</h2>
+            <div id='monthlyCards' class='monthly-grid'></div>
+        </div>
+        <div class='grid'>
+            <div class='panel'>
+                <h2>Bank Dashboard</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bank</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody id='bankTable'></tbody>
+                </table>
+            </div>
+            <div class='panel'>
+                <h2>RM Dashboard</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RM</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody id='rmTable'></tbody>
+                </table>
+            </div>
+        </div>
+        <div class='panel'>
+            <h2>LOB Dashboard</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>LOB</th>
+                        <th>Premium</th>
+                    </tr>
+                </thead>
+                <tbody id='lobTable'></tbody>
+            </table>
+        </div>
+    </div>
+    <div id='activationPage' style='display:none'>
+        <div class='grid'>
+            <div class='panel'>
+                <h2>Branch Maturity Pyramid</h2>
+                <div id='branchPyramid'></div>
+            </div>
+            <div class='panel'>
+                <h2>Bank Activation %</h2>
+                <div id='bankActivation'></div>
+            </div>
+        </div>
+        <div class='panel'>
+            <h2>Near Active Branches</h2>
+            <div id='nearActivation'></div>
+        </div>
+        <div class="panel">
+            <h2>Opportunity Branches</h2>
+            <div id="opportunityBranches"></div>
+        </div>
+    </div>
+    <script src='app.js'></script>
+    <script src='activationPlus.js'></script>
+</body>
+
+</html>
