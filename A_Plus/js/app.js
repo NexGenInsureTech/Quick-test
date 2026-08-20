@@ -6,6 +6,8 @@ let selected = {
 
   age: null,
 
+  members: [],
+
   zone: "ZONE1",
 
   plan: "gold",
@@ -126,7 +128,16 @@ function renderFamilies() {
       selected.family =
         family.code;
 
+      selected.members =
+        FamilyEngine.createRatingMembers(
+          family.code
+        );
+
+      selected.age = null;
+
       renderFamilies();
+
+      renderAgeBands();
 
       console.log(
         FamilyEngine.getFamilyDefinition(
@@ -151,46 +162,87 @@ function renderAgeBands() {
 
   ageContainer.innerHTML = "";
 
-  ageBands.forEach(age => {
+  selected.members.forEach((member, memberIndex) => {
 
-    const div =
+    const memberGroup =
       document.createElement("div");
 
-    div.className = "card";
+    memberGroup.className =
+      "member-age-group";
 
-    if (
-      selected.age === age
-    ) {
+    const memberNumber = selected.members
+      .slice(0, memberIndex + 1)
+      .filter(item =>
+        item.memberType === member.memberType
+      ).length;
 
-      div.classList.add(
-        "active"
-      );
-
-    }
-
-    div.innerHTML = `
-            <h3>${age}</h3>
-        `;
-
-    div.onclick = () => {
-
-      selected.age = age;
-
-      renderAgeBands();
-
-      console.log(
-        "Selected Age:",
-        selected.age
-      );
-
-      console.log(
-        selected
-      );
-
+    const memberLabels = {
+      firstAdult: "Primary Adult",
+      secondAdult: "Secondary Adult",
+      child: `Child ${memberNumber}`,
+      parent: `Parent ${memberNumber}`
     };
 
+    const heading =
+      document.createElement("h3");
+
+    heading.innerHTML =
+      memberLabels[member.memberType];
+
+    memberGroup.appendChild(heading);
+
+    const ageGrid =
+      document.createElement("div");
+
+    ageGrid.className =
+      "member-age-grid";
+
+    ageBandsByMemberType[
+      member.memberType
+    ].forEach(age => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "card";
+
+      if (member.ageBand === age) {
+        div.classList.add("active");
+      }
+
+      div.innerHTML = `
+        <h3>${age}</h3>
+      `;
+
+      div.onclick = () => {
+
+        selected.members[
+          memberIndex
+        ].ageBand = age;
+
+        const leadMember =
+          selected.members.find(item =>
+            item.memberType === "firstAdult"
+          ) || selected.members.find(item =>
+            item.memberType === "parent"
+          );
+
+        selected.age = leadMember
+          ? leadMember.ageBand
+          : null;
+
+        renderAgeBands();
+
+      };
+
+      ageGrid.appendChild(div);
+
+    });
+
+    memberGroup.appendChild(ageGrid);
+
     ageContainer.appendChild(
-      div
+      memberGroup
     );
 
   });

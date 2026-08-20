@@ -40,6 +40,17 @@ body {
     gap: 16px;
 }
 
+.member-age-group {
+    margin-bottom: 16px;
+}
+
+.member-age-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+}
+
 .card h3{
 margin-top:0;
 }
