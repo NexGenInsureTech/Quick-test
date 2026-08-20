@@ -4,15 +4,15 @@
 <head>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width,initial-scale=1'>
-    <title>BancaTracker Enterprise v7</title>
+    <title>BancaTracker Enterprise v8 MVP</title>
     <link rel='stylesheet' href='style.css'>
 </head>
 
 <body>
-    <h1>BancaTracker Enterprise v7</h1>
+    <h1>BancaTracker Enterprise v8 MVP</h1>
     <div class='toolbar'><input type='file' id='csvFile' accept='.csv'><select id='monthFilter'>
             <option value='ALL'>All Months</option>
-        </select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><span
+        </select><select id='bankFilter'><option value='ALL'>All Banks</option></select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><button id='scoreTab'>Management Scorecard</button><span
             id='status'>Upload CSV</span></div>
     <div id='misPage'>
         <section id='kpis' class='cards'></section>
@@ -28,6 +28,7 @@
                         <tr>
                             <th>Bank</th>
                             <th>Premium</th>
+                            <th>Contribution %</th>
                         </tr>
                     </thead>
                     <tbody id='bankTable'></tbody>
@@ -40,6 +41,7 @@
                         <tr>
                             <th>RM</th>
                             <th>Premium</th>
+                            <th>Contribution %</th>
                         </tr>
                     </thead>
                     <tbody id='rmTable'></tbody>
@@ -53,6 +55,7 @@
                     <tr>
                         <th>LOB</th>
                         <th>Premium</th>
+                        <th>Contribution %</th>
                     </tr>
                 </thead>
                 <tbody id='lobTable'></tbody>
@@ -60,6 +63,8 @@
         </div>
     </div>
     <div id='activationPage' style='display:none'>
+        <section id='activationKpis' class='cards'></section>
+        <p id='activationScope' class='activation-note'></p>
         <div class='grid'>
             <div class='panel'>
                 <h2>Branch Maturity Pyramid</h2>
@@ -70,17 +75,47 @@
                 <div id='bankActivation'></div>
             </div>
         </div>
-        <div class='panel'>
-            <h2>Near Active Branches</h2>
-            <div id='nearActivation'></div>
-        </div>
-        <div class="panel">
+        <div class="panel opportunity-panel">
             <h2>Opportunity Branches</h2>
+            <p id="opportunityCount" class="activation-note"></p>
             <div id="opportunityBranches"></div>
         </div>
+        <div class="grid">
+            <div class="panel">
+                <h2>Zone Activation</h2>
+                <div id="zoneActivation"></div>
+            </div>
+            <div class="panel">
+                <h2>State Activation</h2>
+                <div id="stateActivation"></div>
+            </div>
+        </div>
     </div>
+    <div id='scorecardPage' style='display:none'>
+        <section id='scorecardSummary' class='cards'></section>
+        <p class='scorecard-note'>Near Active and Opportunities are the same observed branch population in this MVP; they are shown side by side for management visibility, not added together.</p>
+        <div class='panel'>
+            <h2>Partner Scorecard</h2>
+            <div id='partnerScorecard'></div>
+        </div>
+        <div class='grid'>
+            <div class='panel'>
+                <h2>Management Priority</h2>
+                <p class='scorecard-note'>HIGH: activation below 20% with near-active branches. MEDIUM: activation 20%–&lt;40%, or below 20% with observed premium but no near-active branches. LOW: activation 40%+. NO DATA: no premium, active, or near-active branches.</p>
+            </div>
+            <div class='panel'>
+                <h2>Management Actions</h2>
+                <div id='managementActions'></div>
+            </div>
+        </div>
+    </div>
+    <script src='js/config.js'></script>
+    <script src='js/utilities.js'></script>
+    <script src='js/core.js'></script>
+    <script src='js/performance.js'></script>
     <script src='app.js'></script>
-    <script src='activationPlus.js'></script>
+    <script src='js/activation.js'></script>
+    <script src='js/scorecard.js'></script>
 </body>
 
 </html>

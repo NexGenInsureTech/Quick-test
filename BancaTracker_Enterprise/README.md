@@ -1,5 +1,24 @@
 Recommended Structure 
 
+## Phase 1 implementation status
+
+The current offline browser application uses the following active layers:
+
+- `js/config.js`: branch-universe totals, thresholds, fiscal months, CSV definitions, and bank aliases.
+- `js/utilities.js`: shared CSV, formatting, normalization, aggregation, and branch-metric helpers.
+- `js/core.js`: in-memory application state, CSV validation/normalization, month and bank filters, and the central refresh pipeline.
+- `js/performance.js`: Performance MIS KPI, monthly-business, and contribution-table rendering.
+- `app.js`: application shell navigation.
+- `js/activation.js`: Activation Intelligence rendering for the current filtered scope.
+
+All CSV processing remains local in the browser. Mandatory upload columns are validated before data is rendered; optional Zone, State, IMD, business type, product, and day fields are retained when supplied. Branch aggregation uses the canonical `BANK + BRANCH NAME` identity.
+
+Phase 2 adds Performance MIS KPIs for YTD/MTD premium, records, partner institutions, active RMs, active branches, and active IMDs. It also adds premium contribution percentages for Bank, RM, and LOB views.
+
+Phase 3 consolidates the Activation Cockpit in `js/activation.js`. It uses shared bank-plus-branch metrics to render maturity bands, observed-branch activation KPIs, near-active opportunities, configured-universe bank activation, and observed zone/state activation for the current filter scope.
+
+Phase 4 adds `js/scorecard.js`, which provides a transparent management scorecard using the same filtered data and canonical branch metrics. It keeps configured branch universe distinct from observed branch records and applies the documented HIGH/MEDIUM/LOW/NO DATA priority rules.
+
 BancaTracker_Enterprise_v8
 │
 ├── index.html
@@ -119,7 +138,7 @@ style.css
 
 app.js
 
-activationPlus.js
+js/activation.js
 
 Architectural Principle
 app.js
@@ -144,7 +163,7 @@ LOB Dashboard
 
 Activation Cockpit v1
 
-activationPlus.js
+js/activation.js
 
 New Features Only
 
@@ -646,7 +665,7 @@ Rule 2
 
 All new business modules go into:
 
-activationPlus.js
+js/activation.js
 
 
 or future feature files.
