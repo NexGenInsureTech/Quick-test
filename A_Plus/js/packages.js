@@ -1,33 +1,23 @@
-const familyOptions = [
+const packageDefs = [
 
   {
-    code: "1A",
-    label: "Self"
+    title: "Young Starter",
+    plan: "silver"
   },
 
   {
-    code: "2A",
-    label: "Self + Spouse"
+    title: "Family Protector",
+    plan: "gold"
   },
 
   {
-    code: "2A1C",
-    label: "Family of 3"
+    title: "Elite Shield",
+    plan: "diamond"
   },
 
   {
-    code: "2A2C",
-    label: "Family of 4"
-  },
-
-  {
-    code: "PARENT1",
-    label: "Single Parent"
-  },
-
-  {
-    code: "PARENT2",
-    label: "Parent Couple"
+    title: "Senior Care",
+    plan: "gold"
   }
 
 ];

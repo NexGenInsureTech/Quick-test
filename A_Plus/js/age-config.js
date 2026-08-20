@@ -1,38 +1,23 @@
-const customerProfiles = [
+const ageBands = [
 
-  {
-      id:"young",
-      title:"Young Professional",
-      description:"Starting your health journey",
-      icon:"👨‍💼"
-  },
+  "18-25",
 
-  {
-      id:"married",
-      title:"Newly Married",
-      description:"Protect your future together",
-      icon:"💍"
-  },
+  "26-35",
 
-  {
-      id:"family",
-      title:"Young Family",
-      description:"Protection for spouse and children",
-      icon:"👨‍👩‍👧"
-  },
+  "36-40",
 
-  {
-      id:"parent",
-      title:"Parent Protection",
-      description:"Secure your parents",
-      icon:"❤️"
-  },
+  "41-45",
 
-  {
-      id:"senior",
-      title:"Senior Citizen",
-      description:"Retirement health protection",
-      icon:"👴"
-  }
+  "46-50",
+
+  "51-55",
+
+  "56-60",
+
+  "61-65",
+
+  "66-70",
+
+  "71+"
 
 ];

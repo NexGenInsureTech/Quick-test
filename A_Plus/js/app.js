@@ -8,7 +8,13 @@ let selected = {
 
   zone: "ZONE1",
 
-  plan: "gold"
+  plan: "gold",
+
+  sumInsured: null,
+
+  addons: [],
+
+  deductible: null
 
 };
 
@@ -319,6 +325,56 @@ function renderPlans() {
 
 }
 
+function renderSI() {
+
+  const siContainer =
+    document.getElementById(
+      "siContainer"
+    );
+
+  siContainer.innerHTML = "";
+
+  sumInsuredOptions.forEach(si => {
+
+    const div =
+      document.createElement("div");
+
+    div.className = "card";
+
+    if (
+      selected.sumInsured === si
+    ) {
+
+      div.classList.add(
+        "active"
+      );
+
+    }
+
+    const label = si === 10000000
+      ? "₹1 Crore"
+      : `₹${si / 100000} Lakh`;
+
+    div.innerHTML = `
+      <h3>${label}</h3>
+    `;
+
+    div.onclick = () => {
+
+      selected.sumInsured = si;
+
+      renderSI();
+
+    };
+
+    siContainer.appendChild(
+      div
+    );
+
+  });
+
+}
+
 
 renderPackages();
 renderProfiles();
@@ -326,3 +382,4 @@ renderFamilies();
 renderAgeBands();
 renderZones();
 renderPlans();
+renderSI();
