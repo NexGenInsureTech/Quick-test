@@ -12,8 +12,9 @@
     <h1>BancaTracker Enterprise v8 MVP</h1>
     <div class='toolbar'><input type='file' id='csvFile' accept='.csv'><select id='monthFilter'>
             <option value='ALL'>All Months</option>
-        </select><select id='bankFilter'><option value='ALL'>All Banks</option></select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><button id='scoreTab'>Management Scorecard</button><span
+        </select><select id='bankFilter'><option value='ALL'>All Banks</option></select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><button id='scoreTab'>Management Scorecard</button><button id='targetTab'>Target &amp; Growth</button><span
             id='status'>Upload CSV</span></div>
+    <div id='importSummary' class='import-summary' aria-live='polite'></div>
     <div id='misPage'>
         <section id='kpis' class='cards'></section>
         <div class='panel'>
@@ -109,13 +110,39 @@
             </div>
         </div>
     </div>
+    <div id='targetPage' style='display:none'>
+        <div class='panel target-config'>
+            <h2>Target Configuration</h2>
+            <div class='target-form'>
+                <label>Overall FY Target (₹ Cr)<input id='overallTarget' type='number' min='0' step='any' placeholder='Enter target'></label>
+                <label>Bank<select id='targetBank'></select></label>
+                <label>Bank Target (₹ Cr)<input id='bankTarget' type='number' min='0' step='any' placeholder='Enter target'></label>
+                <button id='saveOverallTarget' type='button'>Save Overall</button>
+                <button id='saveBankTarget' type='button'>Add / Update Bank</button>
+            </div>
+            <p id='targetConfigStatus' class='target-note'>Targets are retained for this browser session only.</p>
+        </div>
+        <section id='targetKpis' class='cards'></section>
+        <div class='panel'>
+            <h2>Target Progress</h2>
+            <div id='targetProgress'></div>
+            <p id='targetProgressNote' class='target-note'></p>
+        </div>
+        <div class='panel'>
+            <h2>Management Interpretation</h2>
+            <div id='targetInterpretation'></div>
+        </div>
+    </div>
     <script src='js/config.js'></script>
+    <script src='js/csvProcessor.js'></script>
     <script src='js/utilities.js'></script>
+    <script src='js/analytics.js'></script>
     <script src='js/core.js'></script>
     <script src='js/performance.js'></script>
     <script src='app.js'></script>
     <script src='js/activation.js'></script>
     <script src='js/scorecard.js'></script>
+    <script src='js/target.js'></script>
 </body>
 
 </html>

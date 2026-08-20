@@ -1,18 +1,15 @@
 /* Application shell navigation. Feature rendering is owned by dedicated modules. */
 (function () {
+  const pageIds = ["misPage", "activationPage", "scorecardPage", "targetPage"];
+  const showPage = (pageId) => pageIds.forEach((id) => { document.getElementById(id).style.display = id === pageId ? "block" : "none"; });
   document.getElementById("misTab").addEventListener("click", () => {
-    document.getElementById("misPage").style.display = "block";
-    document.getElementById("activationPage").style.display = "none";
-    document.getElementById("scorecardPage").style.display = "none";
+    showPage("misPage");
   });
   document.getElementById("actTab").addEventListener("click", () => {
-    document.getElementById("misPage").style.display = "none";
-    document.getElementById("activationPage").style.display = "block";
-    document.getElementById("scorecardPage").style.display = "none";
+    showPage("activationPage");
   });
   document.getElementById("scoreTab").addEventListener("click", () => {
-    document.getElementById("misPage").style.display = "none";
-    document.getElementById("activationPage").style.display = "none";
-    document.getElementById("scorecardPage").style.display = "block";
+    showPage("scorecardPage");
   });
+  document.getElementById("targetTab").addEventListener("click", () => showPage("targetPage"));
 })();

@@ -18,24 +18,15 @@
     return "Strengthen branch activation and convert near-active opportunities.";
   }
 
-  function buildPartnerMetrics(data) {
-    const totalPremium = data.reduce((sum, row) => sum + row.premium, 0);
-    const branches = Object.values(utils.buildBranchMetrics(data));
+  function buildPartnerMetrics(input) {
+    const derived = input && input.bankBranchMetrics ? input : global.BancaTrackerAnalytics.build(input);
+    const totalPremium = derived.totalPremium;
     const metrics = Object.keys(config.TOTAL_BRANCHES).reduce((banks, bank) => {
       banks[bank] = { bank, premium: 0, observedBranches: 0, activeBranches: 0, nearActiveBranches: 0, branchUniverse: config.TOTAL_BRANCHES[bank] };
       return banks;
     }, {});
 
-    data.forEach((row) => {
-      if (metrics[row.bank]) metrics[row.bank].premium += row.premium;
-    });
-    branches.forEach((branch) => {
-      if (!metrics[branch.bank]) return;
-      const bank = metrics[branch.bank];
-      bank.observedBranches += 1;
-      if (branch.premium >= config.THRESHOLDS.ACTIVE_BRANCH) bank.activeBranches += 1;
-      if (branch.premium >= config.THRESHOLDS.NEAR_ACTIVE_MIN && branch.premium < config.THRESHOLDS.ACTIVE_BRANCH) bank.nearActiveBranches += 1;
-    });
+    Object.entries(derived.bankBranchMetrics).forEach(([name, source]) => { if (!metrics[name]) return; const bank = metrics[name]; bank.premium = source.premium; bank.observedBranches = source.observed; bank.activeBranches = source.active; bank.nearActiveBranches = source.nearActive; });
 
     return Object.values(metrics).map((bank) => {
       const activationPercent = bank.branchUniverse > 0 ? (bank.activeBranches / bank.branchUniverse) * 100 : 0;
@@ -69,8 +60,8 @@
       : "<p class='empty-state'>No HIGH or MEDIUM priority banks in the selected view.</p>";
   }
 
-  function refreshScorecard(data) {
-    const metrics = buildPartnerMetrics(data);
+  function refreshScorecard(derived) {
+    const metrics = buildPartnerMetrics(derived);
     renderSummary(metrics);
     renderScorecard(metrics);
     renderActions(metrics);

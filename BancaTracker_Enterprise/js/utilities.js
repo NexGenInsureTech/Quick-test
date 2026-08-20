@@ -16,42 +16,7 @@
   }
 
   function parseCSV(text) {
-    const rows = [];
-    let row = [];
-    let cell = "";
-    let inQuotes = false;
-    const source = String(text || "").replace(/^\uFEFF/, "");
-
-    for (let i = 0; i < source.length; i += 1) {
-      const char = source[i];
-      if (char === '"') {
-        if (inQuotes && source[i + 1] === '"') {
-          cell += '"';
-          i += 1;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === "," && !inQuotes) {
-        row.push(cell);
-        cell = "";
-      } else if ((char === "\n" || char === "\r") && !inQuotes) {
-        if (cell.length || row.length) {
-          row.push(cell);
-          rows.push(row);
-          row = [];
-          cell = "";
-        }
-        if (char === "\r" && source[i + 1] === "\n") i += 1;
-      } else {
-        cell += char;
-      }
-    }
-
-    if (cell.length || row.length) {
-      row.push(cell);
-      rows.push(row);
-    }
-    return rows;
+    return global.BancaTrackerCsvProcessor.parseCSV(text);
   }
 
   function headerIndex(headers, name) {
@@ -79,6 +44,10 @@
       totals[group] = (totals[group] || 0) + row.premium;
       return totals;
     }, {});
+  }
+
+  function premiumTotal(data) {
+    return data.reduce((sum, row) => sum + row.premium, 0);
   }
 
   function normalizeBank(bank) {
@@ -127,6 +96,6 @@
 
   global.BancaTrackerUtils = Object.freeze({
     parseNumber, formatInr, formatPercent, parseCSV, headerIndex, buildHeaderMap, orderMonths,
-    aggregatePremium, normalizeBank, branchKey, buildBranchMetrics, getBranchBand, escapeHtml
+    aggregatePremium, premiumTotal, normalizeBank, branchKey, buildBranchMetrics, getBranchBand, escapeHtml
   });
 })(window);

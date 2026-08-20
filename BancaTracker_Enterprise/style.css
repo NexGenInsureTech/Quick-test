@@ -15,6 +15,9 @@ body {
     font-weight: 600
 }
 
+.import-summary { margin: 8px 0; color: #556070; font-size: 13px }
+.table-limit-note { color: #556070; font-size: 12px; text-align: center; font-weight: normal }
+
 .tabs{
     display:flex;
     gap:10px;
@@ -112,6 +115,15 @@ th {
     color: #556070;
     font-size: 13px
 }
+
+.target-config { border-left: 4px solid #17375e }
+.target-form { display: flex; align-items: end; flex-wrap: wrap; gap: 12px }
+.target-form label { display: grid; gap: 4px; font-size: 13px; color: #556070 }
+.target-form input, .target-form select, .target-form button { min-height: 32px; box-sizing: border-box }
+.target-note { color: #556070; font-size: 13px }
+.target-note-error { color: #b00020; font-weight: 600 }
+.target-selected-month td { background: #dce9f7; font-weight: 600 }
+.target-interpretation { font-size: 22px; font-weight: bold; color: #17375e }
 
 .priority {
     display: inline-block;
