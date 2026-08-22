@@ -247,6 +247,24 @@ WhatsApp sharing:
 - No CRM integration.
 - No OTP or mobile verification.
 
+### Deferred assisted / underwriting journey
+
+Senior and other underwriting-sensitive or non-straight-through cases are intentionally deferred from the current MVP. No generic age-over-65 rejection rule has been implemented.
+
+The existing premium-table age bands remain unchanged. The availability of a rating-table age band must not be treated as equivalent to eligibility for a straight-through quotation.
+
+A future Assisted / Underwriting Journey must use authoritative product and underwriting rules to determine:
+
+- Exact-age requirements.
+- Straight-through versus underwriting-referral criteria.
+- New-business versus renewal treatment, where applicable.
+- Medical and underwriting requirements.
+- Senior and other non-standard case handling.
+- RM, branch, and underwriter hand-off.
+- Maximum fresh-entry ages for relevant insured-member relationships.
+
+The unresolved interpretation of `firstAdult / 0-17` remains a separate product question. It is not resolved by this deferred-scope decision.
+
 ## Running locally
 
 Open `aplus_microsite.html` in a modern browser. No installation or build command is required. WhatsApp sharing requires access to WhatsApp's external web composer.
