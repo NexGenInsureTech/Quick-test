@@ -51,6 +51,106 @@ body {
     gap: 8px;
 }
 
+.addon-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: 16px;
+}
+
+.addon-card {
+    padding: 18px;
+    border: 1px solid #dbe4ee;
+    border-radius: 14px;
+    background: white;
+}
+
+.addon-card-disabled {
+    background: #f8fafc;
+    opacity: .75;
+}
+
+.addon-status {
+    min-height: 40px;
+}
+
+.addon-member-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.addon-member-option:has(input:checked) {
+    background: #eff6ff;
+    color: #0057b8;
+    font-weight: 600;
+}
+
+.addon-member-option:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+.section-helper {
+    color: #64748b;
+}
+
+.deductible-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+button.deductible-card {
+    padding: 16px;
+    border: 1px solid #dbe4ee;
+    border-radius: 14px;
+    background: white;
+    color: #1f2937;
+    text-align: left;
+    cursor: pointer;
+}
+
+.deductible-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#deductibleDisclosure {
+    min-height: 20px;
+    margin-top: 10px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.card {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 18px;
+    border: 1px solid #dbe4ee;
+    border-radius: 14px;
+    background: white;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+}
+
+button.card {
+    cursor: pointer;
+}
+
+button.card:focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 3px;
+}
+
 .card h3{
 margin-top:0;
 }
@@ -60,7 +160,28 @@ margin-bottom:0;
 color:#64748b;
 }
 
-.card:hover {
+.card-icon,
+.card-title,
+.card-description {
+    display: block;
+}
+
+.card-icon {
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.card-title {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.card-description {
+    margin-top: 10px;
+    color: #64748b;
+}
+
+button.card:hover {
     transform: translateY(-3px);
 }
 
@@ -106,20 +227,250 @@ color:#64748b;
     border-radius: 20px;
 }
 
+.quote-details {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.quote-detail,
+.member-premium-row,
+.quote-premium-detail,
+.addon-premium-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.quote-detail span,
+#quoteStatus,
+#taxDisclosure,
+#deductibleStatus,
+#addonStatus {
+    color: #6b7280;
+}
+
+.quote-premium-details {
+    display: grid;
+    gap: 8px;
+    max-width: 360px;
+    margin: 18px auto 0;
+    text-align: left;
+}
+
 .premium-box {
     text-align: center;
     padding: 30px;
 }
 
-#premium {
-    font-size: 42px;
-    font-weight: 700;
-    color: #0057b8;
+.quote-hero {
+    max-width: 520px;
+    margin: 0 auto 20px;
+    padding: 24px;
+    border-radius: 16px;
+    background: #eff6ff;
 }
 
-#perDay {
+.quote-hero-title {
+    color: #475569;
+    font-weight: 600;
+}
+
+.annual-premium {
     margin-top: 6px;
+    color: #0057b8;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.package-recommended {
+    border: 2px solid #0f766e;
+    background: #f0fdfa;
+}
+
+.recommendation-panel {
+    padding: 20px;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    background: #eff6ff;
+}
+
+.recommendation-panel h2 {
+    margin-top: 0;
+}
+
+.recommendation-panel p {
+    color: #475569;
+}
+
+.recommendation-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    color: #0057b8;
+    font-size: 18px;
+}
+
+.recommendation-action {
+    max-width: 280px;
+    margin-top: 8px;
+}
+
+.recommendation-action:disabled {
+    background: #0f766e;
+    cursor: default;
+}
+
+.recommendation-guidance {
+    color: #475569;
+    background: #f8fafc;
+    border-color: #dbe4ee;
+}
+
+.customer-details-section {
+    margin-top: 30px;
+    padding: 24px;
+    border-radius: 18px;
+    background: white;
+}
+
+.customer-details-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+    gap: 18px;
+}
+
+.customer-field {
+    display: grid;
+    gap: 7px;
+}
+
+.customer-field label {
+    font-weight: 600;
+}
+
+.customer-field input {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    color: #1f2937;
+    background: white;
+    font: inherit;
+}
+
+.customer-field input:focus {
+    border-color: #0057b8;
+    outline: 3px solid rgba(0, 87, 184, .14);
+}
+
+.field-error {
+    min-height: 18px;
+    color: #b42318;
+    font-size: 13px;
+}
+
+.share-actions {
+    margin-top: 20px;
+}
+
+#whatsappShareButton {
+    max-width: 320px;
+}
+
+#whatsappShareButton:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+#shareStatus {
+    margin-bottom: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.daily-cost {
+    margin-top: 6px;
+    color: #1f2937;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.quote-hero-tax {
+    margin-top: 6px;
+    color: #0f766e;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#quoteStatus {
+    margin-top: 6px;
+}
+
+#taxDisclosure {
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+#addonStatus {
+    margin-top: 8px;
+}
+
+#deductibleStatus {
+    margin-top: 8px;
+}
+
+#memberBreakdown {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+#addonBreakdown {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+#addonBreakdown:empty {
+    display: none;
+}
+
+.addon-premium-row small {
     color: #6b7280;
+}
+
+.addon-premium-total {
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.quote-disclosure {
+    margin: 16px 0 20px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+    .quote-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .annual-premium {
+        font-size: 30px;
+    }
+
+    .premium-box {
+        padding: 22px 0;
+    }
 }
 
 button {

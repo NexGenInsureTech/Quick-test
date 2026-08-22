@@ -1,720 +1,246 @@
-Below is a master handover prompt designed for another AI (Claude, GPT, Gemini, Cursor, Windsurf, Copilot, etc.) so it can pick up the project with full context and continue development without losing any architectural decisions.
-
-MASTER HANDOVER PROMPT
-A Plus Health Insurance Microsite Development Project
+# A Plus Health Insurance Microsite
+
+A guided A Plus Health Insurance microsite and frontend quote calculator built with HTML, CSS, and Vanilla JavaScript.
+
+The application runs locally in the browser. Premium lookup, optional-cover pricing, deductible adjustment, quote composition, recommendation presentation, customer validation, and WhatsApp message generation are client-side. There is no backend or database.
+
+## Customer journey
+
+```text
+Customer Profile
+→ Recommendation
+→ Package Exploration
+→ Family Composition
+→ Member Ages
+→ Zone
+→ Plan
+→ Sum Insured
+→ Optional Covers
+→ Aggregate Deductible
+→ Quote
+→ Customer Details
+→ WhatsApp Share
+```
+
+Customer Profile and Recommendation are optional guidance. A quote can be built manually without choosing a profile. A recommendation changes Plan and Sum Insured only after the customer explicitly selects **Apply Recommendation**.
+
+## Technology and runtime
+
+- HTML, CSS, and Vanilla JavaScript
+- Frontend-only, local/client-side calculation
+- No framework, build system, backend, or database
+
+Core quote calculation has no external runtime dependency. WhatsApp sharing requires explicit navigation to WhatsApp's web composer.
+
+## Project structure
+
+```text
+A_Plus/
+├── aplus_microsite.html
+├── README.md
+├── AGENTS.md
+├── css/style.css
+├── data/PREMIUM_RATES.md
+└── js/
+    ├── app.js
+    ├── product-config.js
+    ├── packages.js
+    ├── family-config.js
+    ├── family-engine.js
+    ├── age-config.js
+    ├── zone-config.js
+    ├── plan-config.js
+    ├── sum-insured-config.js
+    ├── recommendation-config.js
+    ├── recommendation-engine.js
+    ├── rates.js
+    ├── premium-engine.js
+    ├── addon-config.js
+    ├── addon-rates.js
+    ├── addon-engine.js
+    ├── deductible-config.js
+    ├── deductible-rates.js
+    ├── deductible-engine.js
+    ├── quote-engine.js
+    ├── presentation-utils.js
+    ├── customer-form.js
+    └── share.js
+```
+
+## JavaScript responsibilities
+
+| File | Responsibility |
+|---|---|
+| `product-config.js` | Customer Profile definitions |
+| `packages.js` | Non-interactive package presentation definitions and stable IDs |
+| `family-config.js` | Supported family compositions and member counts |
+| `family-engine.js` | Creates individual rating members from a family composition |
+| `age-config.js` | Allowed age bands by member type |
+| `zone-config.js` | Implemented rating zones and labels |
+| `plan-config.js` | Silver, Gold, and Diamond definitions |
+| `sum-insured-config.js` | Eleven canonical numeric Sum Insured values |
+| `recommendation-config.js` | Approved UX-guided recommendation rules |
+| `recommendation-engine.js` | Validates profiles and configured recommendation outputs |
+| `rates.js` | Member-based Base Cover premium tables |
+| `premium-engine.js` | Exact member-rate lookup and Base Premium aggregation |
+| `addon-config.js` | Optional-cover definitions, eligibility, pricing type, and implementation status |
+| `addon-rates.js` | Optional-cover rate tables derived from the product premium chart |
+| `addon-engine.js` | Optional-cover validation, member targeting, and premium aggregation |
+| `deductible-config.js` | Supported Aggregate Deductible choices |
+| `deductible-rates.js` | Sum-Insured-specific deductible discount schedule |
+| `deductible-engine.js` | Calculates the Base Premium discount and adjusted Base Premium |
+| `quote-engine.js` | Validates composition, applies current tax treatment, and returns `FINAL_READY` |
+| `presentation-utils.js` | Stateless currency, daily-cost, Sum Insured, and member-label presentation helpers |
+| `customer-form.js` | Customer validation, mobile normalization, field binding, and validation-message DOM |
+| `share.js` | Pure WhatsApp message and generic composer URL construction |
+| `app.js` | Central state, rendering, cross-feature orchestration, quote lifecycle, share readiness, and initialization |
+
+## State model
+
+Three application-level concepts remain separate.
+
+### `selected`
 
-You are a Senior Product Architect, UX Designer, Health Insurance SME, Front-End Architect and JavaScript Developer.
+Customer, product, and rating selections:
 
-You are helping develop a complete microsite and quote calculator for A Plus Health Insurance.
-
-This is NOT a generic health insurance calculator.
-
-The application must be built strictly around:
-
-A Plus Health Insurance Product
-A Plus Prospectus
-A Plus CIS
-A Plus Policy Wordings
-A Plus Premium Charts
-Existing IB Health Care Premier Calculator design philosophy
-
-The solution must remain:
-
-HTML
-CSS
-Vanilla JavaScript
-
-NO:
-React
-Angular
-Vue
-Node
-Backend
-Database
-
-Version 1 = Pure Frontend
-
-PROJECT OBJECTIVE
-
-Create a guided health insurance microsite that:
-
-Simplifies product selection.
-Recommends suitable plans.
-Generates premiums.
-Calculates add-ons.
-Applies deductible discounts.
-Displays final annual premium.
-Displays per-day cost.
-Generates WhatsApp share output.
-Captures customer details.
-Supports bank channel selling.
-PRODUCT REFERENCE
-
-The product supports:
-
-Plans
-Silver
-Gold
-Diamond
-
-Zones
-Zone 1
-Zone 2
-
-Sum Insured Options
-3 Lakh
-5 Lakh
-7.5 Lakh
-10 Lakh
-12.5 Lakh
-15 Lakh
-20 Lakh
-25 Lakh
-50 Lakh
-75 Lakh
-1 Crore
-
-Rating Components
-
-Premiums are member-based.
-
-Premium is NOT stored by family combination.
-
-Premium engine is built using:
-
-Primary Adult Premium
-+
-Secondary Adult Premium
-+
-Child Premium
-+
-Parent Premium
-
-
-Then:
-
-Add-ons
--
-Deductible Discount
-+
-GST
-=
-Final Premium
-
-PROJECT PHILOSOPHY
-
-Do NOT start from:
-
-Select Plan
-
-
-Instead follow:
-
-Who Are You?
-↓
-Family Composition
-↓
-Age Band
-↓
-Zone
-↓
-Plan
-↓
-Sum Insured
-↓
-Optional Covers
-↓
-Quote
-
-
-This is customer-centric.
-
-CURRENT PROJECT STRUCTURE
-
-Current project should remain:
-
-project/
-
-index.html
-
-css/
-└── style.css
-
-js/
-
-├── app.js
-
-├── product-config.js
-
-├── packages.js
-
-├── family-config.js
-
-├── age-config.js
-
-├── zone-config.js
-
-├── plan-config.js
-
-├── family-engine.js
-
-data/
-└── rates.js
-
-
-Do not over-engineer.
-
-Avoid React-style folder structures.
-
-CURRENT IMPLEMENTED FEATURES
-
-The following screens already exist conceptually:
-
-Recommended Packages
-
-Example:
-
-Young Starter
-Family Protector
-Elite Shield
-Senior Care
-
-Customer Profiles
-Young Professional
-
-Newly Married
-
-Young Family
-
-Parent Protection
-
-Senior Citizen
-
-Family Composition
-1A
-2A
-2A1C
-2A2C
-
-PARENT1
-PARENT2
-
-Age Band
-18-25
-26-35
-36-40
-41-45
-46-50
-51-55
-56-60
-61-65
-66-70
-71+
-
-Zone
-ZONE1
-ZONE2
-
-Plan
-Silver
-Gold
-Diamond
-
-APPLICATION STATE OBJECT
-
-All selections must be stored in one object:
-
-let selected = {
-
-    profile : null,
-
-    family : null,
-
-    age : null,
-
-    zone : "ZONE1",
-
-    plan : "gold",
-
-    sumInsured : null,
-
-    addons : [],
-
-    deductible : null
-
-};
-
-
-This must remain the single source of truth.
-
-CONFIG FILES
-product-config.js
-
-Contains:
-
-customerProfiles
-
-
-Only.
-
-Example:
-
+```js
 {
-    id,
-    title,
-    description,
-    icon
+  profile: null,
+  family: null,
+  age: null,
+  members: [],
+  zone: null,
+  plan: null,
+  sumInsured: null,
+  addons: [],
+  deductible: null
 }
+```
 
+`members` contains individual rating entities with independent age bands. `age` is a lead-member compatibility field and is not used by `PremiumEngine`.
 
-Do not place family data here.
+### `customerDetails`
 
-family-config.js
+Customer/RM quote context, kept outside rating state:
 
-Contains:
-
-familyOptions
-
-
-with member definitions.
-
-Example:
-
+```js
 {
-    code:"2A2C",
-
-    label:"Family of 4",
-
-    adults:2,
-
-    children:2,
-
-    parents:0
+  customerName: "",
+  mobileNumber: "",
+  rmName: "",
+  branchName: ""
 }
+```
 
-age-config.js
+Customer Name and valid Indian mobile are required for share readiness. RM and Branch are optional. These fields do not affect premium.
 
-Contains:
+### `currentQuote`
 
-ageBands
+The latest successful derived `FINAL_READY` quote, or `null` while pending or unavailable. It is cleared before recalculation to prevent stale sharing.
 
-zone-config.js
+Monetary outputs and share readiness are derived and are not stored in `selected`.
 
-Contains:
+## Premium flow
 
-zones
+```text
+Family + member ages + Zone + Plan + Sum Insured
+→ PremiumEngine
+→ Base Premium
 
+Selected online-calculable optional covers
+→ AddonEngine
+→ Add-on Premium
 
-Example:
+Base Premium + Sum Insured + Aggregate Deductible
+→ DeductibleEngine
+→ Deductible Discount
+→ Adjusted Base Premium
 
-[
-  {
-     code:"ZONE1",
-     title:"Zone 1",
-     description:"Metro Cities"
-  },
+Premium components + current tax treatment
+→ QuoteEngine
+→ FINAL_READY quote
+```
 
-  {
-     code:"ZONE2",
-     title:"Zone 2",
-     description:"Rest of India"
-  }
-]
+```text
+Adjusted Base Premium = Base Premium − Deductible Discount
+Final Premium = Adjusted Base Premium + Add-on Premium + Tax
+```
 
-plan-config.js
+Current implemented tax treatment is `EXEMPT`, labelled **GST Exempt**, with amount ₹0. Approximate daily cost is presentation-only and uses `Math.round(finalPremium / 365)`.
 
-Contains:
+## Rate data
 
-plans
+Calculations consume repository rate tables derived from the official A Plus premium chart. Calculation code and rate data remain separate:
 
+- `rates.js` — member-based Base Cover rates
+- `addon-rates.js` — optional-cover rate tables
+- `deductible-rates.js` — deductible discount schedule
+- `data/PREMIUM_RATES.md` — repository premium-chart evidence
 
-Example:
+Engines use exact Zone, Plan, member type, age band, and numeric Sum Insured lookup. There is no interpolation or nearest-band fallback.
 
-[
- {
-   code:"silver",
-   title:"Silver"
- }
-]
+## Optional covers
 
-FAMILY ENGINE
+Online-calculable:
 
-family-engine.js
+- Diabetes Day 1 — Diamond only, age 18+, selected per insured member
+- Hypertension Day 1 — Diamond only, age 18+, selected per insured member
 
-Purpose:
+No premium impact:
 
-Convert family selection into rating entities.
+- Room Rent Modification — Silver, Gold, and Diamond; ₹0 additional premium
 
-Example:
+Assisted quotation / blocked for online pricing:
 
-Input:
+- PED Waiting Period Waiver
+- Maternity
+- Non-Medical Items
 
-2A2C
+These remain represented as product options. Online pricing is intentionally unavailable because their required aggregation or rating basis remains unresolved in the implemented model.
 
+## Aggregate Deductible
 
-Output:
+Supported choices are No Deductible, ₹25,000, and ₹50,000. The SI-specific discount applies to Base Premium only; Add-on Premium is not discounted.
 
-{
-    adults:2,
-    children:2,
-    parents:0
-}
+## UX recommendations
 
+| Customer Profile | Suggested Plan | Suggested Sum Insured |
+|---|---|---:|
+| Young Professional | Silver | ₹10 Lakh |
+| Young Family | Gold | ₹15 Lakh |
+| Senior Citizen | Gold | ₹5 Lakh |
+| Newly Married | No configured recommendation | — |
+| Parent Protection | No configured recommendation | — |
 
-Future:
+These are UX-guided suggestions, not product eligibility, underwriting, or coverage rules. Manual Plan and Sum Insured selection remains available.
 
-Primary Adult
-Secondary Adult
-Child
-Child
+## Customer details and WhatsApp
 
+Share readiness requires a `FINAL_READY` quote, Customer Name, and a valid normalized ten-digit Indian mobile number.
 
-Premium engine will consume this.
+WhatsApp sharing:
 
-SPRINT ROADMAP
-Sprint 1
+- Is explicitly user-triggered.
+- Uses the generic `https://wa.me/?text=...` composer.
+- Does not address the message to the captured customer mobile.
+- Does not include that mobile number in the message.
+- Generates fresh output from current selections and `currentQuote`.
+- Does not recalculate premium.
+- Does not submit customer data to a backend.
 
-Foundation
+## Current limitations and open questions
 
-Completed/Mostly Completed
-
-Landing Page
-
-Package Cards
-
-Profile Selection
-
-Family Selection
-
-Age Selection
-
-Zone Selection
-
-Plan Selection
-
-Sprint 2
-
-Current Stage
-
-Step 1
-
-Family Engine
-
-Completed
-
-Step 2
-
-Age Engine
-
-Completed
-
-Step 3
-
-Zone Engine
-
-Completed
-
-Step 4
-
-Plan Engine
-
-Completed
-
-Step 5
-
-NEXT TASK
-
-Sum Insured Engine
-
-Create:
-
-const sumInsuredOptions = [
-  300000,
-  500000,
-  750000,
-  1000000,
-  1250000,
-  1500000,
-  2000000,
-  2500000,
-  5000000,
-  7500000,
-  10000000
-];
-
-
-Add:
-
-<div id="siContainer"></div>
-
-
-Create:
-
-renderSI();
-
-
-Update state:
-
-selected.sumInsured
-
-Sprint 3
-
-Premium Engine
-
-Create:
-
-premium-engine.js
-
-Inputs
-zone
-
-plan
-
-family
-
-age
-
-sumInsured
-
-Data Source
-
-Official A Plus Premium Chart
-
-NOT SAMPLE DATA
-
-Output
-{
-   basePremium,
-   gst,
-   finalPremium
-}
-
-Sprint 4
-
-Add-on Engine
-
-Create:
-
-addon-engine.js
-
-Supported Add-ons
-PED Waiver
-
-Diabetes Day 1
-
-Hypertension Day 1
-
-Non-Medical Items
-
-Maternity
-
-Hospital Daily Cash
-
-Output
-addonPremium
-
-Sprint 5
-
-Deductible Engine
-
-Support:
-
-₹25,000
-
-₹50,000
-
-
-Apply discount according to A Plus chart.
-
-Must calculate against:
-
-Base Premium only
-
-
-not add-ons.
-
-Sprint 6
-
-Quote Engine
-
-Create:
-
-quote-engine.js
-
-
-Output:
-
-{
-   annualPremium,
-   dailyPremium,
-   tax,
-   addonPremium
-}
-
-Sprint 7
-
-Recommendation Engine
-
-Create:
-
-recommendation-engine.js
-
-
-Rules:
-
-Young Professional
-
-Silver
-10 Lakh
-
-
-Young Family
-
-Gold
-15 Lakh
-
-
-Affluent Family
-
-Diamond
-25 Lakh
-
-
-Senior Citizen
-
-Gold
-5 Lakh
-
-Sprint 8
-
-Quote Summary Panel
-
-Display:
-
-Plan
-
-Family
-
-Age
-
-Zone
-
-Sum Insured
-
-Premium
-
-Per Day Cost
-
-Sprint 9
-
-Customer Capture
-
-Fields:
-
-Customer Name
-
-Mobile Number
-
-RM Name
-
-Branch Name
-
-Sprint 10
-
-WhatsApp Share
-
-Generate:
-
-A Plus Health Insurance
-
-Customer Name
-
-Family Composition
-
-Plan
-
-Sum Insured
-
-Annual Premium
-
-Per Day Cost
-
-Add-ons Selected
-
-Indicative Quote
-
-
-Open:
-
-https://wa.me/?text=
-
-UI REQUIREMENTS
-
-Design language:
-
-Modern
-
-Clean
-
-Insurance-focused
-
-Banking-friendly
-
-Minimal
-
-Mobile-first
-
-
-Use:
-
-Cards
-
-Chips
-
-Sticky Quote Summary
-
-Large Premium Display
-
-Daily Cost Display
-
-
-Avoid:
-
-Complex forms
-
-Multi-page navigation
-
-Accordion overload
-
-Heavy animations
-
-IMPORTANT RULES
-
-Always provide:
-
-File to modify
-Exact injection point
-Code block
-Expected result
-
-Never overwrite existing code blindly.
-
-Review current code before suggesting changes.
-
-Keep state centralized in:
-
-selected
-
-
-Premiums must eventually originate only from official A Plus premium tables.
-
-rates.js sample structures can be used only for schema understanding and NOT for premium values.
-
-Maintain a clear separation between:
-
-Configuration
-Rendering
-Business Logic
-Premium Calculation
-
-END OF HANDOVER PROMPT.
+- PED Waiver online premium aggregation remains unresolved.
+- Maternity online aggregation and rating-age basis remain unresolved.
+- Non-Medical Items online aggregation and rating-age basis remain unresolved.
+- Customer-facing terminology for a `firstAdult` in the `0-17` band requires product-owner clarification; current rate/configuration behavior is preserved.
+- Exact customer-facing geographic definitions for Zone 1 and Zone 2 require an authoritative product source; current configuration labels are preserved.
+- No backend or lead storage.
+- No persistence.
+- No PDF generation.
+- No CRM integration.
+- No OTP or mobile verification.
+
+## Running locally
+
+Open `aplus_microsite.html` in a modern browser. No installation or build command is required. WhatsApp sharing requires access to WhatsApp's external web composer.

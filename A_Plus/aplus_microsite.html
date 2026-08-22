@@ -35,17 +35,23 @@
 
         <section>
 
-            <h2>Recommended Packages</h2>
+            <h2>Tell us about yourself</h2>
 
-            <div id="packageContainer" class="package-grid"></div>
+            <div id="profileContainer" class="profile-grid"></div>
+
+        </section>
+
+        <section id="recommendationSection" hidden>
+
+            <div id="recommendationContainer"></div>
 
         </section>
 
         <section>
 
-            <h2>Tell us about yourself</h2>
+            <h2>Explore A Plus Packages</h2>
 
-            <div id="profileContainer" class="profile-grid"></div>
+            <div id="packageContainer" class="package-grid"></div>
 
         </section>
 
@@ -72,6 +78,10 @@
 
             <h2>Location Zone</h2>
 
+            <p class="section-helper">
+                Choose the location zone for this quote.
+            </p>
+
             <div id="zoneContainer" class="profile-grid">
             </div>
 
@@ -80,6 +90,10 @@
         <section>
 
             <h2>Select Plan</h2>
+
+            <p class="section-helper">
+                Choose a Plan manually or apply a profile recommendation.
+            </p>
 
             <div id="planContainer" class="profile-grid">
             </div>
@@ -95,39 +109,173 @@
 
         </section>
 
+        <section>
+
+            <h2>Optional Covers</h2>
+
+            <div id="addonContainer" class="addon-grid">
+            </div>
+
+        </section>
+
+        <section>
+
+            <h2>Aggregate Deductible</h2>
+
+            <p class="section-helper">
+                Choosing a deductible reduces the Base Cover premium. You bear the selected aggregate amount before insurer liability begins.
+            </p>
+
+            <div id="deductibleContainer" class="deductible-grid">
+            </div>
+
+            <div id="deductibleDisclosure"></div>
+
+        </section>
+
         <section class="quote-box">
 
             <div class="quote-header">
 
                 <div>
-                    <h3>Recommended Cover</h3>
+                    <h2>Premium Quote</h2>
                 </div>
 
                 <span id="planBadge">
-                    Gold Plan
+                    Select Plan
                 </span>
+
+            </div>
+
+            <div class="quote-details">
+
+                <div class="quote-detail">
+                    <span>Plan</span>
+                    <strong id="quotePlan">--</strong>
+                </div>
+
+                <div class="quote-detail">
+                    <span>Family</span>
+                    <strong id="quoteFamily">--</strong>
+                </div>
+
+                <div class="quote-detail">
+                    <span>Zone</span>
+                    <strong id="quoteZone">--</strong>
+                </div>
+
+                <div class="quote-detail">
+                    <span>Sum Insured</span>
+                    <strong id="quoteSumInsured">--</strong>
+                </div>
 
             </div>
 
             <div class="premium-box">
 
-                <div class="premium-label">
-                    Estimated Premium
+                <div id="quoteHero" class="quote-hero" hidden>
+                    <div class="quote-hero-title">Your A Plus Quote</div>
+                    <div id="finalPremium" class="annual-premium"></div>
+                    <div id="dailyCost" class="daily-cost"></div>
+                    <div id="heroTax" class="quote-hero-tax"></div>
                 </div>
 
-                <div id="premium">
-                    ₹ --
+                <div id="quoteStatus">
+                    Complete your selections to see premium
                 </div>
 
-                <div id="perDay">
-                    ₹ -- / day
+                <div class="quote-premium-details">
+
+                    <div class="quote-premium-detail">
+                        <span>Base Premium</span>
+                        <strong id="premium">₹ --</strong>
+                    </div>
+
+                    <div class="quote-premium-detail">
+                        <span>Aggregate Deductible</span>
+                        <strong id="quoteDeductible">--</strong>
+                    </div>
+
+                    <div class="quote-premium-detail">
+                        <span>Deductible Discount</span>
+                        <strong id="deductibleDiscount">₹ --</strong>
+                    </div>
+
+                    <div class="quote-premium-detail">
+                        <span>Adjusted Base Premium</span>
+                        <strong id="adjustedBasePremium">₹ --</strong>
+                    </div>
+
+                    <div class="quote-premium-detail">
+                        <span>Add-on Premium</span>
+                        <strong id="addonPremium">₹ --</strong>
+                    </div>
+
+                    <div class="quote-premium-detail">
+                        <span>GST</span>
+                        <strong id="taxDisclosure"></strong>
+                    </div>
+
+                </div>
+
+                <div id="deductibleStatus"></div>
+
+                <div id="addonStatus"></div>
+
+            </div>
+
+            <div id="memberBreakdown"></div>
+
+            <div id="addonBreakdown"></div>
+
+            <p class="quote-disclosure">
+                Indicative premium based on the selected options. Coverage, eligibility, underwriting and policy issuance remain subject to the applicable A Plus policy terms and conditions.
+            </p>
+
+        </section>
+
+        <section class="customer-details-section">
+
+            <h2>Customer Details</h2>
+
+            <p class="section-helper">
+                Customer details are used to prepare and share this indicative quote.
+            </p>
+
+            <div class="customer-details-grid">
+
+                <div class="customer-field">
+                    <label for="customerName">Customer Name (required)</label>
+                    <input id="customerName" name="customerName" type="text" autocomplete="name" required aria-describedby="customerNameError">
+                    <span id="customerNameError" class="field-error" aria-live="polite"></span>
+                </div>
+
+                <div class="customer-field">
+                    <label for="mobileNumber">Mobile Number (required)</label>
+                    <input id="mobileNumber" name="mobileNumber" type="tel" inputmode="numeric" autocomplete="tel" required aria-describedby="mobileNumberError">
+                    <span id="mobileNumberError" class="field-error" aria-live="polite"></span>
+                </div>
+
+                <div class="customer-field">
+                    <label for="rmName">RM Name (optional)</label>
+                    <input id="rmName" name="rmName" type="text">
+                </div>
+
+                <div class="customer-field">
+                    <label for="branchName">Branch Name (optional)</label>
+                    <input id="branchName" name="branchName" type="text">
                 </div>
 
             </div>
 
-            <button>
-                Get My Quote
-            </button>
+            <div class="share-actions">
+                <button id="whatsappShareButton" type="button" disabled>
+                    Share Quote on WhatsApp
+                </button>
+                <p id="shareStatus" aria-live="polite">
+                    Complete the quote and customer details to share.
+                </p>
+            </div>
 
         </section>
 
@@ -140,8 +288,21 @@
     <script src="js/zone-config.js"></script>
     <script src="js/packages.js"></script>
     <script src="js/sum-insured-config.js"></script>
+    <script src="js/recommendation-config.js"></script>
+    <script src="js/recommendation-engine.js"></script>
     <script src="js/rates.js"></script>
+    <script src="js/addon-config.js"></script>
+    <script src="js/addon-rates.js"></script>
+    <script src="js/addon-engine.js"></script>
+    <script src="js/deductible-config.js"></script>
+    <script src="js/deductible-rates.js"></script>
+    <script src="js/deductible-engine.js"></script>
     <script src="js/family-engine.js"></script>
+    <script src="js/premium-engine.js"></script>
+    <script src="js/quote-engine.js"></script>
+    <script src="js/presentation-utils.js"></script>
+    <script src="js/customer-form.js"></script>
+    <script src="js/share.js"></script>
     <script src="js/app.js"></script>
 
 

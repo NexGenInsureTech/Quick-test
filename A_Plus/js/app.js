@@ -8,9 +8,9 @@ let selected = {
 
   members: [],
 
-  zone: "ZONE1",
+  zone: null,
 
-  plan: "gold",
+  plan: null,
 
   sumInsured: null,
 
@@ -20,6 +20,15 @@ let selected = {
 
 };
 
+const customerDetails = {
+  customerName: "",
+  mobileNumber: "",
+  rmName: "",
+  branchName: ""
+};
+
+let currentQuote = null;
+
 
 const packageContainer =
   document.getElementById("packageContainer");
@@ -27,7 +36,142 @@ const packageContainer =
 const profileContainer =
   document.getElementById("profileContainer");
 
-function renderPackages() {
+const recommendationSection =
+  document.getElementById("recommendationSection");
+
+const recommendationContainer =
+  document.getElementById("recommendationContainer");
+
+const recommendedPackageByProfile = {
+  young: "youngStarter",
+  family: "familyProtector",
+  senior: "seniorCare"
+};
+
+function isQuoteShareReady(quote, details = customerDetails) {
+  return Boolean(
+    quote &&
+    quote.status === "FINAL_READY" &&
+    CustomerForm.validate(details).ok
+  );
+}
+
+function updateShareControls() {
+  const button = document.getElementById(
+    "whatsappShareButton"
+  );
+  const status = document.getElementById("shareStatus");
+  const detailsValid =
+    CustomerForm.validate(customerDetails).ok;
+  const ready = isQuoteShareReady(
+    currentQuote,
+    customerDetails
+  );
+
+  button.disabled = !ready;
+
+  if (!currentQuote) {
+    status.textContent =
+      "Complete the quote and customer details to share.";
+  } else if (!detailsValid) {
+    status.textContent =
+      "Enter Customer Name and a valid Mobile Number to share.";
+  } else {
+    status.textContent =
+      "Your indicative quote is ready to share.";
+  }
+}
+
+function shareQuoteOnWhatsApp() {
+  const validation = CustomerForm.validate(
+    customerDetails
+  );
+  CustomerForm.renderValidation(validation);
+
+  if (
+    !isQuoteShareReady(currentQuote, customerDetails)
+  ) {
+    updateShareControls();
+    return;
+  }
+
+  const message = ShareHelpers.buildMessage({
+    quote: currentQuote,
+    selection: selected,
+    customer: {
+      customerName:
+        validation.details.customerName,
+      rmName: validation.details.rmName,
+      branchName: validation.details.branchName
+    }
+  });
+  const url = ShareHelpers.buildUrl(message);
+
+  if (!url) {
+    return;
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function initializeCustomerDetailsForm() {
+  CustomerForm.bindFields({
+    details: customerDetails,
+    onChange: updateShareControls
+  });
+
+  document.getElementById(
+    "whatsappShareButton"
+  ).onclick = shareQuoteOnWhatsApp;
+
+  updateShareControls();
+}
+
+function isAddonSelected(addonId, memberId) {
+  return selected.addons.some(selection =>
+    selection.addonId === addonId &&
+    selection.memberId === memberId
+  );
+}
+
+function toggleAddonSelection(addonId, memberId) {
+  if (isAddonSelected(addonId, memberId)) {
+    selected.addons = selected.addons.filter(
+      selection => !(
+        selection.addonId === addonId &&
+        selection.memberId === memberId
+      )
+    );
+  } else {
+    selected.addons.push(
+      memberId === undefined
+        ? { addonId }
+        : { addonId, memberId }
+    );
+  }
+
+  renderAddons();
+  updateBaseQuote();
+}
+
+function removeMemberTargetedAddons() {
+  selected.addons = selected.addons.filter(
+    selection => selection.memberId === undefined
+  );
+}
+
+function removePlanIneligibleAddons() {
+  selected.addons = selected.addons.filter(selection => {
+    const definition = addonDefinitions.find(
+      item => item.id === selection.addonId
+    );
+
+    return definition &&
+      definition.allowedPlans.includes(selected.plan);
+  });
+}
+
+function renderPackages(recommendedPackageId = null) {
 
   packageContainer.innerHTML = "";
 
@@ -37,10 +181,17 @@ function renderPackages() {
 
     div.className = "card";
 
+    const isRecommended =
+      pkg.id === recommendedPackageId;
+
+    if (isRecommended) {
+      div.classList.add("package-recommended");
+    }
+
     div.innerHTML = `
       <h3>${pkg.title}</h3>
 
-      ${pkg.recommended
+      ${isRecommended
         ? '<span class="badge">Recommended</span>'
         : ''
       }
@@ -54,15 +205,114 @@ function renderPackages() {
   });
 }
 
+function renderRecommendation() {
+  recommendationContainer.innerHTML = "";
+
+  if (!selected.profile) {
+    recommendationSection.hidden = true;
+    renderPackages();
+    return;
+  }
+
+  recommendationSection.hidden = false;
+
+  const result = RecommendationEngine.recommend({
+    profile: selected.profile
+  });
+
+  if (!result.ok) {
+    renderPackages();
+
+    const panel = document.createElement("div");
+    panel.className =
+      "recommendation-panel recommendation-guidance";
+
+    if (
+      result.error.code ===
+      "RECOMMENDATION_NOT_CONFIGURED"
+    ) {
+      panel.textContent =
+        "Continue by choosing your Plan and Sum Insured.";
+    } else {
+      panel.textContent =
+        "Recommendation unavailable. You can continue with manual selection.";
+      console.warn(result.error);
+    }
+
+    recommendationContainer.appendChild(panel);
+    return;
+  }
+
+  renderPackages(
+    recommendedPackageByProfile[selected.profile]
+  );
+
+  const plan = plans.find(
+    item => item.code === result.recommendation.plan
+  );
+  const isApplied =
+    selected.plan === result.recommendation.plan &&
+    selected.sumInsured ===
+      result.recommendation.sumInsured;
+
+  const panel = document.createElement("div");
+  panel.className = "recommendation-panel";
+
+  const heading = document.createElement("h2");
+  heading.textContent = "Recommended for you";
+  panel.appendChild(heading);
+
+  const values = document.createElement("div");
+  values.className = "recommendation-values";
+  values.innerHTML = `
+    <strong>${plan.title}</strong>
+    <strong>${PresentationUtils.formatSumInsured(
+      result.recommendation.sumInsured
+    )} Sum Insured</strong>
+  `;
+  panel.appendChild(values);
+
+  const context = document.createElement("p");
+  context.textContent =
+    "Based on your selected profile.";
+  panel.appendChild(context);
+
+  const button = document.createElement("button");
+  button.className = "recommendation-action";
+  button.type = "button";
+  button.textContent = isApplied
+    ? "Recommendation Applied"
+    : "Apply Recommendation";
+  button.disabled = isApplied;
+
+  if (!isApplied) {
+    button.onclick = () => {
+      selectPricingInputs({
+        plan: result.recommendation.plan,
+        sumInsured:
+          result.recommendation.sumInsured
+      });
+    };
+  }
+
+  panel.appendChild(button);
+  recommendationContainer.appendChild(panel);
+}
+
 function renderProfiles() {
 
   profileContainer.innerHTML = "";
 
   customerProfiles.forEach(profile => {
 
-    const div = document.createElement("div");
+    const div = document.createElement("button");
 
     div.className = "card";
+    div.type = "button";
+    div.setAttribute(
+      "aria-pressed",
+      String(selected.profile === profile.id)
+    );
 
     if (
       selected.profile === profile.id
@@ -71,15 +321,15 @@ function renderProfiles() {
     }
 
     div.innerHTML = `
-      <h2>${profile.icon}</h2>
+      <span class="card-icon" aria-hidden="true">${profile.icon}</span>
 
-      <h3>
+      <span class="card-title">
       ${profile.title}
-      </h3>
+      </span>
 
-      <p>
+      <span class="card-description">
       ${profile.description}
-      </p>
+      </span>
     `;
 
     div.onclick = () => {
@@ -88,6 +338,8 @@ function renderProfiles() {
         profile.id;
 
       renderProfiles();
+
+      renderRecommendation();
 
     };
 
@@ -108,9 +360,14 @@ function renderFamilies() {
   familyOptions.forEach(family => {
 
     const div =
-      document.createElement("div");
+      document.createElement("button");
 
     div.className = "card";
+    div.type = "button";
+    div.setAttribute(
+      "aria-pressed",
+      String(selected.family === family.code)
+    );
 
     if (
       selected.family === family.code
@@ -119,8 +376,8 @@ function renderFamilies() {
     }
 
     div.innerHTML = `
-      <h3>${family.label}</h3>
-      <p>${family.code}</p>
+      <span class="card-title">${family.label}</span>
+      <span class="card-description">${family.code}</span>
     `;
 
     div.onclick = () => {
@@ -135,15 +392,15 @@ function renderFamilies() {
 
       selected.age = null;
 
+      removeMemberTargetedAddons();
+
       renderFamilies();
 
       renderAgeBands();
 
-      console.log(
-        FamilyEngine.getFamilyDefinition(
-          family.code
-        )
-      );
+      renderAddons();
+
+      updateBaseQuote();
 
     };
 
@@ -162,6 +419,16 @@ function renderAgeBands() {
 
   ageContainer.innerHTML = "";
 
+  if (selected.members.length === 0) {
+    const guidance = document.createElement("p");
+    guidance.className =
+      "section-helper age-guidance";
+    guidance.textContent =
+      "Select your family composition first to choose age bands.";
+    ageContainer.appendChild(guidance);
+    return;
+  }
+
   selected.members.forEach((member, memberIndex) => {
 
     const memberGroup =
@@ -170,24 +437,14 @@ function renderAgeBands() {
     memberGroup.className =
       "member-age-group";
 
-    const memberNumber = selected.members
-      .slice(0, memberIndex + 1)
-      .filter(item =>
-        item.memberType === member.memberType
-      ).length;
-
-    const memberLabels = {
-      firstAdult: "Primary Adult",
-      secondAdult: "Secondary Adult",
-      child: `Child ${memberNumber}`,
-      parent: `Parent ${memberNumber}`
-    };
-
     const heading =
       document.createElement("h3");
 
     heading.innerHTML =
-      memberLabels[member.memberType];
+      PresentationUtils.getMemberLabel(
+        member,
+        selected.members
+      );
 
     memberGroup.appendChild(heading);
 
@@ -202,16 +459,21 @@ function renderAgeBands() {
     ].forEach(age => {
 
       const div =
-        document.createElement("div");
+        document.createElement("button");
 
       div.className = "card";
+      div.type = "button";
+      div.setAttribute(
+        "aria-pressed",
+        String(member.ageBand === age)
+      );
 
       if (member.ageBand === age) {
         div.classList.add("active");
       }
 
       div.innerHTML = `
-        <h3>${age}</h3>
+        <span class="card-title">${age}</span>
       `;
 
       div.onclick = () => {
@@ -231,7 +493,18 @@ function renderAgeBands() {
           ? leadMember.ageBand
           : null;
 
+        if (age === "0-17") {
+          selected.addons = selected.addons.filter(
+            selection =>
+              selection.memberId !== member.id
+          );
+        }
+
         renderAgeBands();
+
+        renderAddons();
+
+        updateBaseQuote();
 
       };
 
@@ -261,9 +534,14 @@ function renderZones() {
   zones.forEach(zone => {
 
     const div =
-      document.createElement("div");
+      document.createElement("button");
 
     div.className = "card";
+    div.type = "button";
+    div.setAttribute(
+      "aria-pressed",
+      String(selected.zone === zone.code)
+    );
 
     if (
       selected.zone === zone.code
@@ -277,13 +555,13 @@ function renderZones() {
 
     div.innerHTML = `
 
-            <h3>
+            <span class="card-title">
                 ${zone.title}
-            </h3>
+            </span>
 
-            <p>
+            <span class="card-description">
                 ${zone.description}
-            </p>
+            </span>
 
         `;
 
@@ -294,14 +572,7 @@ function renderZones() {
 
       renderZones();
 
-      console.log(
-        "Selected Zone:",
-        selected.zone
-      );
-
-      console.log(
-        selected
-      );
+      updateBaseQuote();
 
     };
 
@@ -311,6 +582,22 @@ function renderZones() {
 
   });
 
+}
+
+function selectPricingInputs({
+  plan = selected.plan,
+  sumInsured = selected.sumInsured
+}) {
+  selected.plan = plan;
+  selected.sumInsured = sumInsured;
+
+  removePlanIneligibleAddons();
+
+  renderPlans();
+  renderSI();
+  renderAddons();
+  renderRecommendation();
+  updateBaseQuote();
 }
 
 function renderPlans() {
@@ -325,9 +612,14 @@ function renderPlans() {
   plans.forEach(plan => {
 
     const div =
-      document.createElement("div");
+      document.createElement("button");
 
     div.className = "card";
+    div.type = "button";
+    div.setAttribute(
+      "aria-pressed",
+      String(selected.plan === plan.code)
+    );
 
     if (
       selected.plan === plan.code
@@ -341,31 +633,21 @@ function renderPlans() {
 
     div.innerHTML = `
 
-            <h3>
+            <span class="card-title">
                 ${plan.title}
-            </h3>
+            </span>
 
-            <p>
+            <span class="card-description">
                 ${plan.badge}
-            </p>
+            </span>
 
         `;
 
     div.onclick = () => {
 
-      selected.plan =
-        plan.code;
-
-      renderPlans();
-
-      console.log(
-        "Selected Plan:",
-        selected.plan
-      );
-
-      console.log(
-        selected
-      );
+      selectPricingInputs({
+        plan: plan.code
+      });
 
     };
 
@@ -389,9 +671,14 @@ function renderSI() {
   sumInsuredOptions.forEach(si => {
 
     const div =
-      document.createElement("div");
+      document.createElement("button");
 
     div.className = "card";
+    div.type = "button";
+    div.setAttribute(
+      "aria-pressed",
+      String(selected.sumInsured === si)
+    );
 
     if (
       selected.sumInsured === si
@@ -403,19 +690,17 @@ function renderSI() {
 
     }
 
-    const label = si === 10000000
-      ? "₹1 Crore"
-      : `₹${si / 100000} Lakh`;
+    const label = PresentationUtils.formatSumInsured(si);
 
     div.innerHTML = `
-      <h3>${label}</h3>
+      <span class="card-title">${label}</span>
     `;
 
     div.onclick = () => {
 
-      selected.sumInsured = si;
-
-      renderSI();
+      selectPricingInputs({
+        sumInsured: si
+      });
 
     };
 
@@ -427,11 +712,550 @@ function renderSI() {
 
 }
 
+function renderAddons() {
+  const addonContainer =
+    document.getElementById("addonContainer");
+
+  addonContainer.innerHTML = "";
+
+  addonDefinitions.forEach(definition => {
+    const card = document.createElement("div");
+    card.className = "card addon-card";
+
+    if (selected.addons.some(selection =>
+      selection.addonId === definition.id
+    )) {
+      card.classList.add("active");
+    }
+
+    const heading = document.createElement("h3");
+    heading.textContent = definition.title;
+    card.appendChild(heading);
+
+    const status = document.createElement("p");
+    status.className = "addon-status";
+
+    if (
+      definition.implementationStatus ===
+      "BLOCKED_PRICING_BASIS"
+    ) {
+      card.classList.add("addon-card-disabled");
+      status.textContent =
+        "Premium requires assisted quotation";
+      card.appendChild(status);
+      addonContainer.appendChild(card);
+      return;
+    }
+
+    if (
+      definition.pricingType ===
+      "NO_PREMIUM_IMPACT"
+    ) {
+      const planSelected = selected.plan !== null;
+      status.textContent = planSelected
+        ? "No additional premium"
+        : "Select a Plan to enable optional covers";
+      card.appendChild(status);
+
+      const option = document.createElement("label");
+      option.className = "addon-member-option";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.disabled = !planSelected;
+      input.checked = isAddonSelected(definition.id);
+      input.onchange = () =>
+        toggleAddonSelection(definition.id);
+      const label = document.createElement("span");
+      label.textContent = "Add this optional benefit";
+
+      option.appendChild(input);
+      option.appendChild(label);
+      card.appendChild(option);
+      addonContainer.appendChild(card);
+      return;
+    }
+
+    const planEligible =
+      definition.allowedPlans.includes(selected.plan);
+    const eligibleMembers = selected.members.filter(
+      member =>
+        member.ageBand &&
+        member.ageBand !== "0-17"
+    );
+
+    if (selected.plan === null) {
+      status.textContent =
+        "Select a Plan to check optional-cover availability";
+    } else if (!planEligible) {
+      status.textContent = "Available with Diamond Plan";
+    } else if (eligibleMembers.length === 0) {
+      status.textContent =
+        "Select an eligible insured member age";
+    } else if (selected.sumInsured === null) {
+      status.textContent =
+        "Select Sum Insured to enable this cover";
+    } else {
+      status.textContent =
+        "Select each insured person to be covered";
+    }
+
+    card.appendChild(status);
+
+    eligibleMembers.forEach(member => {
+      const option = document.createElement("label");
+      option.className = "addon-member-option";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.disabled =
+        !planEligible ||
+        selected.sumInsured === null;
+      input.checked = isAddonSelected(
+        definition.id,
+        member.id
+      );
+      input.onchange = () =>
+        toggleAddonSelection(
+          definition.id,
+          member.id
+        );
+      const label = document.createElement("span");
+      label.textContent =
+        `${PresentationUtils.getMemberLabel(
+          member,
+          selected.members
+        )} (${member.ageBand})`;
+
+      option.appendChild(input);
+      option.appendChild(label);
+      card.appendChild(option);
+    });
+
+    addonContainer.appendChild(card);
+  });
+}
+
+function renderDeductibles() {
+  const deductibleContainer =
+    document.getElementById("deductibleContainer");
+
+  deductibleContainer.innerHTML = "";
+
+  const options = [
+    {
+      amount: null,
+      label: "No Deductible"
+    },
+    ...deductibleOptions.map(option => ({
+      amount: option.amount,
+      label: `${option.label} Deductible`
+    }))
+  ];
+
+  options.forEach(option => {
+    const card = document.createElement("button");
+    card.className = "card deductible-card";
+    card.type = "button";
+    card.setAttribute(
+      "aria-pressed",
+      String(selected.deductible === option.amount)
+    );
+
+    if (selected.deductible === option.amount) {
+      card.classList.add("active");
+    }
+
+    const heading = document.createElement("span");
+    heading.className = "deductible-title";
+    heading.textContent = option.label;
+    card.appendChild(heading);
+
+    card.onclick = () => {
+      selected.deductible = option.amount;
+      renderDeductibles();
+      updateBaseQuote();
+    };
+
+    deductibleContainer.appendChild(card);
+  });
+}
+
+function clearQuoteHero() {
+  document.getElementById("quoteHero").hidden = true;
+  document.getElementById("finalPremium").textContent = "";
+  document.getElementById("dailyCost").textContent = "";
+  document.getElementById("heroTax").textContent = "";
+}
+
+function clearDeductibleQuote() {
+  document.getElementById(
+    "quoteDeductible"
+  ).textContent = "--";
+  document.getElementById(
+    "deductibleDiscount"
+  ).textContent = "₹ --";
+  document.getElementById(
+    "adjustedBasePremium"
+  ).textContent = "₹ --";
+  document.getElementById(
+    "deductibleDisclosure"
+  ).textContent = "";
+  document.getElementById(
+    "deductibleStatus"
+  ).textContent = "";
+}
+
+function updateDeductibleQuote(basePremium) {
+  const result = DeductibleEngine.calculate({
+    deductible: selected.deductible,
+    sumInsured: selected.sumInsured,
+    basePremium
+  });
+
+  const discountElement =
+    document.getElementById("deductibleDiscount");
+  const deductibleElement =
+    document.getElementById("quoteDeductible");
+  const adjustedElement =
+    document.getElementById("adjustedBasePremium");
+  const disclosureElement =
+    document.getElementById("deductibleDisclosure");
+  const statusElement =
+    document.getElementById("deductibleStatus");
+
+  if (!result.ok) {
+    deductibleElement.textContent = "--";
+    discountElement.textContent = "₹ --";
+    adjustedElement.textContent = "₹ --";
+    clearQuoteHero();
+    disclosureElement.textContent = "";
+    statusElement.textContent =
+      "Deductible adjustment unavailable";
+    console.warn(result.error);
+    return result;
+  }
+
+  adjustedElement.textContent =
+    PresentationUtils.formatCurrency(
+      result.adjustedBasePremium
+    );
+  statusElement.textContent = "";
+
+  if (result.deductible === null) {
+    deductibleElement.textContent = "No Deductible";
+    discountElement.textContent = "Not applicable";
+    disclosureElement.textContent =
+      "No deductible selected";
+  } else {
+    const option = deductibleOptions.find(
+      item => item.amount === result.deductible
+    );
+    const rate = result.discountRate * 100;
+    deductibleElement.textContent =
+      `${option.label} Aggregate Deductible`;
+    discountElement.textContent =
+      `-${PresentationUtils.formatCurrency(
+        result.discountAmount
+      )}`;
+    disclosureElement.textContent =
+      `${option.label} Aggregate Deductible · ${rate}% Base Premium discount`;
+  }
+
+  return result;
+}
+
+function updateAddonQuote() {
+  const premiumElement =
+    document.getElementById("addonPremium");
+  const statusElement =
+    document.getElementById("addonStatus");
+  const breakdownElement =
+    document.getElementById("addonBreakdown");
+
+  const result = AddonEngine.calculateAddons({
+    plan: selected.plan,
+    sumInsured: selected.sumInsured,
+    members: selected.members,
+    selections: selected.addons
+  });
+
+  if (!result.ok) {
+    premiumElement.textContent = "₹ --";
+    statusElement.textContent =
+      "Optional cover premium unavailable";
+    breakdownElement.innerHTML = "";
+    console.warn(result.error);
+    return result;
+  }
+
+  premiumElement.textContent =
+    PresentationUtils.formatCurrency(
+      result.totalAddonPremium
+    );
+  statusElement.textContent = "";
+
+  if (result.addons.length === 0) {
+    breakdownElement.innerHTML = "";
+    return result;
+  }
+
+  const rows = result.addons.map(addon => {
+    const definition = addonDefinitions.find(
+      item => item.id === addon.addonId
+    );
+
+    if (addon.memberId) {
+      const member = selected.members.find(
+        item => item.id === addon.memberId
+      );
+
+      return `
+        <div class="addon-premium-row">
+          <span>
+            ${definition.title}<br>
+            <small>${PresentationUtils.getMemberLabel(
+              member,
+              selected.members
+            )} (${addon.ageBand})</small>
+          </span>
+          <strong>${PresentationUtils.formatCurrency(addon.premium)}</strong>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="addon-premium-row">
+        <span>${definition.title}</span>
+        <strong>No additional premium</strong>
+      </div>
+    `;
+  }).join("");
+
+  breakdownElement.innerHTML = `
+    <h3>Optional Covers</h3>
+    ${rows}
+    <div class="addon-premium-row addon-premium-total">
+      <span>Add-on Premium</span>
+      <strong>${PresentationUtils.formatCurrency(result.totalAddonPremium)}</strong>
+    </div>
+  `;
+
+  return result;
+}
+
+function updateBaseQuote() {
+
+  currentQuote = null;
+  updateShareControls();
+
+  const addonResult = updateAddonQuote();
+
+  const plan = plans.find(item =>
+    item.code === selected.plan
+  );
+
+  const family =
+    FamilyEngine.getFamilyDefinition(
+      selected.family
+    );
+
+  const zone = zones.find(item =>
+    item.code === selected.zone
+  );
+
+  const sumInsuredLabel = selected.sumInsured === null
+    ? "--"
+    : PresentationUtils.formatSumInsured(
+      selected.sumInsured
+    );
+
+  document.getElementById(
+    "planBadge"
+  ).textContent = plan
+    ? `${plan.title} Plan`
+    : "Select Plan";
+
+  document.getElementById(
+    "quotePlan"
+  ).textContent = plan
+    ? plan.title
+    : "--";
+
+  document.getElementById(
+    "quoteFamily"
+  ).textContent = family
+    ? family.label
+    : "--";
+
+  document.getElementById(
+    "quoteZone"
+  ).textContent = zone
+    ? zone.title
+    : "--";
+
+  document.getElementById(
+    "quoteSumInsured"
+  ).textContent = sumInsuredLabel;
+
+  const premiumElement =
+    document.getElementById("premium");
+
+  const statusElement =
+    document.getElementById("quoteStatus");
+
+  const taxDisclosureElement =
+    document.getElementById("taxDisclosure");
+
+  const breakdownElement =
+    document.getElementById("memberBreakdown");
+
+  const isReady =
+    selected.family !== null &&
+    selected.zone !== null &&
+    selected.plan !== null &&
+    selected.sumInsured !== null &&
+    selected.members.length > 0 &&
+    selected.members.every(member =>
+      member.ageBand !== null
+    );
+
+  if (!isReady) {
+    premiumElement.textContent = "₹ --";
+    document.getElementById(
+      "addonPremium"
+    ).textContent = "₹ --";
+    statusElement.textContent =
+      "Complete your selections to see premium";
+    taxDisclosureElement.textContent = "";
+    breakdownElement.innerHTML = "";
+    clearDeductibleQuote();
+    clearQuoteHero();
+    return;
+  }
+
+  const result =
+    PremiumEngine.calculateBasePremium({
+      zone: selected.zone,
+      plan: selected.plan,
+      sumInsured: selected.sumInsured,
+      members: selected.members
+    });
+
+  if (!result.ok) {
+    premiumElement.textContent = "₹ --";
+    document.getElementById(
+      "addonPremium"
+    ).textContent = "₹ --";
+    statusElement.textContent =
+      "Premium unavailable for the current selection";
+    taxDisclosureElement.textContent = "";
+    breakdownElement.innerHTML = "";
+    clearDeductibleQuote();
+    clearQuoteHero();
+    console.warn(result.error);
+    return;
+  }
+
+  const deductibleResult =
+    updateDeductibleQuote(result.basePremium);
+
+  if (!addonResult.ok || !deductibleResult.ok) {
+    premiumElement.textContent =
+      PresentationUtils.formatCurrency(
+        result.basePremium
+      );
+    statusElement.textContent =
+      "Premium composition unavailable";
+    taxDisclosureElement.textContent = "";
+    breakdownElement.innerHTML = "";
+    clearQuoteHero();
+    return;
+  }
+
+  const quote = QuoteEngine.compose({
+    basePremium: result.basePremium,
+    addonPremium:
+      addonResult.totalAddonPremium,
+    deductibleDiscount:
+      deductibleResult.discountAmount,
+    adjustedBasePremium:
+      deductibleResult.adjustedBasePremium
+  });
+
+  if (!quote.ok) {
+    premiumElement.textContent = "₹ --";
+    statusElement.textContent =
+      "Premium unavailable for the current selection";
+    taxDisclosureElement.textContent = "";
+    breakdownElement.innerHTML = "";
+    clearQuoteHero();
+    console.warn(quote.error);
+    return;
+  }
+
+  if (quote.status === "FINAL_READY") {
+    currentQuote = quote;
+  }
+
+  updateShareControls();
+
+  premiumElement.textContent =
+    PresentationUtils.formatCurrency(
+      quote.basePremium
+    );
+
+  statusElement.textContent =
+    "Premium ready";
+
+  taxDisclosureElement.textContent =
+    quote.taxLabel;
+
+  document.getElementById("quoteHero").hidden = false;
+  document.getElementById(
+    "finalPremium"
+  ).textContent =
+    `${PresentationUtils.formatCurrency(
+      quote.finalPremium
+    )} / year`;
+  document.getElementById(
+    "dailyCost"
+  ).textContent =
+    `Approx. ${PresentationUtils.formatCurrency(
+      PresentationUtils.calculateDailyCost(
+        quote.finalPremium
+      )
+    )}/day`;
+  document.getElementById(
+    "heroTax"
+  ).textContent = quote.taxLabel;
+
+  breakdownElement.innerHTML =
+    result.members.map(member => {
+      return `
+        <div class="member-premium-row">
+          <span>
+            ${PresentationUtils.getMemberLabel(
+              member,
+              result.members
+            )} (${member.ageBand})
+          </span>
+          <strong>${PresentationUtils.formatCurrency(member.premium)}</strong>
+        </div>
+      `;
+
+    }).join("");
+
+}
+
 
 renderPackages();
 renderProfiles();
+renderRecommendation();
 renderFamilies();
 renderAgeBands();
 renderZones();
 renderPlans();
 renderSI();
+renderAddons();
+renderDeductibles();
+updateBaseQuote();
+initializeCustomerDetailsForm();
