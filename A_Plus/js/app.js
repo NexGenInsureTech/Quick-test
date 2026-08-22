@@ -162,12 +162,12 @@ function removeMemberTargetedAddons() {
 
 function removePlanIneligibleAddons() {
   selected.addons = selected.addons.filter(selection => {
-    const definition = addonDefinitions.find(
-      item => item.id === selection.addonId
+    const rule = ProductRules.getAddonRule(
+      selection.addonId
     );
 
-    return definition &&
-      definition.allowedPlans.includes(selected.plan);
+    return rule &&
+      rule.allowedPlans.includes(selected.plan);
   });
 }
 
@@ -493,12 +493,15 @@ function renderAgeBands() {
           ? leadMember.ageBand
           : null;
 
-        if (age === "0-17") {
-          selected.addons = selected.addons.filter(
-            selection =>
-              selection.memberId !== member.id
-          );
-        }
+        selected.addons = selected.addons.filter(
+          selection =>
+            selection.memberId !== member.id ||
+            ProductRules.isAddonEligible({
+              addonId: selection.addonId,
+              plan: selected.plan,
+              member: selected.members[memberIndex]
+            }).eligible
+        );
 
         renderAgeBands();
 
@@ -719,6 +722,9 @@ function renderAddons() {
   addonContainer.innerHTML = "";
 
   addonDefinitions.forEach(definition => {
+    const rule = ProductRules.getAddonRule(
+      definition.id
+    );
     const card = document.createElement("div");
     card.className = "card addon-card";
 
@@ -736,7 +742,7 @@ function renderAddons() {
     status.className = "addon-status";
 
     if (
-      definition.implementationStatus ===
+      rule.pricingStatus ===
       "BLOCKED_PRICING_BASIS"
     ) {
       card.classList.add("addon-card-disabled");
@@ -751,8 +757,9 @@ function renderAddons() {
       definition.pricingType ===
       "NO_PREMIUM_IMPACT"
     ) {
-      const planSelected = selected.plan !== null;
-      status.textContent = planSelected
+      const planEligible =
+        rule.allowedPlans.includes(selected.plan);
+      status.textContent = planEligible
         ? "No additional premium"
         : "Select a Plan to enable optional covers";
       card.appendChild(status);
@@ -761,7 +768,7 @@ function renderAddons() {
       option.className = "addon-member-option";
       const input = document.createElement("input");
       input.type = "checkbox";
-      input.disabled = !planSelected;
+      input.disabled = !planEligible;
       input.checked = isAddonSelected(definition.id);
       input.onchange = () =>
         toggleAddonSelection(definition.id);
@@ -776,11 +783,13 @@ function renderAddons() {
     }
 
     const planEligible =
-      definition.allowedPlans.includes(selected.plan);
+      rule.allowedPlans.includes(selected.plan);
     const eligibleMembers = selected.members.filter(
-      member =>
-        member.ageBand &&
-        member.ageBand !== "0-17"
+      member => ProductRules.isAddonEligible({
+        addonId: definition.id,
+        plan: selected.plan,
+        member
+      }).eligible
     );
 
     if (selected.plan === null) {

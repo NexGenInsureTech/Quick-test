@@ -56,6 +56,7 @@ A_Plus/
     ├── rates.js
     ├── premium-engine.js
     ├── addon-config.js
+    ├── product-rules.js
     ├── addon-rates.js
     ├── addon-engine.js
     ├── deductible-config.js
@@ -83,7 +84,8 @@ A_Plus/
 | `recommendation-engine.js` | Validates profiles and configured recommendation outputs |
 | `rates.js` | Member-based Base Cover premium tables |
 | `premium-engine.js` | Exact member-rate lookup and Base Premium aggregation |
-| `addon-config.js` | Optional-cover definitions, eligibility, pricing type, and implementation status |
+| `addon-config.js` | Optional-cover display definitions and pricing types |
+| `product-rules.js` | Authoritative optional-cover plan, age, target, and pricing-readiness rules |
 | `addon-rates.js` | Optional-cover rate tables derived from the product premium chart |
 | `addon-engine.js` | Optional-cover validation, member targeting, and premium aggregation |
 | `deductible-config.js` | Supported Aggregate Deductible choices |
@@ -92,7 +94,7 @@ A_Plus/
 | `quote-engine.js` | Validates composition, applies current tax treatment, and returns `FINAL_READY` |
 | `presentation-utils.js` | Stateless currency, daily-cost, Sum Insured, and member-label presentation helpers |
 | `customer-form.js` | Customer validation, mobile normalization, field binding, and validation-message DOM |
-| `share.js` | Pure WhatsApp message and generic composer URL construction |
+| `share.js` | Pure WhatsApp message construction, using `ProductRules` to filter optional covers, and generic composer URL construction |
 | `app.js` | Central state, rendering, cross-feature orchestration, quote lifecycle, share readiness, and initialization |
 
 ## State model
@@ -197,6 +199,10 @@ Assisted quotation / blocked for online pricing:
 - Non-Medical Items
 
 These remain represented as product options. Online pricing is intentionally unavailable because their required aggregation or rating basis remains unresolved in the implemented model.
+
+Optional-cover eligibility is governed by `ProductRules`. Rate-table availability does not establish product eligibility; rates are read only after the relevant product rule and input validations pass.
+
+The UI presents selections, while calculation engines retain rate lookup and aggregation responsibilities. `ShareHelpers` constructs presentation output and queries `ProductRules` only when filtering optional covers.
 
 ## Aggregate Deductible
 

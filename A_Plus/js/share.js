@@ -39,13 +39,19 @@ const ShareHelpers = (() => {
       const key =
         `${addonSelection.addonId}:${addonSelection.memberId || "policy"}`;
       const definition = addonDefinitions.find(
-        item =>
-          item.id === addonSelection.addonId &&
-          item.implementationStatus === "READY" &&
-          item.allowedPlans.includes(quoteSelection.plan)
+        item => item.id === addonSelection.addonId
+      );
+      const rule = ProductRules.getAddonRule(
+        addonSelection.addonId
       );
 
-      if (!definition || seenAddons.has(key)) {
+      if (
+        !definition ||
+        !rule ||
+        rule.pricingStatus !== "READY" ||
+        !rule.allowedPlans.includes(quoteSelection.plan) ||
+        seenAddons.has(key)
+      ) {
         return;
       }
 

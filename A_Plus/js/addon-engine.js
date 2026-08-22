@@ -35,8 +35,17 @@ const AddonEngine = {
       );
     }
 
+    const rule = ProductRules.getAddonRule(addonId);
+
+    if (!rule) {
+      return failure(
+        "INVALID_ADDON",
+        "The selected add-on is not supported."
+      );
+    }
+
     if (
-      definition.implementationStatus ===
+      rule.pricingStatus ===
       "BLOCKED_PRICING_BASIS"
     ) {
       return failure(
@@ -45,15 +54,9 @@ const AddonEngine = {
       );
     }
 
-    const validPlans = new Set(
-      addonDefinitions.flatMap(item =>
-        item.allowedPlans
-      )
-    );
-
     if (
       typeof plan !== "string" ||
-      !validPlans.has(plan)
+      !plans.some(item => item.code === plan)
     ) {
       return failure(
         "INVALID_PLAN",
@@ -61,7 +64,13 @@ const AddonEngine = {
       );
     }
 
-    if (!definition.allowedPlans.includes(plan)) {
+    const eligibility = ProductRules.isAddonEligible({
+      addonId,
+      plan,
+      member
+    });
+
+    if (eligibility.reason === "PLAN_NOT_ELIGIBLE") {
       return failure(
         "PLAN_NOT_ELIGIBLE",
         "The add-on is not available for the selected plan."
@@ -106,10 +115,13 @@ const AddonEngine = {
       );
     }
 
-    if (
-      definition.minimumAge === 18 &&
-      member.ageBand === "0-17"
-    ) {
+    const memberEligibility = ProductRules.isAddonEligible({
+      addonId,
+      plan,
+      member
+    });
+
+    if (memberEligibility.reason === "AGE_NOT_ELIGIBLE") {
       return failure(
         "AGE_NOT_ELIGIBLE",
         "The targeted member must be aged 18 years or above."
@@ -232,8 +244,13 @@ const AddonEngine = {
         });
       }
 
+      const rule = ProductRules.getAddonRule(
+        definition.id
+      );
+
       if (
-        definition.implementationStatus ===
+        rule &&
+        rule.pricingStatus ===
         "BLOCKED_PRICING_BASIS"
       ) {
         return this.calculateAddonPremium({
@@ -244,7 +261,7 @@ const AddonEngine = {
       }
 
       const requiresMember =
-        definition.pricingType === "AGE_SI";
+        rule && rule.target === "MEMBER";
 
       let member;
       let selectionKey = definition.id;
