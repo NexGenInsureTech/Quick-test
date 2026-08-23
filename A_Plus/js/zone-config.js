@@ -3,13 +3,13 @@ const zones = [
   {
       code:"ZONE1",
       title:"Zone 1",
-      description:"Metro & High Cost Healthcare Cities"
+      description:"NCR, Mumbai, Thane, Mumbai Suburban, Navi Mumbai, Surat, Ahmedabad, Vadodara"
   },
 
   {
       code:"ZONE2",
       title:"Zone 2",
-      description:"Rest of India"
+      description:"All other locations"
   }
 
 ];

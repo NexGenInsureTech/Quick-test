@@ -41,7 +41,7 @@ A_Plus/
 ├── AGENTS.md
 ├── css/style.css
 ├── data/PREMIUM_RATES.md
-└── js/
+├── js/
     ├── app.js
     ├── product-config.js
     ├── packages.js
@@ -63,9 +63,12 @@ A_Plus/
     ├── deductible-rates.js
     ├── deductible-engine.js
     ├── quote-engine.js
+    ├── quote-decision-engine.js
     ├── presentation-utils.js
     ├── customer-form.js
     └── share.js
+└── tests/
+    └── regression.js
 ```
 
 ## JavaScript responsibilities
@@ -92,6 +95,7 @@ A_Plus/
 | `deductible-rates.js` | Sum-Insured-specific deductible discount schedule |
 | `deductible-engine.js` | Calculates the Base Premium discount and adjusted Base Premium |
 | `quote-engine.js` | Validates composition, applies current tax treatment, and returns `FINAL_READY` |
+| `quote-decision-engine.js` | Classifies an arithmetically complete quote as `STP`, `UW_REFERRAL`, or `ASSISTED_ONLY`; it does not perform pricing, underwriting acceptance, issuance, or payment |
 | `presentation-utils.js` | Stateless currency, daily-cost, Sum Insured, and member-label presentation helpers |
 | `customer-form.js` | Customer validation, mobile normalization, field binding, and validation-message DOM |
 | `share.js` | Pure WhatsApp message construction, using `ProductRules` to filter optional covers, and generic composer URL construction |
@@ -184,6 +188,17 @@ Current implemented tax treatment is `EXEMPT`, labelled **GST Exempt**, with amo
 
 Decision precedence is `ASSISTED_ONLY` over `UW_REFERRAL` over `STP`. All current decisions return `paymentReady: false`; the microsite does not collect payment or complete proposal acceptance, underwriting, or policy issuance.
 
+`FINAL_READY` means QuoteEngine arithmetic and composition are complete. It does not mean underwriting acceptance, policy acceptance, a finally payable premium, or payment readiness. Operational interpretation belongs to `QuoteDecisionEngine`.
+
+## Rating zones
+
+The authoritative MVP mapping is:
+
+- Zone 1: NCR, Mumbai, Thane, Mumbai Suburban, Navi Mumbai, Surat, Ahmedabad, Vadodara
+- Zone 2: All other locations
+
+The canonical rating IDs remain `ZONE1` and `ZONE2`.
+
 ## Rate data
 
 Calculations consume repository rate tables derived from the official A Plus premium chart. Calculation code and rate data remain separate:
@@ -254,7 +269,6 @@ WhatsApp sharing:
 - Maternity online aggregation and rating-age basis remain unresolved.
 - Non-Medical Items online aggregation and rating-age basis remain unresolved.
 - Customer-facing terminology for a `firstAdult` in the `0-17` band requires product-owner clarification; current rate/configuration behavior is preserved.
-- Exact customer-facing geographic definitions for Zone 1 and Zone 2 require an authoritative product source; current configuration labels are preserved.
 - No backend or lead storage.
 - No persistence.
 - No PDF generation.
@@ -278,6 +292,18 @@ A future Assisted / Underwriting Journey must use authoritative product and unde
 - Maximum fresh-entry ages for relevant insured-member relationships.
 
 The unresolved interpretation of `firstAdult / 0-17` remains a separate product question. It is not resolved by this deferred-scope decision.
+
+## Regression checks
+
+The permanent regression baseline protects deterministic Base Premium, deductible, optional-cover eligibility/rates, quote composition, quote decisions, referral arithmetic, ProductRules separation, and recommendation fixtures.
+
+Run it from the repository root:
+
+```text
+node tests/regression.js
+```
+
+This is a Node-based business-rule suite for the classic-script modules. It is not a browser or UI automation suite.
 
 ## Running locally
 
