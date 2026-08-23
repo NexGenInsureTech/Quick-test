@@ -406,6 +406,13 @@ button.card:hover {
     font-weight: 600;
 }
 
+.quote-decision-status {
+    margin-top: 12px;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 #quoteStatus {
     margin-top: 6px;
 }

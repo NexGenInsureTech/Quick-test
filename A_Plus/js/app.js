@@ -28,6 +28,7 @@ const customerDetails = {
 };
 
 let currentQuote = null;
+let currentQuoteDecision = null;
 
 
 const packageContainer =
@@ -48,10 +49,17 @@ const recommendedPackageByProfile = {
   senior: "seniorCare"
 };
 
-function isQuoteShareReady(quote, details = customerDetails) {
+function isQuoteShareReady(
+  quote,
+  decision,
+  details = customerDetails
+) {
   return Boolean(
     quote &&
     quote.status === "FINAL_READY" &&
+    decision &&
+    decision.ok === true &&
+    decision.premiumStatus === "INDICATIVE" &&
     CustomerForm.validate(details).ok
   );
 }
@@ -65,20 +73,23 @@ function updateShareControls() {
     CustomerForm.validate(customerDetails).ok;
   const ready = isQuoteShareReady(
     currentQuote,
+    currentQuoteDecision,
     customerDetails
   );
 
   button.disabled = !ready;
 
-  if (!currentQuote) {
+  if (!currentQuote || !currentQuoteDecision) {
     status.textContent =
       "Complete the quote and customer details to share.";
   } else if (!detailsValid) {
     status.textContent =
       "Enter Customer Name and a valid Mobile Number to share.";
   } else {
-    status.textContent =
-      "Your indicative quote is ready to share.";
+    status.textContent = currentQuoteDecision.decision ===
+      "UW_REFERRAL"
+      ? "Your indicative underwriting-referral quote is ready to share."
+      : "Your indicative quote is ready to share.";
   }
 }
 
@@ -89,7 +100,11 @@ function shareQuoteOnWhatsApp() {
   CustomerForm.renderValidation(validation);
 
   if (
-    !isQuoteShareReady(currentQuote, customerDetails)
+    !isQuoteShareReady(
+      currentQuote,
+      currentQuoteDecision,
+      customerDetails
+    )
   ) {
     updateShareControls();
     return;
@@ -97,6 +112,7 @@ function shareQuoteOnWhatsApp() {
 
   const message = ShareHelpers.buildMessage({
     quote: currentQuote,
+    decision: currentQuoteDecision,
     selection: selected,
     customer: {
       customerName:
@@ -893,6 +909,9 @@ function clearQuoteHero() {
   document.getElementById("finalPremium").textContent = "";
   document.getElementById("dailyCost").textContent = "";
   document.getElementById("heroTax").textContent = "";
+  document.getElementById(
+    "quoteDecisionStatus"
+  ).textContent = "";
 }
 
 function clearDeductibleQuote() {
@@ -1054,6 +1073,7 @@ function updateAddonQuote() {
 function updateBaseQuote() {
 
   currentQuote = null;
+  currentQuoteDecision = null;
   updateShareControls();
 
   const addonResult = updateAddonQuote();
@@ -1201,8 +1221,26 @@ function updateBaseQuote() {
     return;
   }
 
+  const quoteDecision =
+    QuoteDecisionEngine.evaluate({
+      quote,
+      selectedAddons: selected.addons
+    });
+
+  if (!quoteDecision.ok) {
+    premiumElement.textContent = "₹ --";
+    statusElement.textContent =
+      "Quote decision unavailable for the current selection";
+    taxDisclosureElement.textContent = "";
+    breakdownElement.innerHTML = "";
+    clearQuoteHero();
+    console.warn(quoteDecision.error);
+    return;
+  }
+
   if (quote.status === "FINAL_READY") {
     currentQuote = quote;
+    currentQuoteDecision = quoteDecision;
   }
 
   updateShareControls();
@@ -1212,8 +1250,10 @@ function updateBaseQuote() {
       quote.basePremium
     );
 
-  statusElement.textContent =
-    "Premium ready";
+  statusElement.textContent = quoteDecision.decision ===
+    "UW_REFERRAL"
+    ? "Underwriting review required"
+    : "Indicative premium ready";
 
   taxDisclosureElement.textContent =
     quote.taxLabel;
@@ -1236,6 +1276,12 @@ function updateBaseQuote() {
   document.getElementById(
     "heroTax"
   ).textContent = quote.taxLabel;
+  document.getElementById(
+    "quoteDecisionStatus"
+  ).textContent = quoteDecision.decision ===
+    "UW_REFERRAL"
+    ? "Underwriting review required. The premium shown is indicative. Final acceptance, terms and payable premium will be confirmed after underwriting."
+    : "Indicative premium based on the information currently selected. Final acceptance and policy issuance remain subject to applicable proposal and underwriting requirements.";
 
   breakdownElement.innerHTML =
     result.members.map(member => {

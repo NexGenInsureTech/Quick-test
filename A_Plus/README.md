@@ -140,6 +140,8 @@ Customer Name and valid Indian mobile are required for share readiness. RM and B
 
 The latest successful derived `FINAL_READY` quote, or `null` while pending or unavailable. It is cleared before recalculation to prevent stale sharing.
 
+`currentQuoteDecision` is separate derived runtime output from `QuoteDecisionEngine`. It is also cleared before every recalculation and is never stored in `selected`.
+
 Monetary outputs and share readiness are derived and are not stored in `selected`.
 
 ## Premium flow
@@ -161,6 +163,10 @@ Base Premium + Sum Insured + Aggregate Deductible
 Premium components + current tax treatment
 → QuoteEngine
 → FINAL_READY quote
+
+Calculated quote + selected optional covers
+→ QuoteDecisionEngine
+→ STP / UW_REFERRAL / ASSISTED_ONLY
 ```
 
 ```text
@@ -169,6 +175,14 @@ Final Premium = Adjusted Base Premium + Add-on Premium + Tax
 ```
 
 Current implemented tax treatment is `EXEMPT`, labelled **GST Exempt**, with amount ₹0. Approximate daily cost is presentation-only and uses `Math.round(finalPremium / 365)`.
+
+`QuoteEngine` remains the authority for arithmetic composition. `QuoteDecisionEngine` determines the operational and customer-facing status above that arithmetic:
+
+- `STP` — no underwriting-referral trigger is identified from information currently captured by the microsite. This does not mean insurer acceptance.
+- `UW_REFERRAL` — the calculated premium is indicative and underwriting review is required.
+- `ASSISTED_ONLY` — online pricing or assessment is incomplete, so a complete premium is unavailable.
+
+Decision precedence is `ASSISTED_ONLY` over `UW_REFERRAL` over `STP`. All current decisions return `paymentReady: false`; the microsite does not collect payment or complete proposal acceptance, underwriting, or policy issuance.
 
 ## Rate data
 
@@ -185,8 +199,8 @@ Engines use exact Zone, Plan, member type, age band, and numeric Sum Insured loo
 
 Online-calculable:
 
-- Diabetes Day 1 — Diamond only, age 18+, selected per insured member
-- Hypertension Day 1 — Diamond only, age 18+, selected per insured member
+- Diabetes Day 1 — Diamond only, age 18+, selected per insured member; calculable as an indicative premium with underwriting referral
+- Hypertension Day 1 — Diamond only, age 18+, selected per insured member; calculable as an indicative premium with underwriting referral
 
 No premium impact:
 
@@ -198,7 +212,7 @@ Assisted quotation / blocked for online pricing:
 - Maternity
 - Non-Medical Items
 
-These remain represented as product options. Online pricing is intentionally unavailable because their required aggregation or rating basis remains unresolved in the implemented model.
+These remain represented as product options and produce an `ASSISTED_ONLY` decision when evaluated directly. Online pricing is intentionally unavailable because their required aggregation or rating basis remains unresolved in the implemented model.
 
 Optional-cover eligibility is governed by `ProductRules`. Rate-table availability does not establish product eligibility; rates are read only after the relevant product rule and input validations pass.
 
@@ -222,7 +236,7 @@ These are UX-guided suggestions, not product eligibility, underwriting, or cover
 
 ## Customer details and WhatsApp
 
-Share readiness requires a `FINAL_READY` quote, Customer Name, and a valid normalized ten-digit Indian mobile number.
+Share readiness requires a `FINAL_READY` quote, an `INDICATIVE` quote decision, Customer Name, and a valid normalized ten-digit Indian mobile number. Both `STP` and `UW_REFERRAL` quotes can be shared; referral messages include underwriting wording.
 
 WhatsApp sharing:
 
@@ -230,7 +244,7 @@ WhatsApp sharing:
 - Uses the generic `https://wa.me/?text=...` composer.
 - Does not address the message to the captured customer mobile.
 - Does not include that mobile number in the message.
-- Generates fresh output from current selections and `currentQuote`.
+- Generates fresh output from current selections, `currentQuote`, and explicit decision metadata.
 - Does not recalculate premium.
 - Does not submit customer data to a backend.
 

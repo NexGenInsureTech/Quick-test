@@ -7,6 +7,9 @@ const ProductRules = (() => {
       allowedPlans: ["silver", "gold", "diamond"],
       target: "UNRESOLVED",
       pricingStatus: "BLOCKED_PRICING_BASIS",
+      underwritingStatus: "REQUIRED",
+      quoteDecision: "ASSISTED_ONLY",
+      decisionReasonCode: "ASSISTED_PED_WAIVER",
       waitingPeriodFromMonths: 36,
       waitingPeriodToMonths: 12
     },
@@ -17,26 +20,38 @@ const ProductRules = (() => {
       allowedPlans: ["diamond"],
       minimumAge: 18,
       target: "MEMBER",
-      pricingStatus: "READY"
+      pricingStatus: "READY",
+      underwritingStatus: "REQUIRED",
+      quoteDecision: "UW_REFERRAL",
+      decisionReasonCode: "UW_DIABETES_DAY1"
     },
     hypertensionDay1: {
       addonId: "hypertensionDay1",
       allowedPlans: ["diamond"],
       minimumAge: 18,
       target: "MEMBER",
-      pricingStatus: "READY"
+      pricingStatus: "READY",
+      underwritingStatus: "REQUIRED",
+      quoteDecision: "UW_REFERRAL",
+      decisionReasonCode: "UW_HYPERTENSION_DAY1"
     },
     nonMedicalItems: {
       addonId: "nonMedicalItems",
       allowedPlans: ["silver", "gold", "diamond"],
       target: "UNRESOLVED",
-      pricingStatus: "BLOCKED_PRICING_BASIS"
+      pricingStatus: "BLOCKED_PRICING_BASIS",
+      underwritingStatus: "NOT_MODELED",
+      quoteDecision: "ASSISTED_ONLY",
+      decisionReasonCode: "ASSISTED_NON_MEDICAL_ITEMS"
     },
     maternity: {
       addonId: "maternity",
       allowedPlans: ["silver", "gold", "diamond"],
       target: "UNRESOLVED",
-      pricingStatus: "BLOCKED_PRICING_BASIS"
+      pricingStatus: "BLOCKED_PRICING_BASIS",
+      underwritingStatus: "NOT_MODELED",
+      quoteDecision: "ASSISTED_ONLY",
+      decisionReasonCode: "ASSISTED_MATERNITY"
     },
     // Room Rent Modification is a policy-level option with no premium
     // impact under each currently supported plan.
@@ -45,6 +60,8 @@ const ProductRules = (() => {
       allowedPlans: ["silver", "gold", "diamond"],
       target: "POLICY",
       pricingStatus: "READY",
+      underwritingStatus: "NONE_IDENTIFIED",
+      quoteDecision: "STP",
       pricingType: "NO_PREMIUM_IMPACT",
       additionalPremium: 0
     }
