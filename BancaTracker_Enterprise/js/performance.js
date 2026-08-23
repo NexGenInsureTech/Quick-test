@@ -22,7 +22,7 @@
   }
 
   function renderKpis(kpis) {
-    const cards = [["YTD Premium", utils.formatInr(kpis.ytdPremium)], ["MTD Premium", utils.formatInr(kpis.mtdPremium)], ["Records", utils.formatInr(kpis.records)], ["Partner Institutions", utils.formatInr(kpis.partnerInstitutions)], ["Active RMs", utils.formatInr(kpis.activeRms)], ["Active Branches", utils.formatInr(kpis.activeBranches)], ["Active IMDs", utils.formatInr(kpis.activeImds)]];
+    const cards = [["YTD Premium", utils.formatInr(kpis.ytdPremium)], ["Current Period Premium", utils.formatInr(kpis.mtdPremium)], ["Current Period Records", utils.formatInr(kpis.records)], ["Current Period Partner Institutions", utils.formatInr(kpis.partnerInstitutions)], ["Observed BA Codes (Current Period)", utils.formatInr(kpis.activeRms)], ["Active Branches (Current Period)", utils.formatInr(kpis.activeBranches)], ["Observed IMD Codes (Current Period)", utils.formatInr(kpis.activeImds)]];
     document.getElementById("kpis").innerHTML = cards.map(([label, value]) => `<div class='card'><div>${label}</div><div class='value'>${value}</div></div>`).join("");
   }
 
@@ -34,6 +34,7 @@
   function renderPerformance(context) {
     const viewPremium = context.derived.totalPremium;
     renderKpis(calculateKpis(context));
+    document.getElementById("performanceScope").textContent = `Current period: ${context.currentPeriodMonth || "No configured fiscal month available"}. YTD: configured fiscal months through ${context.progressionMonth || "not available"}. Rankings, records, branch, BA-code and IMD-code counts use the current period.${context.currentPeriodIsUnconfigured ? " This selected month is unconfigured: it is CURRENT PERIOD only and is excluded from fiscal YTD and target elapsed months." : ""}`;
     renderMonthlyBusiness(context.derived);
     renderTable("bankTable", context.derived.banks, viewPremium, true);
     renderTable("rmTable", context.derived.rms, viewPremium, true);

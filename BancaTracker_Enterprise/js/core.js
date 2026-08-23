@@ -1,27 +1,61 @@
-/* Application state, resilient CSV ingestion, central filters, and one derived refresh cycle. */
+/* Application state, resilient CSV ingestion, central time scopes, filters, and refresh orchestration. */
 (function (global) {
-  const config = global.BancaTrackerConfig; const utils = global.BancaTrackerUtils;
-  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, headerMap: {}, months: [], banks: [], importSummary: null, derived: null, context: null };
-  const valueAt = (row, headerMap, header) => headerMap[header] >= 0 ? String(row[headerMap[header]] || "").trim() : "";
+  const config = global.BancaTrackerConfig;
+  const utils = global.BancaTrackerUtils;
+  const emptyImportSummary = { totalRows: 0, acceptedRows: 0, rejectedRows: 0, warningRows: 0, negativePremiumRows: 0, rejectionReasons: {}, warningReasons: {}, unconfiguredMonths: [] };
+  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, activePage: "misPage", headerMap: {}, months: [], banks: [], importSummary: emptyImportSummary, dataQuality: global.BancaTrackerDataQuality.build([], config, emptyImportSummary), productivity: null, derived: null, context: null };
   function setStatus(message, isError) { const status = document.getElementById("status"); status.textContent = message; status.classList.toggle("status-error", Boolean(isError)); }
-  function validateHeaders(headers) { const missing = config.CSV_COLUMNS.MANDATORY.filter((header) => utils.headerIndex(headers, header) < 0); return { valid: !missing.length, missing }; }
-  function normalizeRow(row, headerMap) { return { premium: utils.parseNumber(valueAt(row, headerMap, "USGI NET PREMIUM")), month: valueAt(row, headerMap, "Month"), bank: utils.normalizeBank(valueAt(row, headerMap, "INTERMEDIARY")), rm: valueAt(row, headerMap, "BA NAME"), baCode: valueAt(row, headerMap, "Ba Code"), lob: valueAt(row, headerMap, "LINE OF BUSINESS"), branch: valueAt(row, headerMap, "BRANCH NAME"), zone: valueAt(row, headerMap, "Zone"), state: valueAt(row, headerMap, "STATE"), imd: valueAt(row, headerMap, "SUM IMD CODE"), businessType: valueAt(row, headerMap, "Business Type"), productName: valueAt(row, headerMap, "PRODUCT NAME"), productCode: valueAt(row, headerMap, "PRODUCT CODE"), day: valueAt(row, headerMap, "Day") }; }
-  function populateFilters() { const monthFilter = document.getElementById("monthFilter"); const bankFilter = document.getElementById("bankFilter"); monthFilter.innerHTML = '<option value="ALL">All Months</option>'; state.months.forEach((month) => monthFilter.add(new Option(month, month))); bankFilter.innerHTML = '<option value="ALL">All Banks</option>'; state.banks.forEach((bank) => bankFilter.add(new Option(bank, bank))); }
-  function renderImportSummary(summary) { const element = document.getElementById("importSummary"); if (!summary) { element.textContent = ""; return; } const reasons = [...Object.entries(summary.rejectionReasons), ...Object.entries(summary.warningReasons)].map(([reason, count]) => `${reason}: ${utils.formatInr(count)}`).join("; "); element.textContent = `Import summary — Total: ${utils.formatInr(summary.totalRows)}; Accepted: ${utils.formatInr(summary.acceptedRows)}; Rejected: ${utils.formatInr(summary.rejectedRows)}; Warnings: ${utils.formatInr(summary.warningRows)}${reasons ? `. ${reasons}` : ""}`; }
-  function buildContext() {
-    const selectedMonth = state.filters.month; const selectedBank = state.filters.bank; const selectedIndex = config.FISCAL_MONTHS.indexOf(selectedMonth); const viewData = []; const bankMonthlyPremium = {}; const available = new Set(); let ytdPremium = 0;
-    state.factData.forEach((row) => { if (selectedBank !== "ALL" && row.bank !== selectedBank) return; available.add(row.month); bankMonthlyPremium[row.month] = (bankMonthlyPremium[row.month] || 0) + row.premium; const monthMatches = selectedMonth === "ALL" || row.month === selectedMonth; if (monthMatches) viewData.push(row); if (selectedMonth === "ALL") ytdPremium += row.premium; else { const rowIndex = config.FISCAL_MONTHS.indexOf(row.month); if (selectedIndex >= 0 ? rowIndex >= 0 && rowIndex <= selectedIndex : row.month === selectedMonth) ytdPremium += row.premium; } });
-    const availableMonths = utils.orderMonths([...available]); const latestMonth = availableMonths[availableMonths.length - 1] || ""; const mtdPremium = selectedMonth === "ALL" ? (bankMonthlyPremium[latestMonth] || 0) : (bankMonthlyPremium[selectedMonth] || 0); state.filteredData = viewData;
-    return Object.freeze({ viewData, selectedMonth, latestMonth, availableMonths, ytdPremium, mtdPremium, bankMonthlyPremium });
+  function populateFilters() {
+    const monthFilter = document.getElementById("monthFilter"); const bankFilter = document.getElementById("bankFilter");
+    monthFilter.innerHTML = '<option value="ALL">All Months</option>'; state.months.forEach((month) => monthFilter.add(new Option(month, month)));
+    bankFilter.innerHTML = '<option value="ALL">All Banks</option>'; state.banks.forEach((bank) => bankFilter.add(new Option(bank, bank)));
   }
+
+  function renderImportSummary(summary) {
+    const element = document.getElementById("importSummary"); if (!summary) { element.textContent = ""; return; }
+    const reasons = [...Object.entries(summary.rejectionReasons), ...Object.entries(summary.warningReasons)].map(([reason, count]) => `${reason}: ${utils.formatInr(count)}`);
+    if (summary.unconfiguredMonths && summary.unconfiguredMonths.length) reasons.push(`Unconfigured fiscal month label(s): ${summary.unconfiguredMonths.join(", ")} (excluded from YTD/target progression)`);
+    if (summary.negativePremiumRows) reasons.push(`Negative premium rows: ${utils.formatInr(summary.negativePremiumRows)} (preserved; may represent cancellation/refund/adjustment and requires a future business rule)`);
+    const qualityWarnings = (summary.warningRows || 0) + (summary.unconfiguredMonths && summary.unconfiguredMonths.length ? 1 : 0) + (summary.negativePremiumRows ? 1 : 0);
+    element.textContent = `Import summary — Total: ${utils.formatInr(summary.totalRows)}; Accepted: ${utils.formatInr(summary.acceptedRows)}; Rejected: ${utils.formatInr(summary.rejectedRows)}; Data-quality warnings: ${utils.formatInr(qualityWarnings)}${reasons.length ? `. ${reasons.join("; ")}` : ""}`;
+  }
+
+  function buildContext() {
+    const selectedMonth = state.filters.month; const selectedBank = state.filters.bank;
+    const fullUploadData = selectedBank === "ALL" ? state.factData : [];
+    const available = new Set(); const availableFiscal = new Set(); const bankMonthlyPremium = {}; const rowsByMonth = {};
+    state.factData.forEach((row) => { if (selectedBank !== "ALL" && row.bank !== selectedBank) return; if (selectedBank !== "ALL") fullUploadData.push(row); available.add(row.month); if (config.FISCAL_MONTHS.includes(row.month)) availableFiscal.add(row.month); bankMonthlyPremium[row.month] = (bankMonthlyPremium[row.month] || 0) + row.premium; if (!rowsByMonth[row.month]) rowsByMonth[row.month] = []; rowsByMonth[row.month].push(row); });
+    const availableMonths = utils.orderMonths([...available]);
+    const availableFiscalMonths = config.FISCAL_MONTHS.filter((month) => availableFiscal.has(month));
+    const latestFiscalMonth = availableFiscalMonths[availableFiscalMonths.length - 1] || "";
+    const currentPeriodMonth = selectedMonth === "ALL" ? latestFiscalMonth : selectedMonth;
+    const currentPeriodData = currentPeriodMonth ? (rowsByMonth[currentPeriodMonth] || []) : [];
+    const progressionMonth = selectedMonth === "ALL" ? latestFiscalMonth : (config.FISCAL_MONTHS.includes(selectedMonth) ? selectedMonth : "");
+    const progressionIndex = config.FISCAL_MONTHS.indexOf(progressionMonth);
+    const ytdData = []; const ytdPremiumByBank = {}; let ytdPremium = 0;
+    if (progressionIndex >= 0) config.FISCAL_MONTHS.slice(0, progressionIndex + 1).forEach((month) => { (rowsByMonth[month] || []).forEach((row) => { ytdData.push(row); ytdPremium += row.premium; ytdPremiumByBank[row.bank] = (ytdPremiumByBank[row.bank] || 0) + row.premium; }); });
+    const mtdPremium = utils.premiumTotal(currentPeriodData); state.filteredData = currentPeriodData;
+    return Object.freeze({ viewData: currentPeriodData, currentPeriodData, ytdData, fullUploadData, selectedMonth, currentPeriodMonth, currentPeriodIsUnconfigured: Boolean(currentPeriodMonth && !config.FISCAL_MONTHS.includes(currentPeriodMonth)), latestMonth: latestFiscalMonth, latestFiscalMonth, availableMonths, availableFiscalMonths, progressionMonth, elapsedMonths: progressionIndex < 0 ? null : progressionIndex + 1, ytdPremium, ytdPremiumByBank, mtdPremium, bankMonthlyPremium });
+  }
+
   function safeRender(name, renderer, argument) { if (typeof renderer !== "function") return; try { renderer(argument); } catch (error) { console.error(`${name} render failed`, error); setStatus(`${name} could not render. Other pages remain available.`, true); } }
-  function refresh() { const started = performance.now(); const context = buildContext(); const derived = global.BancaTrackerAnalytics.build(context.viewData); state.context = context; state.derived = derived; safeRender("Performance MIS", global.renderPerformance, { ...context, derived }); safeRender("Activation Cockpit", global.refreshActivation, derived); safeRender("Management Scorecard", global.refreshScorecard, derived); safeRender("Target & Growth", global.refreshTarget, { ...context, derived }); return performance.now() - started; }
-  function commitImport(result) { setStatus("Building analytics...", false); state.factData = result.rows; state.headerMap = result.headerMap; state.importSummary = result.summary; state.filters.month = "ALL"; state.filters.bank = "ALL"; const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); }); state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); populateFilters(); renderImportSummary(result.summary); refresh(); setStatus(`Loaded ${utils.formatInr(state.factData.length)} records`, false); }
+  function renderPage(pageId) { const context = state.context; if (!context) return; const renderers = { misPage: ["Performance MIS", global.renderPerformance, { ...context, derived: state.derived }], activationPage: ["Activation Cockpit", global.refreshActivation, state.derived], scorecardPage: ["Management Scorecard", global.refreshScorecard, state.derived], targetPage: ["Target & Growth", global.refreshTarget, { ...context, derived: state.derived }], productivityPage: ["Productivity & Opportunity", global.renderProductivity, state.productivity], qualityPage: ["Data Quality", global.renderDataQuality, state.dataQuality] }; const entry = renderers[pageId]; if (entry) safeRender(entry[0], entry[1], entry[2]); }
+  function setActivePage(pageId) { state.activePage = pageId; renderPage(pageId); }
+  function refresh() { const started = performance.now(); const context = buildContext(); const derived = global.BancaTrackerAnalytics.build(context.currentPeriodData); const productivity = global.BancaTrackerProductivity.build(context, derived, state.dataQuality); state.context = context; state.derived = derived; state.productivity = productivity; renderPage(state.activePage); return performance.now() - started; }
+
+  function commitImport(result) {
+    setStatus("Building analytics...", false); state.factData = result.rows; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
+    const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); });
+    state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); result.summary.unconfiguredMonths = state.months.filter((month) => !config.FISCAL_MONTHS.includes(month)); state.importSummary = result.summary;
+    state.dataQuality = global.BancaTrackerDataQuality.build(state.factData, config, result.summary);
+    populateFilters(); renderImportSummary(result.summary); refresh(); setStatus(`Loaded ${utils.formatInr(state.factData.length)} records`, false);
+  }
+
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
   function loadCsvText(text) { try { const result = processSynchronously(text); commitImport(result); return result; } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text) { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(event.data.stage, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
   function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }
   function getPerformanceContext() { return state.context || buildContext(); }
-  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, validateHeaders, normalizeRow, getPerformanceContext, processSynchronously }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
+  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
 })(window);

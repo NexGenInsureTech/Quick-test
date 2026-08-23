@@ -1,73 +1,78 @@
-# BancaTracker Enterprise v8 MVP
+# BancaTracker Enterprise v8.1
 
-Status: **Functionally complete offline MVP (Phase 6 — Scale & Hardening).**
+## Management Focus & Data Trust
 
-BancaTracker is a fully client-side Bancassurance management application. It runs from local HTML/CSS/JavaScript, accepts a PR-data CSV, and provides Performance MIS, Activation Cockpit, Management Scorecard, and Target & Growth views. It has no backend, database, framework, CDN, or external library.
+Status: **Release candidate — acceptance fixes and hardening complete.**
+
+BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Intelligence, Management Scorecard and drill-down, Target & Growth, Productivity & Opportunity, and Data Quality views. It has no backend, database, framework, CDN, telemetry, or external library.
 
 ## Architecture
 
-- `js/config.js` — fiscal months, bank aliases, branch universes, thresholds, and CSV schema.
-- `js/csvProcessor.js` — shared CSV parsing, normalization, validation, and import summaries.
-- `js/csvWorker.js` — native Web Worker entry point for off-main-thread imports.
-- `js/core.js` — fact data, central Month/Bank filters, worker fallback, atomic imports, and refresh orchestration.
-- `js/analytics.js` — one reusable derived-metrics build per refresh cycle.
-- `js/utilities.js` — formatting, escaping, canonical bank/branch, and general helpers.
-- `js/performance.js`, `js/activation.js`, `js/scorecard.js`, `js/target.js` — business renderers consuming core context and shared metrics.
-- `app.js` — page navigation only.
+- `js/config.js` — fiscal months, aliases, branch universes, thresholds, schemas, and rendering limits.
+- `js/csvProcessor.js` / `js/csvWorker.js` — shared CSV parsing, validation, normalization, and off-main-thread import.
+- `js/core.js` — authoritative fact state, Month/Bank filters, central time scopes, derived refresh, and active-page rendering.
+- `js/analytics.js` — current-period totals, canonical branches, activation bands, and deterministic hierarchy representation.
+- `js/dataQuality.js` — cached full-upload diagnostics; findings never change imported rows.
+- `js/productivity.js` — current-period RM, IMD, branch, opportunity, concentration, and reusable bank indexes.
+- `js/performance.js`, `js/activation.js`, `js/scorecard.js`, `js/target.js` — business calculation adapters and renderers.
+- `js/utilities.js` — shared formatting, bank/branch identity, month ordering, and HTML escaping.
+- `app.js` — lightweight tab navigation and active-page selection.
 
-The normalized fact table is retained once. The current filtered view contains references to those same row objects. Derived aggregates are rebuilt on every filter refresh, avoiding stale caches and repeated module-level scans.
+The normalized fact table is retained once. A refresh performs one organisational-scope pass, reuses month buckets for CURRENT PERIOD and YTD, rebuilds shared current-period analytics/productivity, and renders only the active page. Data Quality is recalculated only after a successful import.
 
-### Performance hotspots addressed
+## CSV schema
 
-Before Phase 6, each renderer independently scanned the current rows, Performance and Scorecard rebuilt branches separately, Activation made several additional branch scans, Target rescanned the full bank scope for monthly actuals, and high-cardinality tables could create unbounded DOM. CSV parsing and normalization also ran synchronously on the UI thread. Phase 6 consolidates those calculations into the shared refresh object, derives YTD/MTD and bank-month totals during core filtering, moves import work to a worker when available, and limits only the rendered subsets.
-
-## Supported CSV schema
-
-Mandatory headers:
-
-- `USGI NET PREMIUM`
-- `Month`
-- `INTERMEDIARY`
-- `BA NAME`
-- `Ba Code`
-- `LINE OF BUSINESS`
-- `BRANCH NAME`
+Mandatory headers: `USGI NET PREMIUM`, `Month`, `INTERMEDIARY`, `BA NAME`, `Ba Code`, `LINE OF BUSINESS`, and `BRANCH NAME`.
 
 Optional headers: `Zone`, `STATE`, `SUM IMD CODE`, `Business Type`, `PRODUCT NAME`, `PRODUCT CODE`, and `Day`.
 
-Premium must be numeric. Rows missing Month, Bank, or Branch, rows with invalid premium, and structurally unusable rows are rejected and counted. Missing RM, BA Code, or LOB values are accepted with warnings. Branch identity is canonical `Bank + Branch Name`, so identical branch names at different banks remain distinct.
+Invalid premium, missing Month/Bank/Branch, and structurally unusable rows are rejected. Missing RM, BA Code, or LOB is accepted with a warning. Negative numeric premium is preserved and reported. Canonical branch identity is currently `Bank + Branch Name`.
 
-## Operating instructions
+## KPI and time-scope contract
 
-1. Serve or open `index.html` in a modern browser. Serving from a small local static server is recommended because some browsers restrict workers on `file://` pages; the synchronous fallback remains available.
-2. Select a `.csv` file from the upload control.
-3. Review progress and the import summary before using Month and Bank filters.
-4. Configure overall and optional bank targets on Target & Growth. Targets last for the current browser session.
+- **CURRENT PERIOD:** the selected Month. With Month `ALL`, the latest available **configured** fiscal month within the selected Bank scope.
+- **YTD:** configured fiscal months from April through the selected/latest configured progression month.
+- **FULL UPLOAD:** all accepted rows within the organisational Bank scope. Data Quality deliberately audits the complete accepted import across banks.
+- A specifically selected **unconfigured month** can act as CURRENT PERIOD, but it is excluded from fiscal YTD, elapsed months, and target progression.
+- Performance YTD Premium uses YTD. Rankings, activation, productivity, Scorecard, and opportunity metrics use CURRENT PERIOD.
+- Active Branch means current-period premium ≥ ₹25,000. Near Active means ≥ ₹15,000 and < ₹25,000.
+- Bank Activation % uses configured branch universe. Zone/State Activation % uses observed current-period branches.
+- Conflicting current-period Zone/State mappings are represented as `Multiple mappings`, never by first-row selection.
 
-All processing stays within the browser. A failed import does not replace the previous valid dataset.
+## Data Quality diagnostics
 
-## Performance and safety notes
+The cached full-upload audit reports hierarchy and identity conflicts, month/bank coverage, premium signs, optional-field completeness, exact duplicate signals, and branch-universe sanity. Diagnostics are signals only: rows are not corrected, removed, or deduplicated.
 
-- Large CSV parsing and normalization use a native Web Worker when available.
-- Progress reports reading, parsing, row processing, analytics building, and completion.
-- A single derived layer calculates shared totals, dimension aggregates, canonical branches, activation thresholds, locations, and counts.
-- RM, opportunity, zone, state, bank, and LOB displays are capped at 50 or 100 rendered rows with truncation notices; full analytics remain in memory.
-- Every CSV-derived string inserted into dynamic HTML is escaped with the shared sanitizer.
-- Local synthetic tests cover approximately 10K, 100K, and 500K rows. Actual results depend on browser, hardware, CSV width, and distinct branch cardinality.
+Hierarchy and identity tables show at most 100 rows, duplicate samples at most 50 groups, and high-cardinality coverage lists at most 100 values. Every truncated view shows `Showing X of Y`; summary counts retain complete diagnostic totals. Duplicate fingerprints remain heuristic without a transaction/policy identifier.
 
-## Known limitations
+## Productivity, opportunity, and management drill-down
 
-- CSV data and calculated analytics remain memory-resident; very large or unusually wide files require sufficient browser memory.
-- Worker startup may be blocked when opening directly with restrictive `file://` browser policies; processing then falls back to the main thread.
-- The parser supports quoted commas, escaped quotes, CRLF/LF, and UTF-8 BOM, but is intentionally not a repair tool for severely corrupted CSV files.
-- Tables intentionally show only the highest-ranked subset for responsiveness.
+RM productivity uses `Bank + BA Code`; IMD productivity uses `Bank + IMD Code`. Mapping conflicts remain visible. Aggregate Activation Gap is the sum of `₹25,000 − branch premium` for CURRENT PERIOD Near Active branches.
 
-## Local tests
+The Scorecard supports `Partner Bank → RM/IMD → Branch Opportunity` using reusable derived indexes. Unknown uploaded banks appear in `ALL` mode with premium and contribution, `Branch Universe: Not configured`, `Activation %: N/A`, and `UNCONFIGURED` priority unless a material Data Quality ERROR applies. No activation denominator is fabricated.
 
-Run with an installed Node runtime; Node is used only as a dependency-free test runner and is not required by the application:
+Configured-bank priorities are deterministic: NO DATA; CRITICAL for bank Data Quality ERROR or activation <10% with Near Active; HIGH below 20% with Near Active; MEDIUM below 40% or with Near Active; LOW at 40%+ with no Near Active. Management cues are rules, not predictions.
+
+## Targets
+
+Overall and bank-specific targets are retained in browser session storage. Monthly phasing is equal 1/12. For partial-year uploads, YTD Target and RRR use only configured elapsed months. `FY Complete` applies only at March. Drill-down displays bank target context when a bank target exists.
+
+## Performance and privacy
+
+- CSV parsing and normalization use a native Web Worker when available; restrictive `file://` environments use the synchronous fallback.
+- Only the active page renders after imports or filter changes; switching tabs renders the latest shared state.
+- Main analytical tables and diagnostic displays are bounded; full calculations remain in memory.
+- Uploaded values are escaped before dynamic HTML rendering.
+- No uploaded data or targets are transmitted over a network.
+- Synthetic Node benchmarks cover CSV/shared analytics through 500K rows but are not browser certification.
+
+Known limitations: data and analytics are memory-resident; very large imports depend on browser/hardware capacity; negative-premium business treatment is not yet approved; branch identity depends on names; configured universes require governance; targets are session-only; and 1M-row browser support is not claimed.
+
+## Running tests
 
 ```text
-node tests/phase5.test.js
-node tests/phase6.test.js
+node tests/run-all.js
 node --max-old-space-size=4096 tests/benchmark.js
 ```
+
+The master runner excludes benchmarks and runs Phase 5, Phase 6, and Steps 8.1A–8.1E.

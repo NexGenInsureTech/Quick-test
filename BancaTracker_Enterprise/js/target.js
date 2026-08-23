@@ -29,17 +29,24 @@
     targetState.monthlyTarget = Number(value) / 12;
   }
 
-  function elapsedMonths(selectedMonth) {
-    if (selectedMonth === "ALL") return 12;
+  function elapsedMonths(selectedMonth, latestFiscalMonth) {
+    if (selectedMonth === "ALL") {
+      const latestIndex = config.FISCAL_MONTHS.indexOf(latestFiscalMonth);
+      return latestIndex >= 0 ? latestIndex + 1 : null;
+    }
     const index = config.FISCAL_MONTHS.indexOf(selectedMonth);
     return index >= 0 ? index + 1 : null;
   }
 
   function calculateTarget(context) {
     const bank = global.BancaTrackerCore.state.filters.bank;
+    return calculateTargetForBank(context, bank, context.ytdPremium);
+  }
+
+  function calculateTargetForBank(context, bank, ytdPremium) {
     const annualTarget = bank === "ALL" ? targetState.fiscalYearTarget : (Object.prototype.hasOwnProperty.call(targetState.bankTargets, bank) ? targetState.bankTargets[bank] : null);
-    const elapsed = elapsedMonths(context.selectedMonth);
-    const actual = context.ytdPremium / CRORE;
+    const elapsed = context.elapsedMonths == null ? elapsedMonths(context.selectedMonth, context.latestFiscalMonth) : context.elapsedMonths;
+    const actual = Number(ytdPremium || 0) / CRORE;
     const ytdTarget = annualTarget === null || elapsed === null ? null : (annualTarget / 12) * elapsed;
     const achievement = ytdTarget > 0 ? (actual / ytdTarget) * 100 : null;
     const gap = ytdTarget === null ? null : ytdTarget - actual;
@@ -48,9 +55,8 @@
     let rrrLabel = "Target not set";
     if (annualTarget !== null && elapsed !== null) {
       const remainingTarget = annualTarget - actual;
-      if (context.selectedMonth === "ALL") rrrLabel = "Full-year view";
-      else if (remainingTarget <= 0) rrrLabel = "Target achieved";
-      else if (remainingMonths === 0) rrrLabel = "FY Complete";
+      if (remainingTarget <= 0) rrrLabel = "Target achieved";
+      else if (remainingMonths === 0 && context.progressionMonth === config.FISCAL_MONTHS[11]) rrrLabel = "FY Complete";
       else { rrr = remainingTarget / remainingMonths; rrrLabel = `${formatCrore(rrr)}/month`; }
     }
     return { bank, annualTarget, elapsed, actual, ytdTarget, achievement, gap, remainingMonths, rrr, rrrLabel };
@@ -108,7 +114,7 @@
     ];
     document.getElementById("targetKpis").innerHTML = cards.map(([label, value]) => `<div class='card'><div>${label}</div><div class='value'>${value}</div></div>`).join("");
     document.getElementById("targetProgress").innerHTML = `<table><thead><tr><th>Month</th><th>Target</th><th>Actual</th><th>Achievement %</th></tr></thead><tbody>${monthlyRows(context, result.annualTarget)}</tbody></table>`;
-    document.getElementById("targetProgressNote").textContent = result.elapsed === null ? `${context.selectedMonth} is not configured and is not included in fiscal target progression.` : (result.annualTarget === 0 ? "A zero target is valid, but achievement is undefined." : "Monthly targets use an equal 1/12 allocation for this MVP.");
+    document.getElementById("targetProgressNote").textContent = result.elapsed === null ? `${context.selectedMonth} is not a configured fiscal progression point and is excluded from YTD target progression.` : (result.annualTarget === 0 ? "A zero target is valid, but achievement is undefined." : `YTD uses ${result.elapsed} configured fiscal month${result.elapsed === 1 ? "" : "s"} through ${context.progressionMonth}; ${result.remainingMonths} month${result.remainingMonths === 1 ? "" : "s"} remain. Monthly targets use an equal 1/12 allocation.`);
     document.getElementById("targetInterpretation").innerHTML = `<div class='target-interpretation'>${utils.escapeHtml(interpretation(result.achievement))}</div><p class='target-note'>Descriptive indicator based on YTD achievement; it is not predictive.</p>`;
   }
 
@@ -147,7 +153,6 @@
   document.getElementById("saveOverallTarget").addEventListener("click", saveOverall);
   document.getElementById("saveBankTarget").addEventListener("click", saveBank);
   document.getElementById("targetBank").addEventListener("change", syncBankInput);
-  global.BancaTrackerTarget = Object.freeze({ targetState, elapsedMonths, calculateTarget, interpretation, isValidTarget });
+  global.BancaTrackerTarget = Object.freeze({ targetState, elapsedMonths, calculateTarget, calculateTargetForBank, interpretation, isValidTarget });
   global.refreshTarget = refreshTarget;
-  refreshTarget(global.BancaTrackerCore.getPerformanceContext());
 })(window);

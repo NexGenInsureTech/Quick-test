@@ -8,11 +8,14 @@
       metrics.totalPremium += row.premium; increment(metrics.banks, row.bank, row.premium); increment(metrics.rms, row.rm, row.premium); increment(metrics.lobs, row.lob, row.premium); increment(metrics.months, row.month, row.premium);
       if (row.imd) metrics.imds.add(row.imd); if (row.baCode) metrics.baCodes.add(row.baCode); if (row.bank && row.bank !== "Unknown") metrics.partnerBanks.add(row.bank);
       const key = utils.branchKey(row.bank, row.branch); let branch = metrics.branchesByKey[key];
-      if (!branch) branch = metrics.branchesByKey[key] = { key, branch: row.branch || "Unknown", bank: row.bank, premium: 0, zone: row.zone || "", state: row.state || "" };
+      if (!branch) branch = metrics.branchesByKey[key] = { key, branch: row.branch || "Unknown", bank: row.bank, premium: 0, zone: row.zone || "", state: row.state || "", zones: new Set(), states: new Set(), baCodes: new Set(), rmNames: new Set(), imds: new Set(), lobs: new Set(), productCodes: new Set() };
       branch.premium += row.premium;
+      if (row.zone) branch.zones.add(row.zone); if (row.state) branch.states.add(row.state); if (row.baCode) branch.baCodes.add(row.baCode); if (row.rm) branch.rmNames.add(row.rm); if (row.imd) branch.imds.add(row.imd); if (row.lob) branch.lobs.add(row.lob); if (row.productCode) branch.productCodes.add(row.productCode);
     });
     metrics.branches = Object.values(metrics.branchesByKey);
     metrics.branches.forEach((branch) => {
+      branch.zone = branch.zones.size > 1 ? "Multiple mappings" : ([...branch.zones][0] || "Unknown");
+      branch.state = branch.states.size > 1 ? "Multiple mappings" : ([...branch.states][0] || "Unknown");
       const active = branch.premium >= config.THRESHOLDS.ACTIVE_BRANCH; const near = branch.premium >= config.THRESHOLDS.NEAR_ACTIVE_MIN && branch.premium < config.THRESHOLDS.ACTIVE_BRANCH;
       if (active) metrics.activeBranches.push(branch); if (near) metrics.nearActiveBranches.push(branch);
       const band = utils.getBranchBand(branch.premium); metrics.branchBands[band] = (metrics.branchBands[band] || 0) + 1;

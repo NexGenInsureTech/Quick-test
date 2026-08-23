@@ -2,10 +2,6 @@
 (function (global) {
   const getConfig = () => global.BancaTrackerConfig;
 
-  function parseNumber(value) {
-    return Number(String(value || 0).replace(/,/g, "").trim()) || 0;
-  }
-
   function formatInr(value) {
     return Number(value || 0).toLocaleString("en-IN");
   }
@@ -15,35 +11,12 @@
     return `${value.toFixed(1)}%`;
   }
 
-  function parseCSV(text) {
-    return global.BancaTrackerCsvProcessor.parseCSV(text);
-  }
-
-  function headerIndex(headers, name) {
-    return headers.findIndex((header) => String(header).trim().toUpperCase() === name.toUpperCase());
-  }
-
-  function buildHeaderMap(headers, names) {
-    return names.reduce((map, name) => {
-      map[name] = headerIndex(headers, name);
-      return map;
-    }, {});
-  }
-
   function orderMonths(months) {
     const uniqueMonths = [...new Set(months.filter(Boolean))];
     const fiscalMonths = getConfig().FISCAL_MONTHS;
     const configured = fiscalMonths.filter((month) => uniqueMonths.includes(month));
     const otherMonths = uniqueMonths.filter((month) => !fiscalMonths.includes(month));
     return [...configured, ...otherMonths];
-  }
-
-  function aggregatePremium(data, key) {
-    return data.reduce((totals, row) => {
-      const group = row[key] || "Blank";
-      totals[group] = (totals[group] || 0) + row.premium;
-      return totals;
-    }, {});
   }
 
   function premiumTotal(data) {
@@ -58,26 +31,6 @@
 
   function branchKey(bank, branch) {
     return `${normalizeBank(bank)}::${String(branch || "Unknown").trim() || "Unknown"}`;
-  }
-
-  function buildBranchMetrics(data) {
-    return data.reduce((branches, row) => {
-      const bank = normalizeBank(row.bank);
-      const branch = String(row.branch || "Unknown").trim() || "Unknown";
-      const key = branchKey(bank, branch);
-      if (!branches[key]) {
-        branches[key] = {
-          key,
-          branch,
-          bank,
-          premium: 0,
-          zone: row.zone || "",
-          state: row.state || ""
-        };
-      }
-      branches[key].premium += row.premium;
-      return branches;
-    }, {});
   }
 
   function getBranchBand(premium) {
@@ -95,7 +48,6 @@
   }
 
   global.BancaTrackerUtils = Object.freeze({
-    parseNumber, formatInr, formatPercent, parseCSV, headerIndex, buildHeaderMap, orderMonths,
-    aggregatePremium, premiumTotal, normalizeBank, branchKey, buildBranchMetrics, getBranchBand, escapeHtml
+    formatInr, formatPercent, orderMonths, premiumTotal, normalizeBank, branchKey, getBranchBand, escapeHtml
   });
 })(window);

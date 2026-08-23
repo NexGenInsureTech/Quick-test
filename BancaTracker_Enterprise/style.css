@@ -9,6 +9,7 @@ body {
     gap: 10px;
     flex-wrap: wrap
 }
+.toolbar button.active-tab { background: #17375e; color: #fff }
 
 .status-error {
     color: #b00020;
@@ -17,17 +18,6 @@ body {
 
 .import-summary { margin: 8px 0; color: #556070; font-size: 13px }
 .table-limit-note { color: #556070; font-size: 12px; text-align: center; font-weight: normal }
-
-.tabs{
-    display:flex;
-    gap:10px;
-    margin:15px 0;
-}
-
-.tabs button{
-    padding:10px 15px;
-    cursor:pointer;
-}
 
 .cards {
     display: grid;
@@ -134,12 +124,26 @@ th {
 }
 
 .priority-high { background: #f8d7da; color: #8a1c25 }
+.priority-critical { background: #8a1c25; color: #fff }
+.priority-unconfigured { background: #dce9f7; color: #17375e }
 .priority-medium { background: #fff0c2; color: #795600 }
 .priority-low { background: #d1e7dd; color: #155b3a }
 .priority-no-data { background: #e9ecef; color: #495057 }
+
+.quality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px }
+.quality-severity { display: inline-block; border-radius: 12px; padding: 2px 7px; font-size: 11px; font-weight: bold }
+.quality-error { background: #f8d7da; color: #8a1c25 }
+.quality-warning { background: #fff0c2; color: #795600 }
+.quality-info { background: #dce9f7; color: #17375e }
+.productivity-table { overflow-x: auto }
+.management-link { border: 0; background: none; color: #17375e; text-decoration: underline; cursor: pointer; padding: 0; font: inherit; font-weight: 600 }
+.management-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 0 }
+.management-summary > div { background: #f3f5f7; border-radius: 8px; padding: 10px; min-width: 120px }
+.management-subdetail { border-left: 4px solid #17375e }
 
 @media(max-width:900px) {
     .grid {
         grid-template-columns: 1fr
     }
+    .quality-grid { grid-template-columns: 1fr }
 }
