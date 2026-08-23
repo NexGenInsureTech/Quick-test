@@ -906,12 +906,78 @@ function renderDeductibles() {
 
 function clearQuoteHero() {
   document.getElementById("quoteHero").hidden = true;
+  document.getElementById(
+    "quotePremiumLabel"
+  ).textContent = "";
   document.getElementById("finalPremium").textContent = "";
   document.getElementById("dailyCost").textContent = "";
   document.getElementById("heroTax").textContent = "";
   document.getElementById(
     "quoteDecisionStatus"
   ).textContent = "";
+}
+
+function renderQuoteDecisionPresentation({
+  quote,
+  decision
+} = {}) {
+  const hero = document.getElementById("quoteHero");
+  const premiumLabel = document.getElementById(
+    "quotePremiumLabel"
+  );
+  const premium = document.getElementById(
+    "finalPremium"
+  );
+  const dailyCost = document.getElementById(
+    "dailyCost"
+  );
+  const tax = document.getElementById("heroTax");
+  const decisionStatus = document.getElementById(
+    "quoteDecisionStatus"
+  );
+  const quoteStatus = document.getElementById(
+    "quoteStatus"
+  );
+
+  hero.hidden = false;
+
+  if (decision.decision === "ASSISTED_ONLY") {
+    premiumLabel.textContent =
+      "Assisted quotation required";
+    premium.textContent = "";
+    dailyCost.textContent = "";
+    tax.textContent = "";
+    decisionStatus.textContent =
+      "One or more selected covers require assisted pricing or assessment before a complete premium can be confirmed.";
+    quoteStatus.textContent =
+      "Assisted quotation required";
+    return;
+  }
+
+  premiumLabel.textContent = "Indicative Premium";
+  premium.textContent =
+    `${PresentationUtils.formatCurrency(
+      quote.finalPremium
+    )} / year`;
+  dailyCost.textContent =
+    `Approx. ${PresentationUtils.formatCurrency(
+      PresentationUtils.calculateDailyCost(
+        quote.finalPremium
+      )
+    )}/day`;
+  tax.textContent = quote.taxLabel;
+
+  if (decision.decision === "UW_REFERRAL") {
+    quoteStatus.textContent =
+      "Underwriting review required";
+    decisionStatus.textContent =
+      "Underwriting review required. The premium shown is indicative. Final acceptance, terms and payable premium will be confirmed after underwriting.";
+    return;
+  }
+
+  quoteStatus.textContent = "Indicative premium ready";
+  decisionStatus.textContent =
+    "Indicative premium based on the information currently selected. Final acceptance and policy issuance remain subject to applicable proposal and underwriting requirements.";
 }
 
 function clearDeductibleQuote() {
@@ -1250,38 +1316,13 @@ function updateBaseQuote() {
       quote.basePremium
     );
 
-  statusElement.textContent = quoteDecision.decision ===
-    "UW_REFERRAL"
-    ? "Underwriting review required"
-    : "Indicative premium ready";
-
   taxDisclosureElement.textContent =
     quote.taxLabel;
 
-  document.getElementById("quoteHero").hidden = false;
-  document.getElementById(
-    "finalPremium"
-  ).textContent =
-    `${PresentationUtils.formatCurrency(
-      quote.finalPremium
-    )} / year`;
-  document.getElementById(
-    "dailyCost"
-  ).textContent =
-    `Approx. ${PresentationUtils.formatCurrency(
-      PresentationUtils.calculateDailyCost(
-        quote.finalPremium
-      )
-    )}/day`;
-  document.getElementById(
-    "heroTax"
-  ).textContent = quote.taxLabel;
-  document.getElementById(
-    "quoteDecisionStatus"
-  ).textContent = quoteDecision.decision ===
-    "UW_REFERRAL"
-    ? "Underwriting review required. The premium shown is indicative. Final acceptance, terms and payable premium will be confirmed after underwriting."
-    : "Indicative premium based on the information currently selected. Final acceptance and policy issuance remain subject to applicable proposal and underwriting requirements.";
+  renderQuoteDecisionPresentation({
+    quote,
+    decision: quoteDecision
+  });
 
   breakdownElement.innerHTML =
     result.members.map(member => {

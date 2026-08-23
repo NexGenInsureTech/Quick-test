@@ -278,6 +278,13 @@ button.card:hover {
     font-weight: 600;
 }
 
+.quote-premium-label {
+    margin-top: 10px;
+    color: #334155;
+    font-size: 15px;
+    font-weight: 600;
+}
+
 .annual-premium {
     margin-top: 6px;
     color: #0057b8;
@@ -411,6 +418,7 @@ button.card:hover {
     color: #334155;
     font-size: 14px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 #quoteStatus {
@@ -473,6 +481,7 @@ button.card:hover {
 
     .annual-premium {
         font-size: 30px;
+        overflow-wrap: anywhere;
     }
 
     .premium-box {
