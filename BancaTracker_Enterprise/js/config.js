@@ -19,7 +19,7 @@
     FISCAL_MONTHS: ["Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26", "Sep-26", "Oct-26", "Nov-26", "Dec-26", "Jan-27", "Feb-27", "Mar-27"],
     CSV_COLUMNS: {
       MANDATORY: ["USGI NET PREMIUM", "Month", "INTERMEDIARY", "BA NAME", "Ba Code", "LINE OF BUSINESS", "BRANCH NAME"],
-      OPTIONAL: ["Zone", "STATE", "SUM IMD CODE", "Business Type", "PRODUCT NAME", "PRODUCT CODE", "Day"]
+      OPTIONAL: ["Zone", "STATE", "SUM IMD CODE", "Business Type", "PRODUCT NAME", "PRODUCT CODE", "Day", "POLICY ISSUED DATE"]
     },
     BANK_ALIASES: {
       "INDIAN BANK": "INDIAN BANK",
