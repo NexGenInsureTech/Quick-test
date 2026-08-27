@@ -151,6 +151,7 @@ th {
 .master-import-controls input, .master-import-controls select, .master-import-controls button { min-height: 32px; box-sizing: border-box }
 .master-confirmation { margin-top: 12px; padding: 12px; border-left: 4px solid #17375e; background: #f3f5f7 }
 .master-import-error { color: #b00020; font-weight: 600 }
+.canonical-quality-section { margin-top: 24px; padding-top: 8px; border-top: 2px solid #ddd }
 
 @media(max-width:900px) {
     .grid {

@@ -255,6 +255,40 @@
         <h2>Branch Universe Sanity</h2>
         <div id="branchUniverseSanity"></div>
       </div>
+      <section class="canonical-quality-section" aria-labelledby="canonicalQualityHeading">
+        <h2 id="canonicalQualityHeading">Canonical &amp; Master Data Quality</h2>
+        <p id="canonicalQualityScope" class="scorecard-note"></p>
+        <section id="canonicalQualitySummary" class="cards" aria-live="polite"></section>
+        <div class="grid">
+          <div class="panel master-data-table">
+            <h2>Master Coverage</h2>
+            <div id="canonicalMasterCoverage"></div>
+          </div>
+          <div class="panel master-data-table">
+            <h2>Resolution Quality</h2>
+            <div id="canonicalResolutionQuality"></div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="panel master-data-table">
+            <h2>Source vs Canonical Comparison</h2>
+            <div id="canonicalComparisons"></div>
+          </div>
+          <div class="panel">
+            <h2>Reconciliation Status</h2>
+            <div id="canonicalReconciliation"></div>
+          </div>
+        </div>
+        <div class="panel master-data-table">
+          <h2>Canonical Finding Summary</h2>
+          <div id="canonicalFindingSummary"></div>
+        </div>
+        <div class="panel master-data-table">
+          <h2>Canonical Finding Detail</h2>
+          <div id="canonicalFindingDetails"></div>
+          <p id="canonicalFindingLimit" class="table-limit-note"></p>
+        </div>
+      </section>
     </div>
     <div id="masterDataPage" style="display: none">
       <header class="master-data-header">
@@ -359,6 +393,7 @@
     <script src="js/enrichment/enrichmentPipeline.js"></script>
     <script src="js/enrichment/shadowEnrichment.js"></script>
     <script src="js/enrichment/readinessDiagnostics.js"></script>
+    <script src="js/canonicalDataQuality.js"></script>
     <script src="js/masterDataImport.js"></script>
     <script src="js/masterDataAdmin.js"></script>
   </body>
