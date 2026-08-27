@@ -51,7 +51,8 @@
       if (premium < 0) negativePremiumRows += 1;
       const missingDescriptors = ["BA NAME", "Ba Code", "LINE OF BUSINESS"].filter((name) => !valueAt(source, name));
       if (missingDescriptors.length) { warningRows += 1; addReason(warningReasons, `Missing ${missingDescriptors.join("/")}`); }
-      rows.push({ premium, month, bank: normalizeBank(bankText, config.BANK_ALIASES), rm: valueAt(source, "BA NAME"), baCode: valueAt(source, "Ba Code"), lob: valueAt(source, "LINE OF BUSINESS"), branch, zone: valueAt(source, "Zone"), state: valueAt(source, "STATE"), imd: valueAt(source, "SUM IMD CODE"), businessType: valueAt(source, "Business Type"), productName: valueAt(source, "PRODUCT NAME"), productCode: valueAt(source, "PRODUCT CODE"), day: valueAt(source, "Day"), policyIssuedDate: valueAt(source, "POLICY ISSUED DATE") });
+      const branchCode = valueAt(source, "SUM IMD CODE");
+      rows.push({ premium, month, bank: normalizeBank(bankText, config.BANK_ALIASES), rm: valueAt(source, "BA NAME"), baCode: valueAt(source, "Ba Code"), lob: valueAt(source, "LINE OF BUSINESS"), branch, branchCode, zone: valueAt(source, "Zone"), state: valueAt(source, "STATE"), imd: branchCode, businessType: valueAt(source, "Business Type"), productName: valueAt(source, "PRODUCT NAME"), productCode: valueAt(source, "PRODUCT CODE"), day: valueAt(source, "Day"), policyIssuedDate: valueAt(source, "POLICY ISSUED DATE") });
       if (onProgress && (i % 25000 === 0 || i === totalRows)) onProgress({ stage: `Processing ${Math.min(i, totalRows).toLocaleString("en-IN")} / ${totalRows.toLocaleString("en-IN")} rows...` });
     }
     if (totalRows > 0 && rows.length === 0) throw new Error(`Unable to load CSV: no usable data rows. Rejected ${totalRows.toLocaleString("en-IN")} row(s).`);

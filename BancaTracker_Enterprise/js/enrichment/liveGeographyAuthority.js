@@ -57,7 +57,7 @@ Purpose : Apply governed State and Zone authority to live fact records
     const branchResolution = global.BancaTrackerBranchResolver.resolveBranch(
       {
         bankId: record.bankId || record.bank,
-        branchCode: record.branchCode || record.baCode,
+        branchCode: record.branchCode,
         branchName: record.branchName || record.branch,
       },
       maps.branchMaps,

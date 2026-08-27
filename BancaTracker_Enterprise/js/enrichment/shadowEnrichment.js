@@ -41,7 +41,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
       premium: row.premium,
       bankId: row.bankId || row.bank || null,
       bankName: row.bankName || row.bank || null,
-      branchCode: row.branchCode || row.baCode || null,
+      branchCode: row.branchCode || null,
       branchName: row.branchName || row.branch || null,
       state: Object.prototype.hasOwnProperty.call(row, "legacyState")
         ? row.legacyState
@@ -49,7 +49,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
       zone: Object.prototype.hasOwnProperty.call(row, "legacyZone")
         ? row.legacyZone
         : row.zone || null,
-      rmId: row.rmId || null,
+      rmId: row.baCode || null,
       rmName: row.rmName || row.rm || null,
       productCode: row.productCode || null,
       productName: row.productName || null,

@@ -32,7 +32,8 @@ function processedRow(overrides = {}) {
     month: "Aug-26",
     bank: "IB",
     rm: "RM One",
-    baCode: "00123",
+    baCode: "RM001",
+    branchCode: "00123",
     lob: "Health",
     branch: "Guwahati Main",
     zone: "East",
@@ -43,7 +44,6 @@ function processedRow(overrides = {}) {
     day: 24,
     policyNumber: "P001",
     policyIssuedDate: "24/08/2026",
-    rmId: "RM001",
     ...overrides,
   };
 }
@@ -285,14 +285,15 @@ function buildFullContext() {
   const adapted = Shadow.adaptRecord({
     premium: 1,
     bank: "IB",
-    baCode: "00123",
+    baCode: "RM001",
+    branchCode: "00123",
     branch: "Guwahati Main",
     rm: "RM One",
   });
   assert.strictEqual(adapted.bankId, "IB");
   assert.strictEqual(adapted.branchCode, "00123");
   assert.strictEqual(adapted.rmName, "RM One");
-  assert.strictEqual(adapted.rmId, null);
+  assert.strictEqual(adapted.rmId, "RM001");
 
   class Element {
     constructor() {

@@ -34,7 +34,7 @@ const geographyOnly = { geographyMaps, branchMaps: null };
 function source(overrides = {}) {
   return {
     premium: 100, month: "Aug-26", day: 24, policyIssuedDate: "24/08/2026",
-    dateAuthority: "CANONICAL", bank: "IB", baCode: "00123",
+    dateAuthority: "CANONICAL", bank: "IB", baCode: "RM001", branchCode: "00123",
     branch: "Guwahati Main", state: "Assam", zone: "North", ...overrides,
   };
 }
@@ -63,18 +63,18 @@ assert.strictEqual(conflict.state, "Assam");
 assert.strictEqual(conflict.zone, "East");
 assert.strictEqual(conflict.branchSourceStateMismatch, true);
 
-const branchUnmapped = Authority.applyRecord(source({ baCode: "00999", branch: "Unknown", zone: "West" }), fullContext);
+const branchUnmapped = Authority.applyRecord(source({ branchCode: "00999", branch: "Unknown", zone: "West" }), fullContext);
 assert.strictEqual(branchUnmapped.branchResolutionStatus, "UNMAPPED");
 assert.strictEqual(branchUnmapped.geographyAuthority, "GOVERNED_SOURCE_STATE");
 assert.strictEqual(branchUnmapped.zone, "East");
 
-const unmapped = Authority.applyRecord(source({ baCode: "00999", branch: "Unknown", state: "Atlantis", zone: "East" }), fullContext);
+const unmapped = Authority.applyRecord(source({ branchCode: "00999", branch: "Unknown", state: "Atlantis", zone: "East" }), fullContext);
 assert.strictEqual(unmapped.geographyAuthority, "UNMAPPED");
 assert.strictEqual(unmapped.state, "Atlantis");
 assert.strictEqual(unmapped.zone, null);
 assert.strictEqual(unmapped.legacyZone, "East");
 
-const missing = Authority.applyRecord(source({ baCode: "00999", branch: "Unknown", state: "", zone: "East" }), fullContext);
+const missing = Authority.applyRecord(source({ branchCode: "00999", branch: "Unknown", state: "", zone: "East" }), fullContext);
 assert.strictEqual(missing.geographyAuthority, "UNMAPPED");
 assert.strictEqual(missing.zone, null);
 
