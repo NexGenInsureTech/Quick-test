@@ -20,7 +20,8 @@
       ><button id="targetTab">Target &amp; Growth</button
       ><span id="status">Upload CSV</span
       ><button id="productivityTab">Productivity &amp; Opportunity</button
-      ><button id="qualityTab">Data Quality</button>
+      ><button id="qualityTab">Data Quality</button
+      ><button id="masterDataTab">Master Data</button>
     </div>
     <div id="importSummary" class="import-summary" aria-live="polite"></div>
     <div id="misPage">
@@ -255,6 +256,47 @@
         <div id="branchUniverseSanity"></div>
       </div>
     </div>
+    <div id="masterDataPage" style="display: none">
+      <header class="master-data-header">
+        <h2>Master Data</h2>
+        <p class="scorecard-note">Reference data and canonical-readiness status</p>
+      </header>
+      <section id="masterReadinessSummary" class="cards" aria-live="polite"></section>
+      <div class="panel master-data-table">
+        <h2>Structural Master Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Master</th>
+              <th>Status</th>
+              <th>Active Dataset</th>
+              <th>Rows</th>
+              <th>Purpose / Coverage</th>
+            </tr>
+          </thead>
+          <tbody id="masterStatusRows"></tbody>
+        </table>
+      </div>
+      <div class="panel master-data-table">
+        <h2>Resolution Coverage</h2>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Coverage</th><th>Resolved / Eligible</th></tr>
+          </thead>
+          <tbody id="masterCoverageRows"></tbody>
+        </table>
+      </div>
+      <div class="grid">
+        <section class="panel" aria-labelledby="masterBlockersHeading">
+          <h2 id="masterBlockersHeading">Blockers</h2>
+          <div id="masterBlockers"></div>
+        </section>
+        <section class="panel" aria-labelledby="masterWarningsHeading">
+          <h2 id="masterWarningsHeading">Warnings</h2>
+          <div id="masterWarnings"></div>
+        </section>
+      </div>
+    </div>
     <script src="js/config.js"></script>
     <script src="js/csvProcessor.js"></script>
     <script src="js/utilities.js"></script>
@@ -290,5 +332,6 @@
     <script src="js/enrichment/enrichmentPipeline.js"></script>
     <script src="js/enrichment/shadowEnrichment.js"></script>
     <script src="js/enrichment/readinessDiagnostics.js"></script>
+    <script src="js/masterDataAdmin.js"></script>
   </body>
 </html>

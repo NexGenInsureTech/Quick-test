@@ -140,6 +140,12 @@ th {
 .management-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 0 }
 .management-summary > div { background: #f3f5f7; border-radius: 8px; padding: 10px; min-width: 120px }
 .management-subdetail { border-left: 4px solid #17375e }
+.master-data-header { margin-top: 18px }
+.master-data-header h2 { margin-bottom: 0 }
+.master-data-table { overflow-x: auto }
+.master-status { font-weight: 700 }
+.master-diagnostic-list { margin: 0; padding-left: 20px }
+.master-diagnostic-list li + li { margin-top: 6px }
 
 @media(max-width:900px) {
     .grid {
