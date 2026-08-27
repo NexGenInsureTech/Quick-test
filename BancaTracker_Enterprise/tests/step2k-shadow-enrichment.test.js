@@ -362,7 +362,7 @@ function buildFullContext() {
     {
       premium: 100,
       month: "Aug-26",
-      day: "24",
+      day: 24,
       zone: "East",
       bank: "IB",
       branch: "Guwahati Main",
@@ -383,8 +383,10 @@ function buildFullContext() {
   shadowResultPromise = captureRealShadowRun();
   const mismatchCsv = `${header}\n100,Jul-26,IB,RM One,00123,Health,Guwahati Main,North,Assam,IMD001,23,24/08/2026`;
   assert.ok(BancaTrackerCore.loadCsvText(mismatchCsv));
-  assert.strictEqual(BancaTrackerCore.state.factData[0].month, "Jul-26");
-  assert.strictEqual(BancaTrackerCore.state.factData[0].day, "23");
+  assert.strictEqual(BancaTrackerCore.state.factData[0].month, "Aug-26");
+  assert.strictEqual(BancaTrackerCore.state.factData[0].day, 24);
+  assert.strictEqual(BancaTrackerCore.state.factData[0].legacyMonth, "Jul-26");
+  assert.strictEqual(BancaTrackerCore.state.factData[0].legacyDay, "23");
   assert.strictEqual(BancaTrackerCore.state.factData[0].zone, "North");
   realShadowResult = await shadowResultPromise;
   canonicalDate = realShadowResult.canonicalResults[0].transaction;
@@ -406,7 +408,9 @@ function buildFullContext() {
   const invalidDateCsv = `${header}\n100,Aug-26,IB,RM One,00123,Health,Guwahati Main,East,Assam,IMD001,24,31/04/2026`;
   assert.ok(BancaTrackerCore.loadCsvText(invalidDateCsv));
   assert.strictEqual(BancaTrackerCore.state.factData.length, 1);
-  assert.strictEqual(BancaTrackerCore.state.derived.totalPremium, 100);
+  assert.strictEqual(BancaTrackerCore.state.derived.totalPremium, 0);
+  assert.strictEqual(BancaTrackerCore.state.factData[0].premium, 100);
+  assert.strictEqual(BancaTrackerCore.state.factData[0].dateAuthority, "INVALID");
   realShadowResult = await shadowResultPromise;
   assert.strictEqual(realShadowResult.status, "PARTIAL");
   assert.strictEqual(realShadowResult.invalidRecordCount, 1);

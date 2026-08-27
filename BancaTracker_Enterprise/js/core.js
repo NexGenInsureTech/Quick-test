@@ -51,8 +51,30 @@
     }).catch(() => null);
   }
 
+  function applyDateAuthority(record) {
+    const legacyMonth = record.month;
+    const legacyDay = record.day;
+    const policyIssuedDate = String(record.policyIssuedDate || "").trim();
+    if (!policyIssuedDate) {
+      return { ...record, legacyMonth, legacyDay, dateAuthority: "LEGACY_FALLBACK" };
+    }
+    const resolver = global.BancaTrackerDateResolver;
+    const resolution = resolver && typeof resolver.resolve === "function"
+      ? resolver.resolve(policyIssuedDate)
+      : { success: false, error: "DATE_RESOLVER_UNAVAILABLE" };
+    if (!resolution.success) {
+      return { ...record, legacyMonth, legacyDay, month: null, day: null, dateAuthority: "INVALID", dateAuthorityError: resolution.error };
+    }
+    return {
+      ...record, legacyMonth, legacyDay,
+      month: resolution.monthLabel, day: resolution.day,
+      dateAuthority: "CANONICAL", year: resolution.year,
+      monthKey: resolution.monthKey, financialYear: resolution.financialYear,
+    };
+  }
+
   function commitImport(result) {
-    setStatus("Building analytics...", false); state.factData = result.rows; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
+    setStatus("Building analytics...", false); state.factData = result.rows.map(applyDateAuthority); result.rows = state.factData; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
     const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); });
     state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); result.summary.unconfiguredMonths = state.months.filter((month) => !config.FISCAL_MONTHS.includes(month)); state.importSummary = result.summary;
     state.dataQuality = global.BancaTrackerDataQuality.build(state.factData, config, result.summary);
@@ -65,5 +87,5 @@
   function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }
   function getPerformanceContext() { return state.context || buildContext(); }
-  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
+  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment, applyDateAuthority }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
 })(window);

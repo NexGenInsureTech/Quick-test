@@ -77,7 +77,13 @@ Purpose : Render additive canonical and master-data diagnostics
   function buildModel(shadowResult) {
     const diagnostics = global.BancaTrackerReadinessDiagnostics;
     const readiness = diagnostics.buildReadiness(shadowResult || null);
-    return { readiness, findings: aggregateFindings(shadowResult) };
+    return {
+      readiness,
+      findings: aggregateFindings(shadowResult),
+      dateAuthority: shadowResult && shadowResult.dateAuthoritySummary
+        ? shadowResult.dateAuthoritySummary
+        : { canonical: 0, legacyFallback: 0, invalid: 0, unspecified: 0 },
+    };
   }
 
   function table(headers, rows, emptyMessage) {
@@ -96,6 +102,9 @@ Purpose : Render additive canonical and master-data diagnostics
       ["Canonical Readiness", displayStatus], ["Source Records", records.source || 0],
       ["Canonical Records", records.canonical || 0], ["Ready", records.ready || 0],
       ["Ready With Warnings", records.readyWithWarnings || 0], ["Invalid", records.invalid || 0],
+      ["Canonical Date Authority", model.dateAuthority.canonical || 0],
+      ["Legacy Date Fallback", model.dateAuthority.legacyFallback || 0],
+      ["Invalid Date Authority", model.dateAuthority.invalid || 0],
     ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
 
     document.getElementById("canonicalMasterCoverage").innerHTML = table(

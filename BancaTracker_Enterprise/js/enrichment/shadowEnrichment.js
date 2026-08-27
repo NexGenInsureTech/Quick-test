@@ -50,8 +50,12 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
       productCode: row.productCode || null,
       productName: row.productName || null,
       lob: row.lob || null,
-      month: row.month || null,
-      day: row.day || null,
+      month: Object.prototype.hasOwnProperty.call(row, "legacyMonth")
+        ? row.legacyMonth
+        : row.month || null,
+      day: Object.prototype.hasOwnProperty.call(row, "legacyDay")
+        ? row.legacyDay
+        : row.day || null,
     };
   }
 
@@ -239,6 +243,19 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     };
   }
 
+  function buildDateAuthoritySummary(records) {
+    return records.reduce(
+      (summary, record) => {
+        if (record.dateAuthority === "CANONICAL") summary.canonical += 1;
+        else if (record.dateAuthority === "LEGACY_FALLBACK") summary.legacyFallback += 1;
+        else if (record.dateAuthority === "INVALID") summary.invalid += 1;
+        else summary.unspecified += 1;
+        return summary;
+      },
+      { canonical: 0, legacyFallback: 0, invalid: 0, unspecified: 0 },
+    );
+  }
+
   async function run(records, options = {}) {
     const runId = ++runSequence;
     const startedAt = nowIso();
@@ -279,6 +296,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         masterStatus: preparedContext.masterStatus,
         reconciliation,
         summary,
+        dateAuthoritySummary: buildDateAuthoritySummary(records),
         error: null,
       });
 
@@ -300,6 +318,9 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         masterStatus: null,
         reconciliation: null,
         summary: { warningCount: 0, invalidCount: 0 },
+        dateAuthoritySummary: buildDateAuthoritySummary(
+          Array.isArray(records) ? records : [],
+        ),
         error: {
           name: error.name || "Error",
           message: error.message || String(error),
@@ -333,5 +354,6 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     buildContext,
     buildReconciliation,
     buildSummary,
+    buildDateAuthoritySummary,
   });
 })();
