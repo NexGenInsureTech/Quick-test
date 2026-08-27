@@ -83,6 +83,9 @@ Purpose : Render additive canonical and master-data diagnostics
       dateAuthority: shadowResult && shadowResult.dateAuthoritySummary
         ? shadowResult.dateAuthoritySummary
         : { canonical: 0, legacyFallback: 0, invalid: 0, unspecified: 0 },
+      geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
+        ? shadowResult.geographyAuthoritySummary
+        : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
     };
   }
 
@@ -105,6 +108,11 @@ Purpose : Render additive canonical and master-data diagnostics
       ["Canonical Date Authority", model.dateAuthority.canonical || 0],
       ["Legacy Date Fallback", model.dateAuthority.legacyFallback || 0],
       ["Invalid Date Authority", model.dateAuthority.invalid || 0],
+      ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
+      ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],
+      ["Legacy Geography Fallback", model.geographyAuthority.legacyFallback || 0],
+      ["Unmapped Governed Geography", model.geographyAuthority.unmapped || 0],
+      ["Branch / Source State Conflict", model.geographyAuthority.branchSourceStateMismatch || 0],
     ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
 
     document.getElementById("canonicalMasterCoverage").innerHTML = table(

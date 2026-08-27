@@ -43,8 +43,12 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
       bankName: row.bankName || row.bank || null,
       branchCode: row.branchCode || row.baCode || null,
       branchName: row.branchName || row.branch || null,
-      state: row.state || null,
-      zone: row.zone || null,
+      state: Object.prototype.hasOwnProperty.call(row, "legacyState")
+        ? row.legacyState
+        : row.state || null,
+      zone: Object.prototype.hasOwnProperty.call(row, "legacyZone")
+        ? row.legacyZone
+        : row.zone || null,
       rmId: row.rmId || null,
       rmName: row.rmName || row.rm || null,
       productCode: row.productCode || null,
@@ -256,6 +260,29 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     );
   }
 
+  function buildGeographyAuthoritySummary(records) {
+    return records.reduce(
+      (summary, record) => {
+        const status = record.geographyAuthority;
+        if (status === "GOVERNED_BRANCH") summary.governedBranch += 1;
+        else if (status === "GOVERNED_SOURCE_STATE") summary.governedSourceState += 1;
+        else if (status === "LEGACY_FALLBACK") summary.legacyFallback += 1;
+        else if (status === "UNMAPPED") summary.unmapped += 1;
+        else summary.unspecified += 1;
+        if (record.branchSourceStateMismatch) summary.branchSourceStateMismatch += 1;
+        return summary;
+      },
+      {
+        governedBranch: 0,
+        governedSourceState: 0,
+        legacyFallback: 0,
+        unmapped: 0,
+        unspecified: 0,
+        branchSourceStateMismatch: 0,
+      },
+    );
+  }
+
   async function run(records, options = {}) {
     const runId = ++runSequence;
     const startedAt = nowIso();
@@ -297,6 +324,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         reconciliation,
         summary,
         dateAuthoritySummary: buildDateAuthoritySummary(records),
+        geographyAuthoritySummary: buildGeographyAuthoritySummary(records),
         error: null,
       });
 
@@ -319,6 +347,9 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         reconciliation: null,
         summary: { warningCount: 0, invalidCount: 0 },
         dateAuthoritySummary: buildDateAuthoritySummary(
+          Array.isArray(records) ? records : [],
+        ),
+        geographyAuthoritySummary: buildGeographyAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),
         error: {
@@ -355,5 +386,6 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     buildReconciliation,
     buildSummary,
     buildDateAuthoritySummary,
+    buildGeographyAuthoritySummary,
   });
 })();
