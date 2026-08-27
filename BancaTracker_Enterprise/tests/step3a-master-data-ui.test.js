@@ -185,9 +185,6 @@ function shadowResult(rows, overrides = {}) {
   }
   assert.match(elements.masterCoverageRows.innerHTML, /6 \/ 7/);
 
-  assert.doesNotMatch(sourceHtml, /masterDataPage[\s\S]{0,3000}(upload|replace|delete|activate)/i);
-  assert.doesNotMatch(sourceHtml, /id="master[^"\s]*(Upload|Replace|Delete|Activate)/i);
-
   const pagePairs = [
     ["misTab", "misPage"], ["actTab", "activationPage"], ["scoreTab", "scorecardPage"],
     ["targetTab", "targetPage"], ["productivityTab", "productivityPage"], ["qualityTab", "qualityPage"],

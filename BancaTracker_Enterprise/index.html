@@ -262,6 +262,32 @@
         <p class="scorecard-note">Reference data and canonical-readiness status</p>
       </header>
       <section id="masterReadinessSummary" class="cards" aria-live="polite"></section>
+      <section class="panel" aria-labelledby="masterImportHeading">
+        <h2 id="masterImportHeading">Import Structural Master</h2>
+        <div class="master-import-controls">
+          <label>Master type<select id="masterImportType"></select></label>
+          <label>CSV file<input id="masterImportFile" type="file" accept=".csv,text/csv" /></label>
+          <button id="cancelMasterImport" type="button">Cancel</button>
+        </div>
+        <p id="masterSchemaHelp" class="scorecard-note"></p>
+        <p id="masterImportStatus" class="scorecard-note" aria-live="polite">Select a master type and CSV file to validate.</p>
+        <div id="masterImportPreview" hidden>
+          <section id="masterImportSummary" class="cards"></section>
+          <div class="master-data-table">
+            <table>
+              <thead><tr><th>Severity</th><th>Code</th><th>Row</th><th>Field</th><th>Message</th></tr></thead>
+              <tbody id="masterImportFindings"></tbody>
+            </table>
+          </div>
+          <p id="masterFindingLimit" class="table-limit-note"></p>
+          <button id="reviewMasterActivation" type="button" disabled>Review Activation</button>
+          <div id="masterActivationConfirmation" class="master-confirmation" hidden>
+            <p id="masterActivationPrompt"></p>
+            <button id="confirmMasterActivation" type="button">Confirm and Activate</button>
+            <button id="closeMasterActivation" type="button">Go Back</button>
+          </div>
+        </div>
+      </section>
       <div class="panel master-data-table">
         <h2>Structural Master Status</h2>
         <table>
@@ -272,6 +298,7 @@
               <th>Active Dataset</th>
               <th>Rows</th>
               <th>Purpose / Coverage</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="masterStatusRows"></tbody>
@@ -332,6 +359,7 @@
     <script src="js/enrichment/enrichmentPipeline.js"></script>
     <script src="js/enrichment/shadowEnrichment.js"></script>
     <script src="js/enrichment/readinessDiagnostics.js"></script>
+    <script src="js/masterDataImport.js"></script>
     <script src="js/masterDataAdmin.js"></script>
   </body>
 </html>

@@ -405,6 +405,33 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     return Db.getAllByIndex(storeName, "datasetId", datasetId);
   }
 
+  async function saveStagedMasterRecords(datasetId, records) {
+    const dataset = await getDataset(datasetId);
+
+    if (!dataset) {
+      throw new Error(`Dataset not found: ${datasetId}`);
+    }
+
+    assertPersistentMasterDataset(dataset.datasetType);
+
+    if (dataset.status !== DATASET_STATUS.STAGED) {
+      throw new Error(
+        `Records may only be saved for a STAGED dataset. Current status: ${dataset.status}`,
+      );
+    }
+
+    if (!Array.isArray(records)) {
+      throw new TypeError("Master records must be an array.");
+    }
+
+    if (records.some((record) => !record || record.datasetId !== datasetId)) {
+      throw new Error("Every master record must reference the staged datasetId.");
+    }
+
+    const storeName = Registry.getStoreForDatasetType(dataset.datasetType);
+    return Db.putMany(storeName, records);
+  }
+
   /*==============================================================
   PUBLIC API
   ==============================================================*/
@@ -424,6 +451,7 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     activateDataset,
     markDatasetFailed,
     discardStagedDataset,
+    saveStagedMasterRecords,
 
     getActiveMasterRecords,
   });

@@ -125,7 +125,8 @@ Purpose : Render read-only master metadata and canonical readiness
     document.getElementById("masterStatusRows").innerHTML = model.masters.map((master) => {
       const supporting = [master.fileName, master.uploadedAt ? displayTimestamp(master.uploadedAt) : null]
         .filter(Boolean).join(" · ");
-      return `<tr><td>${escapeHtml(master.label)}</td><td><span class="master-status">${escapeHtml(displayStatus(master.status))}</span></td><td>${displayValue(master.datasetId)}${supporting ? `<div class="scorecard-note">${escapeHtml(master.fileName || "")} ${master.uploadedAt ? `· ${displayTimestamp(master.uploadedAt)}` : ""}</div>` : ""}</td><td>${displayValue(master.recordCount)}</td><td>${escapeHtml(master.purpose)}</td></tr>`;
+      const action = master.status === "ACTIVE" ? "Replace" : "Upload";
+      return `<tr><td>${escapeHtml(master.label)}</td><td><span class="master-status">${escapeHtml(displayStatus(master.status))}</span></td><td>${displayValue(master.datasetId)}${supporting ? `<div class="scorecard-note">${escapeHtml(master.fileName || "")} ${master.uploadedAt ? `· ${displayTimestamp(master.uploadedAt)}` : ""}</div>` : ""}</td><td>${displayValue(master.recordCount)}</td><td>${escapeHtml(master.purpose)}</td><td><button type="button" data-master-type="${escapeHtml(master.type)}">${action}</button></td></tr>`;
     }).join("");
   }
 
@@ -177,10 +178,112 @@ Purpose : Render read-only master metadata and canonical readiness
     return renderViewModel(buildViewModel(readiness, metadata));
   }
 
+  const FINDING_LIMIT = 100;
+
+  function renderSchemaHelp(datasetType) {
+    const schema = global.BancaTrackerMasterDataImport.SCHEMAS[datasetType];
+    document.getElementById("masterSchemaHelp").textContent = schema
+      ? `Required: ${schema.required.join(", ")}. Optional: ${schema.optional.join(", ") || "None"}.`
+      : "";
+  }
+
+  function renderImportPreview(preview) {
+    document.getElementById("masterImportPreview").hidden = false;
+    document.getElementById("masterImportSummary").innerHTML = [
+      ["Master", global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label],
+      ["File", preview.fileName || "—"], ["Rows", preview.rowCount],
+      ["Errors", preview.errorCount], ["Warnings", preview.warningCount],
+      ["Validation", preview.valid ? "VALID" : "INVALID"],
+    ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
+    const findings = preview.findings.slice(0, FINDING_LIMIT);
+    document.getElementById("masterImportFindings").innerHTML = findings.length
+      ? findings.map((finding) => `<tr><td>${escapeHtml(finding.severity)}</td><td>${escapeHtml(finding.code)}</td><td>${displayValue(finding.rowNumber || finding.sourceRowNumber)}</td><td>${displayValue(finding.field)}</td><td>${escapeHtml(finding.message)}</td></tr>`).join("")
+      : `<tr><td colspan="5" class="empty-state">No validation findings.</td></tr>`;
+    document.getElementById("masterFindingLimit").textContent = preview.findings.length > FINDING_LIMIT
+      ? `Showing first ${FINDING_LIMIT} of ${preview.findings.length.toLocaleString("en-IN")} findings.`
+      : `Showing ${preview.findings.length} finding(s).`;
+    document.getElementById("reviewMasterActivation").disabled = !global.BancaTrackerMasterDataImport.canCommit(preview);
+    document.getElementById("masterActivationConfirmation").hidden = true;
+  }
+
+  function resetImportUi() {
+    global.BancaTrackerMasterDataImport.cancelImport();
+    document.getElementById("masterImportFile").value = "";
+    document.getElementById("masterImportPreview").hidden = true;
+    document.getElementById("masterActivationConfirmation").hidden = true;
+    document.getElementById("masterImportStatus").textContent = "Select a master type and CSV file to validate.";
+  }
+
+  function initializeImportUi() {
+    const typeSelect = document.getElementById("masterImportType");
+    if (!typeSelect || !typeSelect.dataset || typeSelect.dataset.initialized) return;
+    typeSelect.dataset.initialized = "true";
+    typeSelect.innerHTML = MASTER_DEFINITIONS.map((item) => `<option value="${item.type}">${escapeHtml(item.label)}</option>`).join("");
+    typeSelect.value = MASTER_DEFINITIONS[0].type;
+    renderSchemaHelp(typeSelect.value);
+    typeSelect.addEventListener("change", () => { resetImportUi(); renderSchemaHelp(typeSelect.value); });
+    document.getElementById("masterImportFile").addEventListener("change", async (event) => {
+      const status = document.getElementById("masterImportStatus");
+      try {
+        status.className = "scorecard-note";
+        status.textContent = "Parsing and validating CSV…";
+        const file = event.target.files[0];
+        const parsed = await global.BancaTrackerMasterDataImport.parseFile(file);
+        const preview = await global.BancaTrackerMasterDataImport.prepareImport(typeSelect.value, parsed, { fileName: file.name });
+        renderImportPreview(preview);
+        status.textContent = preview.valid ? "Validation passed. Review activation when ready." : "Validation failed. Correct the errors before activation.";
+        if (!preview.valid) status.className = "master-import-error";
+      } catch (error) {
+        status.className = "master-import-error";
+        status.textContent = error.message || "Unable to validate the selected CSV.";
+        document.getElementById("masterImportPreview").hidden = true;
+      }
+    });
+    document.getElementById("cancelMasterImport").addEventListener("click", resetImportUi);
+    document.getElementById("reviewMasterActivation").addEventListener("click", () => {
+      const preview = global.BancaTrackerMasterDataImport.getCurrentPreview();
+      if (!global.BancaTrackerMasterDataImport.canCommit(preview)) return;
+      document.getElementById("masterActivationPrompt").textContent = `Activate this ${global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label} and replace the currently active version, if any?`;
+      document.getElementById("masterActivationConfirmation").hidden = false;
+    });
+    document.getElementById("closeMasterActivation").addEventListener("click", () => { document.getElementById("masterActivationConfirmation").hidden = true; });
+    document.getElementById("confirmMasterActivation").addEventListener("click", async (event) => {
+      const status = document.getElementById("masterImportStatus");
+      event.target.disabled = true;
+      try {
+        status.className = "scorecard-note";
+        status.textContent = "Staging, saving and activating master…";
+        await global.BancaTrackerMasterDataImport.commitImport();
+        status.textContent = "Master activated successfully.";
+        document.getElementById("masterImportPreview").hidden = true;
+        await render();
+        const rows = global.BancaTrackerCore && global.BancaTrackerCore.state.factData;
+        if (rows && rows.length && global.BancaTrackerShadowEnrichment) {
+          global.BancaTrackerShadowEnrichment.run(rows).then(() => render()).catch(() => null);
+        }
+      } catch (error) {
+        status.className = "master-import-error";
+        status.textContent = error.message || "Master activation failed. The previous active version remains unchanged.";
+      } finally { event.target.disabled = false; }
+    });
+    document.getElementById("masterStatusRows").addEventListener("click", (event) => {
+      const type = event.target && event.target.dataset && event.target.dataset.masterType;
+      if (!type) return;
+      typeSelect.value = type;
+      resetImportUi();
+      renderSchemaHelp(type);
+      document.getElementById("masterImportFile").focus();
+    });
+  }
+
+  initializeImportUi();
+
   global.BancaTrackerMasterDataAdmin = Object.freeze({
     render,
     renderViewModel,
     buildViewModel,
     loadMasterMetadata,
+    renderImportPreview,
+    initializeImportUi,
   });
 })(window);
