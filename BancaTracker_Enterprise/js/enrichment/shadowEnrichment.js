@@ -41,8 +41,12 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
       premium: row.premium,
       bankId: row.bankId || row.bank || null,
       bankName: row.bankName || row.bank || null,
-      branchCode: row.branchCode || null,
-      branchName: row.branchName || row.branch || null,
+      branchCode: Object.prototype.hasOwnProperty.call(row, "legacyBranchCode")
+        ? row.legacyBranchCode
+        : row.branchCode || null,
+      branchName: Object.prototype.hasOwnProperty.call(row, "legacyBranchName")
+        ? row.legacyBranchName
+        : row.branchName || row.branch || null,
       state: Object.prototype.hasOwnProperty.call(row, "legacyState")
         ? row.legacyState
         : row.state || null,
@@ -283,6 +287,17 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     );
   }
 
+  function buildBranchAuthoritySummary(records) {
+    return records.reduce((summary, record) => {
+      const key = {
+        GOVERNED_EXACT: "governedExact", GOVERNED_FALLBACK: "governedFallback",
+        LEGACY_FALLBACK: "legacyFallback", UNMAPPED: "unmapped", AMBIGUOUS: "ambiguous",
+      }[record.branchAuthority] || "unspecified";
+      summary[key] += 1;
+      return summary;
+    }, { governedExact: 0, governedFallback: 0, legacyFallback: 0, unmapped: 0, ambiguous: 0, unspecified: 0 });
+  }
+
   async function run(records, options = {}) {
     const runId = ++runSequence;
     const startedAt = nowIso();
@@ -324,6 +339,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         reconciliation,
         summary,
         dateAuthoritySummary: buildDateAuthoritySummary(records),
+        branchAuthoritySummary: buildBranchAuthoritySummary(records),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(records),
         error: null,
       });
@@ -347,6 +363,9 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         reconciliation: null,
         summary: { warningCount: 0, invalidCount: 0 },
         dateAuthoritySummary: buildDateAuthoritySummary(
+          Array.isArray(records) ? records : [],
+        ),
+        branchAuthoritySummary: buildBranchAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(
@@ -386,6 +405,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     buildReconciliation,
     buildSummary,
     buildDateAuthoritySummary,
+    buildBranchAuthoritySummary,
     buildGeographyAuthoritySummary,
   });
 })();

@@ -32,9 +32,9 @@
     const quality = audit || { baCodeConflicts: [], hierarchyConflicts: [], productConflicts: [], bankQuality: { unknownBanks: [] } };
     const rms = new Map(); const imds = new Map(); const businessTypes = new Map();
     context.currentPeriodData.forEach((row) => {
-      const branchKey = utils.branchKey(row.bank, row.branch);
-      if (clean(row.baCode)) { const key = `${row.bank}::${row.baCode}`; if (!rms.has(key)) rms.set(key, entityBase(key, row.bank, row.baCode)); const item = rms.get(key); item.premium += row.premium; item.records += 1; item.branchKeys.add(branchKey); addSet(item.names, row.rm); addSet(item.lobs, row.lob); addSet(item.productCodes, row.productCode); }
-      if (clean(row.imd)) { const key = `${row.bank}::${row.imd}`; if (!imds.has(key)) imds.set(key, entityBase(key, row.bank, row.imd)); const item = imds.get(key); item.premium += row.premium; item.records += 1; item.branchKeys.add(branchKey); addSet(item.baCodes, row.baCode); addSet(item.lobs, row.lob); addSet(item.productCodes, row.productCode); }
+      const branchKey = utils.branchIdentityKey(row);
+      if (clean(row.baCode)) { const key = `${row.bank}::${row.baCode}`; if (!rms.has(key)) rms.set(key, entityBase(key, row.bank, row.baCode)); const item = rms.get(key); item.premium += row.premium; item.records += 1; if (branchKey) item.branchKeys.add(branchKey); addSet(item.names, row.rm); addSet(item.lobs, row.lob); addSet(item.productCodes, row.productCode); }
+      if (clean(row.imd)) { const key = `${row.bank}::${row.imd}`; if (!imds.has(key)) imds.set(key, entityBase(key, row.bank, row.imd)); const item = imds.get(key); item.premium += row.premium; item.records += 1; if (branchKey) item.branchKeys.add(branchKey); addSet(item.baCodes, row.baCode); addSet(item.lobs, row.lob); addSet(item.productCodes, row.productCode); }
       const businessType = clean(row.businessType) || "Unknown"; businessTypes.set(businessType, (businessTypes.get(businessType) || 0) + row.premium);
     });
     const rmMetrics = [...rms.values()].map((item) => finalizeEntity(item, derived, "rm", quality)).sort((a, b) => b.premium - a.premium || a.code.localeCompare(b.code));

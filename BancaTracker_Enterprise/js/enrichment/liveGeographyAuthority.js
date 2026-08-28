@@ -11,19 +11,25 @@ Purpose : Apply governed State and Zone authority to live fact records
 
   let cachedContext = null;
 
-  async function loadContext(repository = global.BancaTrackerRepository) {
-    if (!repository) return setCachedContext({ geographyMaps: null, branchMaps: null });
-    const [geographyRecords, branchRecords] = await Promise.all([
-      repository.getActiveMasterRecords("GEOGRAPHY_MASTER").catch(() => []),
-      repository.getActiveMasterRecords("BRANCH_MASTER").catch(() => []),
-    ]);
+  async function loadContext(repository = global.BancaTrackerRepository, branchContext = null) {
+    if (!repository) return setCachedContext({ ...(branchContext || {}), geographyMaps: null, branchMaps: branchContext && branchContext.branchMaps || null });
+    const geographyRecords = await repository
+      .getActiveMasterRecords("GEOGRAPHY_MASTER")
+      .catch(() => []);
+    let branchMaps = branchContext && branchContext.branchMaps;
+    if (!branchContext) {
+      const branchRecords = await repository
+        .getActiveMasterRecords("BRANCH_MASTER")
+        .catch(() => []);
+      branchMaps = branchRecords.length
+        ? global.BancaTrackerBranchResolver.buildLookupMaps(branchRecords)
+        : null;
+    }
     return setCachedContext({
       geographyMaps: geographyRecords.length
         ? global.BancaTrackerGeographyResolver.buildLookupMaps(geographyRecords)
         : null,
-      branchMaps: branchRecords.length
-        ? global.BancaTrackerBranchResolver.buildLookupMaps(branchRecords)
-        : null,
+      branchMaps: branchMaps || null,
     });
   }
 
@@ -54,14 +60,13 @@ Purpose : Apply governed State and Zone authority to live fact records
       };
     }
 
-    const branchResolution = global.BancaTrackerBranchResolver.resolveBranch(
-      {
-        bankId: record.bankId || record.bank,
-        branchCode: record.branchCode,
-        branchName: record.branchName || record.branch,
-      },
-      maps.branchMaps,
-    );
+    const hasBranchAuthority = Boolean(record.branchAuthority);
+    const branchResolution = hasBranchAuthority
+      ? { success: /^GOVERNED_/.test(record.branchAuthority), stateId: record.stateId, status: record.branchResolutionStatus }
+      : global.BancaTrackerBranchResolver.resolveBranch(
+          { bankId: record.bankId || record.bank, branchCode: record.branchCode, branchName: record.branchName || record.branch },
+          maps.branchMaps,
+        );
     const governedByBranch = Boolean(branchResolution.success && branchResolution.stateId);
     const geographyInput = governedByBranch ? branchResolution.stateId : legacyState;
     const geographyResolution = global.BancaTrackerGeographyResolver.resolveState(

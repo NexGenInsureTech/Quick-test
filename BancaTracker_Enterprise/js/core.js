@@ -73,12 +73,15 @@
     };
   }
 
-  function commitImport(result, geographyContext) {
+  function commitImport(result, authorityContext) {
     const dateRows = result.rows.map(applyDateAuthority);
+    const branchAuthority = global.BancaTrackerLiveBranchAuthority;
     const geographyAuthority = global.BancaTrackerLiveGeographyAuthority;
+    const context = authorityContext || (geographyAuthority && geographyAuthority.getCachedContext()) || (branchAuthority && branchAuthority.getCachedContext());
+    const branchRows = branchAuthority ? branchAuthority.applyRecords(dateRows, context) : dateRows;
     setStatus("Building analytics...", false); state.factData = geographyAuthority
-      ? geographyAuthority.applyRecords(dateRows, geographyContext || geographyAuthority.getCachedContext())
-      : dateRows; result.rows = state.factData; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
+      ? geographyAuthority.applyRecords(branchRows, context)
+      : branchRows; result.rows = state.factData; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
     const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); });
     state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); result.summary.unconfiguredMonths = state.months.filter((month) => !config.FISCAL_MONTHS.includes(month)); state.importSummary = result.summary;
     state.dataQuality = global.BancaTrackerDataQuality.build(state.factData, config, result.summary);
@@ -88,7 +91,7 @@
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
   function loadCsvText(text) { try { const result = processSynchronously(text); commitImport(result); return result; } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text) { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(event.data.stage, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
-  function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } const geographyAuthority = global.BancaTrackerLiveGeographyAuthority; const geographyContext = geographyAuthority ? await geographyAuthority.loadContext() : null; commitImport(result, geographyContext); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
+  function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } const branchAuthority = global.BancaTrackerLiveBranchAuthority; const geographyAuthority = global.BancaTrackerLiveGeographyAuthority; const branchContext = branchAuthority ? await branchAuthority.loadContext() : null; const authorityContext = geographyAuthority ? await geographyAuthority.loadContext(undefined, branchContext) : branchContext; commitImport(result, authorityContext); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }
   function getPerformanceContext() { return state.context || buildContext(); }
   global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment, applyDateAuthority }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
