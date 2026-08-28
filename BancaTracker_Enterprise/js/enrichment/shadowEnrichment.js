@@ -318,6 +318,23 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     }, initial);
   }
 
+  function buildHierarchyAuthoritySummary(records) {
+    const initial = {
+      resolved: 0, partial: 0, masterAbsent: 0, assignmentUnresolved: 0,
+      hierarchyUnmapped: 0, invalidChain: 0, unspecified: 0, missingEmployeeMetadata: 0,
+    };
+    return records.reduce((summary, record) => {
+      const key = {
+        RESOLVED: "resolved", PARTIAL: "partial", MASTER_ABSENT: "masterAbsent",
+        ASSIGNMENT_UNRESOLVED: "assignmentUnresolved",
+        HIERARCHY_UNMAPPED: "hierarchyUnmapped", INVALID_CHAIN: "invalidChain",
+      }[record.hierarchyAuthority] || "unspecified";
+      summary[key] += 1;
+      summary.missingEmployeeMetadata += Number(record.hierarchyEmployeeMetadataMissing || 0);
+      return summary;
+    }, initial);
+  }
+
   async function run(records, options = {}) {
     const runId = ++runSequence;
     const startedAt = nowIso();
@@ -361,6 +378,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         dateAuthoritySummary: buildDateAuthoritySummary(records),
         branchAuthoritySummary: buildBranchAuthoritySummary(records),
         assignmentAuthoritySummary: buildAssignmentAuthoritySummary(records),
+        hierarchyAuthoritySummary: buildHierarchyAuthoritySummary(records),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(records),
         error: null,
       });
@@ -390,6 +408,9 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
           Array.isArray(records) ? records : [],
         ),
         assignmentAuthoritySummary: buildAssignmentAuthoritySummary(
+          Array.isArray(records) ? records : [],
+        ),
+        hierarchyAuthoritySummary: buildHierarchyAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(
@@ -431,6 +452,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     buildDateAuthoritySummary,
     buildBranchAuthoritySummary,
     buildAssignmentAuthoritySummary,
+    buildHierarchyAuthoritySummary,
     buildGeographyAuthoritySummary,
   });
 })();

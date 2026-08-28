@@ -89,6 +89,9 @@ Purpose : Render additive canonical and master-data diagnostics
       assignmentAuthority: shadowResult && shadowResult.assignmentAuthoritySummary
         ? shadowResult.assignmentAuthoritySummary
         : { assigned: 0, masterAbsent: 0, branchUnresolved: 0, unmapped: 0, ambiguous: 0, unspecified: 0, match: 0, mismatch: 0, sourceMissing: 0, assignedMissing: 0, notComparable: 0 },
+      hierarchyAuthority: shadowResult && shadowResult.hierarchyAuthoritySummary
+        ? shadowResult.hierarchyAuthoritySummary
+        : { resolved: 0, partial: 0, masterAbsent: 0, assignmentUnresolved: 0, hierarchyUnmapped: 0, invalidChain: 0, unspecified: 0, missingEmployeeMetadata: 0 },
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -129,6 +132,13 @@ Purpose : Render additive canonical and master-data diagnostics
       ["Source RM Missing", model.assignmentAuthority.sourceMissing || 0],
       ["Assigned RM Missing", model.assignmentAuthority.assignedMissing || 0],
       ["RM Not Comparable", model.assignmentAuthority.notComparable || 0],
+      ["Governed Hierarchy: Resolved", model.hierarchyAuthority.resolved || 0],
+      ["Governed Hierarchy: Partial", model.hierarchyAuthority.partial || 0],
+      ["Hierarchy Master Absent", model.hierarchyAuthority.masterAbsent || 0],
+      ["Hierarchy Blocked by Assignment", model.hierarchyAuthority.assignmentUnresolved || 0],
+      ["Hierarchy Unmapped", model.hierarchyAuthority.hierarchyUnmapped || 0],
+      ["Invalid Hierarchy Chain", model.hierarchyAuthority.invalidChain || 0],
+      ["Missing Hierarchy Employee Metadata", model.hierarchyAuthority.missingEmployeeMetadata || 0],
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],
       ["Legacy Geography Fallback", model.geographyAuthority.legacyFallback || 0],
