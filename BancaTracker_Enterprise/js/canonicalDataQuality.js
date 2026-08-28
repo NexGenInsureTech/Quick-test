@@ -86,6 +86,9 @@ Purpose : Render additive canonical and master-data diagnostics
       branchAuthority: shadowResult && shadowResult.branchAuthoritySummary
         ? shadowResult.branchAuthoritySummary
         : { governedExact: 0, governedFallback: 0, legacyFallback: 0, unmapped: 0, ambiguous: 0, unspecified: 0 },
+      assignmentAuthority: shadowResult && shadowResult.assignmentAuthoritySummary
+        ? shadowResult.assignmentAuthoritySummary
+        : { assigned: 0, masterAbsent: 0, branchUnresolved: 0, unmapped: 0, ambiguous: 0, unspecified: 0, match: 0, mismatch: 0, sourceMissing: 0, assignedMissing: 0, notComparable: 0 },
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -116,6 +119,16 @@ Purpose : Render additive canonical and master-data diagnostics
       ["Legacy Branch Fallback", model.branchAuthority.legacyFallback || 0],
       ["Unmapped Branch", model.branchAuthority.unmapped || 0],
       ["Ambiguous Branch", model.branchAuthority.ambiguous || 0],
+      ["Governed Assignment: Assigned", model.assignmentAuthority.assigned || 0],
+      ["Assignment Master Absent", model.assignmentAuthority.masterAbsent || 0],
+      ["Branch Unresolved for Assignment", model.assignmentAuthority.branchUnresolved || 0],
+      ["Assignment Unmapped", model.assignmentAuthority.unmapped || 0],
+      ["Assignment Ambiguous", model.assignmentAuthority.ambiguous || 0],
+      ["Source / Assigned RM Match", model.assignmentAuthority.match || 0],
+      ["Source / Assigned RM Mismatch", model.assignmentAuthority.mismatch || 0],
+      ["Source RM Missing", model.assignmentAuthority.sourceMissing || 0],
+      ["Assigned RM Missing", model.assignmentAuthority.assignedMissing || 0],
+      ["RM Not Comparable", model.assignmentAuthority.notComparable || 0],
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],
       ["Legacy Geography Fallback", model.geographyAuthority.legacyFallback || 0],

@@ -26,6 +26,7 @@ Purpose : Apply governed State and Zone authority to live fact records
         : null;
     }
     return setCachedContext({
+      ...(branchContext || {}),
       geographyMaps: geographyRecords.length
         ? global.BancaTrackerGeographyResolver.buildLookupMaps(geographyRecords)
         : null,

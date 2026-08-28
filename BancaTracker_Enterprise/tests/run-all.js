@@ -1,6 +1,6 @@
 /* Dependency-free master regression runner. Benchmarks are intentionally excluded. */
 const { spawnSync } = require("child_process"); const path = require("path");
-const groups = ["phase5.test.js", "phase6.test.js", "step81a.test.js", "step81b.test.js", "step81c.test.js", "step81d.test.js", "step81e.test.js", "step2j-reconciliation.test.js", "step2k-shadow-enrichment.test.js", "step2l-readiness-diagnostics.test.js", "step3a-master-data-ui.test.js", "step3b-master-data-import.test.js", "step3c-canonical-data-quality.test.js", "step4a-canonical-date-authority.test.js", "step4b-governed-geography-authority.test.js", "step4c1-pr-identity-contract.test.js", "step4c-durable-branch-authority.test.js"];
+const groups = ["phase5.test.js", "phase6.test.js", "step81a.test.js", "step81b.test.js", "step81c.test.js", "step81d.test.js", "step81e.test.js", "step2j-reconciliation.test.js", "step2k-shadow-enrichment.test.js", "step2l-readiness-diagnostics.test.js", "step3a-master-data-ui.test.js", "step3b-master-data-import.test.js", "step3c-canonical-data-quality.test.js", "step4a-canonical-date-authority.test.js", "step4b-governed-geography-authority.test.js", "step4c1-pr-identity-contract.test.js", "step4c-durable-branch-authority.test.js", "step4d-assigned-rm-authority.test.js"];
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });

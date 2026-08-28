@@ -298,6 +298,26 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     }, { governedExact: 0, governedFallback: 0, legacyFallback: 0, unmapped: 0, ambiguous: 0, unspecified: 0 });
   }
 
+  function buildAssignmentAuthoritySummary(records) {
+    const initial = {
+      assigned: 0, masterAbsent: 0, branchUnresolved: 0, unmapped: 0, ambiguous: 0, unspecified: 0,
+      match: 0, mismatch: 0, sourceMissing: 0, assignedMissing: 0, notComparable: 0,
+    };
+    return records.reduce((summary, record) => {
+      const authorityKey = {
+        ASSIGNED: "assigned", MASTER_ABSENT: "masterAbsent", BRANCH_UNRESOLVED: "branchUnresolved",
+        UNMAPPED: "unmapped", AMBIGUOUS: "ambiguous",
+      }[record.assignmentAuthority] || "unspecified";
+      const comparisonKey = {
+        MATCH: "match", MISMATCH: "mismatch", SOURCE_MISSING: "sourceMissing",
+        ASSIGNED_MISSING: "assignedMissing", NOT_COMPARABLE: "notComparable",
+      }[record.rmComparison] || "notComparable";
+      summary[authorityKey] += 1;
+      summary[comparisonKey] += 1;
+      return summary;
+    }, initial);
+  }
+
   async function run(records, options = {}) {
     const runId = ++runSequence;
     const startedAt = nowIso();
@@ -340,6 +360,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         summary,
         dateAuthoritySummary: buildDateAuthoritySummary(records),
         branchAuthoritySummary: buildBranchAuthoritySummary(records),
+        assignmentAuthoritySummary: buildAssignmentAuthoritySummary(records),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(records),
         error: null,
       });
@@ -366,6 +387,9 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
           Array.isArray(records) ? records : [],
         ),
         branchAuthoritySummary: buildBranchAuthoritySummary(
+          Array.isArray(records) ? records : [],
+        ),
+        assignmentAuthoritySummary: buildAssignmentAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),
         geographyAuthoritySummary: buildGeographyAuthoritySummary(
@@ -406,6 +430,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     buildSummary,
     buildDateAuthoritySummary,
     buildBranchAuthoritySummary,
+    buildAssignmentAuthoritySummary,
     buildGeographyAuthoritySummary,
   });
 })();
