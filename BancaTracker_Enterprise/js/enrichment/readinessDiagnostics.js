@@ -64,6 +64,7 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
     if (!shadowResult || shadowResult.status === "NOT_RUN") {
       return {
         overallStatus: "NOT_RUN",
+        branchUniverse: null,
         masters: {},
         records: { source: 0, canonical: 0, ready: 0, readyWithWarnings: 0, invalid: 0 },
         resolution: emptyResolution(),
@@ -217,6 +218,7 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
 
     return {
       overallStatus,
+      branchUniverse: shadowResult && shadowResult.branchUniverseReadiness || null,
       masters,
       records,
       resolution,

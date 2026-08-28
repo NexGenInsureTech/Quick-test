@@ -111,6 +111,7 @@ Purpose : Render read-only master metadata and canonical readiness
   function renderSummary(model) {
     const records = model.records || {};
     const status = displayStatus(model.overallStatus || "NOT_RUN");
+    const universe = model.branchUniverse || null;
     document.getElementById("masterReadinessSummary").innerHTML = [
       ["Canonical Readiness", status],
       ["Source Records", records.source || 0],
@@ -118,6 +119,13 @@ Purpose : Render read-only master metadata and canonical readiness
       ["Ready", records.ready || 0],
       ["Ready with Warnings", records.readyWithWarnings || 0],
       ["Invalid", records.invalid || 0],
+      ...(universe ? [
+        ["Branch Universe Contract", universe.status],
+        ["Universe Eligible", universe.explicitlyEligibleRecords],
+        ["Universe Excluded", universe.explicitlyIneligibleRecords],
+        ["Eligibility Unknown", universe.eligibilityUnknownRecords],
+        ["Bank Identity Unresolved", universe.bankIdentityUnresolvedRecords],
+      ] : []),
     ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
   }
 
@@ -189,11 +197,19 @@ Purpose : Render read-only master metadata and canonical readiness
 
   function renderImportPreview(preview) {
     document.getElementById("masterImportPreview").hidden = false;
+    const universe = preview.universeReadiness;
     document.getElementById("masterImportSummary").innerHTML = [
       ["Master", global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label],
       ["File", preview.fileName || "—"], ["Rows", preview.rowCount],
       ["Errors", preview.errorCount], ["Warnings", preview.warningCount],
       ["Validation", preview.valid ? "VALID" : "INVALID"],
+      ...(universe ? [
+        ["Universe Readiness", universe.status],
+        ["Eligible", universe.explicitlyEligibleRecords],
+        ["Excluded", universe.explicitlyIneligibleRecords],
+        ["Eligibility Unknown", universe.eligibilityUnknownRecords],
+        ["Bank Identity Unresolved", universe.bankIdentityUnresolvedRecords],
+      ] : []),
     ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
     const findings = preview.findings.slice(0, FINDING_LIMIT);
     document.getElementById("masterImportFindings").innerHTML = findings.length

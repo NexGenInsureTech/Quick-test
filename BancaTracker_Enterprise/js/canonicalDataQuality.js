@@ -92,6 +92,7 @@ Purpose : Render additive canonical and master-data diagnostics
       hierarchyAuthority: shadowResult && shadowResult.hierarchyAuthoritySummary
         ? shadowResult.hierarchyAuthoritySummary
         : { resolved: 0, partial: 0, masterAbsent: 0, assignmentUnresolved: 0, hierarchyUnmapped: 0, invalidChain: 0, unspecified: 0, missingEmployeeMetadata: 0 },
+      branchUniverse: shadowResult && shadowResult.branchUniverseReadiness || null,
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -139,6 +140,13 @@ Purpose : Render additive canonical and master-data diagnostics
       ["Hierarchy Unmapped", model.hierarchyAuthority.hierarchyUnmapped || 0],
       ["Invalid Hierarchy Chain", model.hierarchyAuthority.invalidChain || 0],
       ["Missing Hierarchy Employee Metadata", model.hierarchyAuthority.missingEmployeeMetadata || 0],
+      ...(model.branchUniverse ? [
+        ["Branch Universe Contract", model.branchUniverse.status],
+        ["Universe Explicitly Eligible", model.branchUniverse.explicitlyEligibleRecords],
+        ["Universe Explicitly Excluded", model.branchUniverse.explicitlyIneligibleRecords],
+        ["Universe Eligibility Unknown", model.branchUniverse.eligibilityUnknownRecords],
+        ["Universe Bank Identity Unresolved", model.branchUniverse.bankIdentityUnresolvedRecords],
+      ] : []),
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],
       ["Legacy Geography Fallback", model.geographyAuthority.legacyFallback || 0],

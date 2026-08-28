@@ -71,6 +71,10 @@
       "TAMIL NADU GRAMA BANK": "TAMIL NADU GRAMA BANK",
       OTHER: "OTHER",
     },
+    BANK_ID_ALIASES: {
+      IB: "INDIAN BANK",
+      KB: "KARNATAKA BANK LTD.",
+    },
   };
 
   global.BancaTrackerConfig = Object.freeze(config);

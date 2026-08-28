@@ -69,6 +69,28 @@ Purpose : Normalize, validate and prepare durable Branch Master records
     return bankId && branchCode ? `${bankId}:${branchCode}` : null;
   }
 
+  function canonicalBankIdentity(bankId, config = window.BancaTrackerConfig) {
+    const normalized = normalizeCode(bankId);
+    if (!normalized || !config) return null;
+    const mappedId = config.BANK_ID_ALIASES && config.BANK_ID_ALIASES[normalized];
+    const candidate = mappedId || config.BANK_ALIASES && config.BANK_ALIASES[normalized] || normalized;
+    return Object.prototype.hasOwnProperty.call(config.TOTAL_BRANCHES || {}, candidate)
+      ? candidate
+      : null;
+  }
+
+  function activationEligibilityInput(rawRow) {
+    const aliases = ["ACTIVATION ELIGIBLE", "ACTIVATION_ELIGIBLE", "Activation Eligible"];
+    const key = aliases.find((name) => Object.prototype.hasOwnProperty.call(rawRow, name));
+    const rawValue = key ? normalizeText(rawRow[key]) : null;
+    return {
+      supplied: Boolean(rawValue),
+      value: rawValue ? normalizeBoolean(rawValue) : null,
+      field: key || "ACTIVATION ELIGIBLE",
+      rawValue,
+    };
+  }
+
   function createFinding({
     code,
     severity,
@@ -91,6 +113,7 @@ Purpose : Normalize, validate and prepare durable Branch Master records
     const branchCode = normalizeBranchCode(rawRow["BRANCH CODE"]);
     const branchId = buildBranchId(bankId, branchCode);
     const branchName = normalizeText(rawRow["BRANCH NAME"]);
+    const eligibility = activationEligibilityInput(rawRow);
 
     return {
       recordId: branchId
@@ -98,6 +121,7 @@ Purpose : Normalize, validate and prepare durable Branch Master records
         : `${datasetId}:ROW:${rowNumber}`,
       datasetId,
       bankId,
+      canonicalBank: canonicalBankIdentity(bankId),
       branchCode,
       branchId,
       branchName,
@@ -110,6 +134,10 @@ Purpose : Normalize, validate and prepare durable Branch Master records
       fgmOfficeId: normalizeCode(rawRow["FGM OFFICE ID"]),
       fgmOfficeName: normalizeText(rawRow["FGM OFFICE NAME"]),
       active: normalizeBoolean(rawRow["ACTIVE"]),
+      activationEligible: eligibility.value,
+      activationEligibilitySupplied: eligibility.supplied,
+      activationEligibilityField: eligibility.field,
+      activationEligibilityRaw: eligibility.rawValue,
       validFrom: normalizeText(rawRow["VALID FROM"]),
       validTo: normalizeText(rawRow["VALID TO"]),
       sourceRowNumber: rowNumber,
@@ -146,6 +174,27 @@ Purpose : Normalize, validate and prepare durable Branch Master records
           severity: DATA_QUALITY_SEVERITY.ERROR,
           field: "ACTIVE",
           message: "ACTIVE must be a valid boolean value.",
+        }),
+      );
+    }
+
+    if (record.activationEligibilitySupplied && typeof record.activationEligible !== "boolean") {
+      findings.push(
+        createFinding({
+          code: "BRANCH_ACTIVATION_ELIGIBILITY_INVALID",
+          severity: DATA_QUALITY_SEVERITY.ERROR,
+          field: record.activationEligibilityField,
+          value: record.activationEligibilityRaw,
+          message: "ACTIVATION ELIGIBLE must be TRUE/FALSE, YES/NO, Y/N, or 1/0.",
+        }),
+      );
+    } else if (!record.activationEligibilitySupplied) {
+      findings.push(
+        createFinding({
+          code: "BRANCH_ACTIVATION_ELIGIBILITY_MISSING",
+          severity: DATA_QUALITY_SEVERITY.WARNING,
+          field: "ACTIVATION ELIGIBLE",
+          message: "Activation eligibility is unknown; branch resolution remains available but governed-universe readiness is incomplete.",
         }),
       );
     }
@@ -257,7 +306,43 @@ Purpose : Normalize, validate and prepare durable Branch Master records
       valid: errorCount === 0,
       errorCount,
       warningCount,
+      universeReadiness: assessUniverseReadiness(records),
     };
+  }
+
+  function assessUniverseReadiness(records) {
+    const result = {
+      status: records.length ? "READY" : "NOT_READY", totalRecords: records.length, operationalActiveRecords: 0,
+      explicitlyEligibleRecords: 0, explicitlyIneligibleRecords: 0,
+      eligibilityUnknownRecords: 0, inactiveRecords: 0,
+      bankIdentityUnresolvedRecords: 0, findings: [],
+    };
+    records.forEach((record) => {
+      if (record.active !== true) {
+        result.inactiveRecords += 1;
+        return;
+      }
+      result.operationalActiveRecords += 1;
+      if (record.activationEligible === true) result.explicitlyEligibleRecords += 1;
+      else if (record.activationEligible === false) result.explicitlyIneligibleRecords += 1;
+      else result.eligibilityUnknownRecords += 1;
+      if (!(record.canonicalBank || canonicalBankIdentity(record.bankId))) {
+        result.bankIdentityUnresolvedRecords += 1;
+      }
+    });
+    const invalidEligibilityRecords = records.filter(
+      (record) => record.activationEligibilitySupplied && typeof record.activationEligible !== "boolean",
+    ).length;
+    if (invalidEligibilityRecords || result.bankIdentityUnresolvedRecords) {
+      result.status = "NOT_READY";
+    } else if (result.eligibilityUnknownRecords) {
+      result.status = "INCOMPLETE";
+    }
+    if (result.eligibilityUnknownRecords) result.findings.push({ code: "BRANCH_UNIVERSE_ELIGIBILITY_INCOMPLETE", severity: "WARNING", count: result.eligibilityUnknownRecords });
+    if (!records.length) result.findings.push({ code: "BRANCH_UNIVERSE_EMPTY", severity: "ERROR", count: 0 });
+    if (invalidEligibilityRecords) result.findings.push({ code: "BRANCH_UNIVERSE_ELIGIBILITY_INVALID", severity: "ERROR", count: invalidEligibilityRecords });
+    if (result.bankIdentityUnresolvedRecords) result.findings.push({ code: "BRANCH_UNIVERSE_BANK_IDENTITY_UNRESOLVED", severity: "ERROR", count: result.bankIdentityUnresolvedRecords });
+    return result;
   }
 
   window.BancaTrackerBranchMaster = Object.freeze({
@@ -266,6 +351,9 @@ Purpose : Normalize, validate and prepare durable Branch Master records
     normalizeBoolean,
     normalizeBranchCode,
     normalizeName,
+    canonicalBankIdentity,
+    activationEligibilityInput,
+    assessUniverseReadiness,
     buildBranchId,
     normalizeRow,
     validateRow,

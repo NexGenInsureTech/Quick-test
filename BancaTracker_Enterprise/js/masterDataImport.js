@@ -20,7 +20,7 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     BRANCH_MASTER: Object.freeze({
       label: "Branch Master",
       required: ["BANK ID", "BRANCH CODE", "BRANCH NAME", "STATE ID", "ACTIVE"],
-      optional: ["BANK REGION ID", "BANK REGION NAME", "BANK ZONE ID", "BANK ZONE NAME", "FGM OFFICE ID", "FGM OFFICE NAME", "VALID FROM", "VALID TO"],
+      optional: ["ACTIVATION ELIGIBLE", "BANK REGION ID", "BANK REGION NAME", "BANK ZONE ID", "BANK ZONE NAME", "FGM OFFICE ID", "FGM OFFICE NAME", "VALID FROM", "VALID TO"],
       preparer: "BancaTrackerBranchMaster",
       dependencies: ["GEOGRAPHY_MASTER"],
     }),
@@ -143,6 +143,7 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       createdAt: new Date().toISOString(),
       rawRows,
       dependencyContext: dependencies.context,
+      universeReadiness: prepared.universeReadiness || null,
     });
     currentPreview = preview;
     return preview;

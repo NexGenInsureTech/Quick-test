@@ -196,6 +196,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
     if (Object.prototype.hasOwnProperty.call(options, "context")) {
       return {
         context: options.context || {},
+        branchUniverseReadiness: options.branchUniverseReadiness || null,
         masterStatus: options.masterStatus || {
           geography: "ABSENT",
           branch: "ABSENT",
@@ -224,6 +225,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
 
     return {
       context: buildMaps(records),
+      branchUniverseReadiness: window.BancaTrackerBranchMaster.assessUniverseReadiness(records.branch),
       masterStatus: Object.fromEntries(
         Object.entries(records).map(([name, values]) => [
           name,
@@ -379,6 +381,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         branchAuthoritySummary: buildBranchAuthoritySummary(records),
         assignmentAuthoritySummary: buildAssignmentAuthoritySummary(records),
         hierarchyAuthoritySummary: buildHierarchyAuthoritySummary(records),
+        branchUniverseReadiness: preparedContext.branchUniverseReadiness || null,
         geographyAuthoritySummary: buildGeographyAuthoritySummary(records),
         error: null,
       });
@@ -413,6 +416,7 @@ Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data
         hierarchyAuthoritySummary: buildHierarchyAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),
+        branchUniverseReadiness: null,
         geographyAuthoritySummary: buildGeographyAuthoritySummary(
           Array.isArray(records) ? records : [],
         ),

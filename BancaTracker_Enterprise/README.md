@@ -37,6 +37,11 @@ Invalid premium, missing Month/Bank/Branch, and structurally unusable rows are r
 - Performance YTD Premium uses YTD. Rankings, activation, productivity, Scorecard, and opportunity metrics use CURRENT PERIOD.
 - Active Branch means current-period premium ≥ ₹25,000. Near Active means ≥ ₹15,000 and < ₹25,000.
 - Bank Activation % uses configured branch universe. Zone/State Activation % uses observed current-period branches.
+- `config.TOTAL_BRANCHES` is the legacy externally maintained activation-universe population and remains the live activation denominator until Step 4F.
+- Branch Master `active` means operationally available for master-data resolution; it does not mean activation-universe eligibility.
+- Branch Master `ACTIVATION ELIGIBLE` normalizes separately to `activationEligible: true | false | null`. Missing eligibility keeps an older Branch Master usable for resolution but makes its governed-universe contract incomplete.
+- The future governed denominator will count distinct `branchId` values where `active === true` and `activationEligible === true`. Eligible branches remain in that future denominator even with no transactions. Governed-versus-legacy count differences must be reported, not silently reconciled.
+- Unknown transaction banks remain visible in premium, contribution, and Data Quality, but receive no fabricated activation denominator.
 - Conflicting current-period Zone/State mappings are represented as `Multiple mappings`, never by first-row selection.
 
 ## Data Quality diagnostics
