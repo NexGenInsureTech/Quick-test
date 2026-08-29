@@ -173,6 +173,12 @@ th {
 .commercial-reason-list { display: flex; flex-wrap: wrap; gap: 4px; min-width: 150px }
 .commercial-reason-list .commercial-status-chip { font-weight: 400 }
 .commercial-execution-filter-count { margin: 0 0 8px }
+.commercial-priority-table { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; overflow-x: auto }
+.commercial-priority-controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px }
+.commercial-priority-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-priority-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-priority-rank { display: inline-block; min-width: 28px; padding: 3px 7px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-weight: 700; text-align: center }
+.commercial-priority-empty { color: #556070 }
 
 @media(max-width:900px) {
     .grid {
@@ -180,4 +186,5 @@ th {
     }
     .quality-grid { grid-template-columns: 1fr }
     .commercial-controls { align-items: stretch; flex-direction: column }
+    .commercial-priority-controls { align-items: stretch; flex-direction: column }
 }

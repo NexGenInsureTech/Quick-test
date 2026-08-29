@@ -281,6 +281,13 @@
           <h2>Execution Pacing &amp; Run-rate</h2>
           <p class="scorecard-note">Projected Month-end Actual is a simple linear projection based on observed average daily Actual.</p>
           <div id="executionTable"></div>
+          <div class="commercial-priority-table" aria-labelledby="executionPriorityHeading">
+            <h3 id="executionPriorityHeading">Governed Prioritisation</h3>
+            <div class="commercial-priority-controls">
+              <label for="executionPriorityView">Priority View<select id="executionPriorityView"><option value="NONE">None</option><option value="EXECUTION_PRIORITY">Execution priority</option><option value="REFERENCE_PRIORITY">Reference priority</option></select></label>
+            </div>
+            <div id="executionPriorityTable" aria-live="polite"></div>
+          </div>
         </div>
       </section>
     </div>

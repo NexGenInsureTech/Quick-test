@@ -9,12 +9,13 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL" } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE" } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
   let lastExecutionResult = null;
   let lastExecutionStatus = null;
+  let lastExecutionPriority = null;
 
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
@@ -165,6 +166,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionAsOfDay").innerHTML = Array.from({ length: daysInMonth + 1 }, (_, day) => option(String(day), day === 0 ? "No observations" : `Day ${day}`, day === execution.asOfDay)).join("");
     element("executionDimension").innerHTML = Object.entries(dimensionLabels).map(([value, label]) => option(value, label, value === execution.dimension)).join("");
     element("executionAttentionFilter").value = execution.attentionFilter;
+    element("executionPriorityView").value = execution.priorityView;
   }
   function renderExecutionReadiness(result) {
     if (!result) { element("executionReadiness").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return; }
@@ -217,18 +219,34 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const rows = result.rows.map((row) => `<tr data-dimension-key="${escape(row.key)}"><td>${escape(row.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td>${escape(money(row.expectedBudgetToDate))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.averageDailyActual)}">${escape(money(row.averageDailyActual))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td class="${semanticClass(row.projectedBudgetGap)}">${escape(signedMoney(row.projectedBudgetGap))}</td></tr>`).join("");
     element("executionTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Average Daily Actual</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Projected Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+  function renderExecutionPriority(priorityResult = lastExecutionPriority) {
+    const container = element("executionPriorityTable");
+    if (state.execution.priorityView === "NONE") { container.innerHTML = `<p class="commercial-priority-empty">Select an execution or reference priority view.</p>`; return; }
+    if (!priorityResult) { container.innerHTML = `<p class="commercial-priority-empty">Prioritisation is not available for the current execution result.</p>`; return; }
+    if (!priorityResult.rankingApplicable) { container.innerHTML = `<p class="commercial-priority-empty">Prioritisation is not applicable to the Overall view.</p>`; return; }
+    if (state.execution.priorityView === "REFERENCE_PRIORITY") {
+      if (!priorityResult.referencePriority.length) { container.innerHTML = `<p class="commercial-priority-empty">No reference-attention entities currently require prioritisation.</p>`; return; }
+      const rows = priorityResult.referencePriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td>${escape(row.label)}</td><td>${escape(statusLabel(row.referenceReasonCode))}</td></tr>`).join("");
+      container.innerHTML = `<table><thead><tr><th>Rank</th><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Reference Reason</th></tr></thead><tbody>${rows}</tbody></table>`;
+      return;
+    }
+    if (!priorityResult.executionPriority.length) { container.innerHTML = `<p class="commercial-priority-empty">No entities currently require execution prioritisation.</p>`; return; }
+    const rows = priorityResult.executionPriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td>${escape(row.label)}</td><td>${escape(money(row.priorityBasis.projectedShortfallAmount))}</td><td>${escape(money(row.priorityBasis.paceGapMagnitude))}</td><td>${escape(money(row.priorityBasis.budget))}</td><td>${escape(statusLabel(row.sourceStatus.paceStatus))}</td><td>${escape(statusLabel(row.sourceStatus.projectionStatus))}</td><td>Execution attention</td></tr>`).join("");
+    container.innerHTML = `<table><thead><tr><th>Rank</th><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Projected Shortfall</th><th>Pace Gap Magnitude</th><th>Budget</th><th>Pace</th><th>Projection</th><th>Attention</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
   function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
     if (!global.BancaTrackerCommercialExecution) return null;
     resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
-    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return null; }
+    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); return null; }
     const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
     const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
     const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
     const statusOverall = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(overall);
     const statusTable = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(table);
-    lastExecutionResult = table; lastExecutionStatus = statusTable || null;
-    renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionStatusSummary(statusOverall, statusTable); renderExecutionTable(table, statusTable);
-    return { overall, table, statusOverall, statusTable };
+    const priority = global.BancaTrackerCommercialExecutionPriority && statusTable && global.BancaTrackerCommercialExecutionPriority.buildPriority(table, statusTable);
+    lastExecutionResult = table; lastExecutionStatus = statusTable || null; lastExecutionPriority = priority || null;
+    renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionStatusSummary(statusOverall, statusTable); renderExecutionTable(table, statusTable); renderExecutionPriority(priority);
+    return { overall, table, statusOverall, statusTable, priority };
   }
 
   function render() {
@@ -244,7 +262,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
-        lastExecutionResult = null; lastExecutionStatus = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`;
+        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null);
       }
       return null;
     }
@@ -271,6 +289,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function handleExecutionAsOfChange(value) { state.execution.asOfDay = Number(value === undefined ? element("executionAsOfDay").value : value); state.execution.asOfExplicit = true; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
   function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
   function handleExecutionAttentionFilterChange(value) { state.execution.attentionFilter = value || element("executionAttentionFilter").value || "ALL"; element("executionAttentionFilter").value = state.execution.attentionFilter; renderExecutionTable(lastExecutionResult, lastExecutionStatus); return lastExecutionStatus; }
+  function handleExecutionPriorityViewChange(value) { state.execution.priorityView = value || element("executionPriorityView").value || "NONE"; element("executionPriorityView").value = state.execution.priorityView; renderExecutionPriority(lastExecutionPriority); return lastExecutionPriority; }
   function init() {
     if (initialized) return;
     element("commercialScope").addEventListener("change", function () { handleScopeChange(this.value); });
@@ -286,8 +305,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionAsOfDay").addEventListener("change", function () { handleExecutionAsOfChange(this.value); });
     element("executionDimension").addEventListener("change", function () { handleExecutionDimensionChange(this.value); });
     element("executionAttentionFilter").addEventListener("change", function () { handleExecutionAttentionFilterChange(this.value); });
+    element("executionPriorityView").addEventListener("change", function () { handleExecutionPriorityViewChange(this.value); });
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, money, percent, signedMoney, points, growth });
 })(window);
