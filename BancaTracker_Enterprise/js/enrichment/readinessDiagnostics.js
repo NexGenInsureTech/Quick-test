@@ -74,6 +74,9 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
         commercialPerformance: global.BancaTrackerCore && global.BancaTrackerCore.state
           ? global.BancaTrackerCore.state.commercialPerformance
           : null,
+        commercialRollup: global.BancaTrackerCore && global.BancaTrackerCore.state
+          ? global.BancaTrackerCore.state.commercialRollup
+          : null,
         masters: {},
         records: { source: 0, canonical: 0, ready: 0, readyWithWarnings: 0, invalid: 0 },
         resolution: emptyResolution(),
@@ -236,6 +239,9 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
         : null,
       commercialPerformance: global.BancaTrackerCore && global.BancaTrackerCore.state
         ? global.BancaTrackerCore.state.commercialPerformance
+        : null,
+      commercialRollup: global.BancaTrackerCore && global.BancaTrackerCore.state
+        ? global.BancaTrackerCore.state.commercialRollup
         : null,
       masters,
       records,

@@ -11,6 +11,30 @@ Purpose : Aggregate and join branch-period Actual, Budget and Potential safely
 
   const separator = "\u0000";
   const keyOf = (branchId, periodKey) => `${branchId}${separator}${periodKey}`;
+  const metadataFields = Object.freeze([
+    "bankId", "canonicalBank", "branchName", "stateId", "stateName", "zoneId", "zoneName",
+    "bankRegionId", "bankRegionName", "bankZoneId", "bankZoneName",
+    "fgmOfficeId", "fgmOfficeName", "assignedRmId", "assignedRmName",
+    "csmId", "csmName", "asmId", "asmName", "zsmId", "zsmName",
+    "nationalHeadId", "nationalHeadName",
+  ]);
+
+  function metadataFromFact(fact) {
+    return {
+      bankId: fact.bankId || null, canonicalBank: fact.bank || null,
+      branchName: fact.branch || fact.branchName || null,
+      stateId: fact.stateId || null, stateName: fact.state || null,
+      zoneId: fact.zoneId || null, zoneName: fact.zone || null,
+      bankRegionId: fact.bankRegionId || null, bankRegionName: fact.bankRegionName || null,
+      bankZoneId: fact.bankZoneId || null, bankZoneName: fact.bankZoneName || null,
+      fgmOfficeId: fact.fgmOfficeId || null, fgmOfficeName: fact.fgmOfficeName || null,
+      assignedRmId: fact.assignedRmId || null, assignedRmName: fact.assignedRmName || null,
+      csmId: fact.csmId || null, csmName: fact.csmName || null,
+      asmId: fact.asmId || null, asmName: fact.asmName || null,
+      zsmId: fact.zsmId || null, zsmName: fact.zsmName || null,
+      nationalHeadId: fact.nationalHeadId || null, nationalHeadName: fact.nationalHeadName || null,
+    };
+  }
 
   function buildActuals(factData) {
     const byKey = new Map();
@@ -18,6 +42,8 @@ Purpose : Aggregate and join branch-period Actual, Budget and Potential safely
       sourceRows: factData.length, includedRows: 0,
       unresolvedBranchRowsExcluded: 0, unresolvedBranchPremiumExcluded: 0,
       invalidDateRowsExcluded: 0, invalidDatePremiumExcluded: 0,
+      uniqueExcludedFactCount: 0, uniqueExcludedPremium: 0,
+      metadataConflictCount: 0, metadataConflicts: [],
     };
     factData.forEach((fact) => {
       const premium = Number(fact.premium) || 0;
@@ -29,16 +55,31 @@ Purpose : Aggregate and join branch-period Actual, Budget and Potential safely
         diagnostics.invalidDateRowsExcluded += 1;
         diagnostics.invalidDatePremiumExcluded += premium;
       }
-      if (!fact.branchId || !fact.monthKey) return;
+      if (!fact.branchId || !fact.monthKey) {
+        diagnostics.uniqueExcludedFactCount += 1;
+        diagnostics.uniqueExcludedPremium += premium;
+        return;
+      }
       diagnostics.includedRows += 1;
       const key = keyOf(fact.branchId, fact.monthKey);
       if (!byKey.has(key)) byKey.set(key, {
         key, branchId: fact.branchId, periodKey: fact.monthKey,
         actualPremium: 0, transactionCount: 0, positiveCount: 0,
         zeroCount: 0, negativeCount: 0,
-        bankId: fact.bankId || null, branchName: fact.branch || fact.branchName || null,
+        ...metadataFromFact(fact),
       });
       const row = byKey.get(key);
+      const incomingMetadata = metadataFromFact(fact);
+      metadataFields.forEach((field) => {
+        if (row[field] === null && incomingMetadata[field] !== null) row[field] = incomingMetadata[field];
+        else if (row[field] !== null && incomingMetadata[field] !== null && row[field] !== incomingMetadata[field]) {
+          const conflictKey = `${key}${separator}${field}`;
+          if (!diagnostics.metadataConflicts.includes(conflictKey)) {
+            diagnostics.metadataConflicts.push(conflictKey);
+            diagnostics.metadataConflictCount += 1;
+          }
+        }
+      });
       row.actualPremium += premium;
       row.transactionCount += 1;
       if (premium > 0) row.positiveCount += 1;
@@ -100,8 +141,11 @@ Purpose : Aggregate and join branch-period Actual, Budget and Potential safely
         key,
         branchId: actual ? actual.branchId : commercial.branchId,
         periodKey: actual ? actual.periodKey : commercial.periodKey,
-        bankId: commercial && commercial.bankId || actual && actual.bankId || null,
-        branchName: commercial && commercial.branchName || actual && actual.branchName || null,
+        ...Object.fromEntries(metadataFields.map((field) => [field,
+          actual && actual[field] !== null && actual[field] !== undefined
+            ? actual[field]
+            : commercial && commercial[field] !== undefined ? commercial[field] : null,
+        ])),
         actualPremium, budget, potential,
         ...calculateMeasures(actualPremium, budget, potential),
         commercialStatus: status,
@@ -170,7 +214,7 @@ Purpose : Aggregate and join branch-period Actual, Budget and Potential safely
       ? "NO_FACT_DATA"
       : masterAbsent
         ? "NO_COMMERCIAL_MASTER"
-        : commercialContext.status === "PARTIAL" || summary.actualOnlyBranchPeriods || summary.duplicateCommercialKeys || summary.unresolvedBranchRowsExcluded || summary.invalidDateRowsExcluded
+        : commercialContext.status === "PARTIAL" || summary.actualOnlyBranchPeriods || summary.duplicateCommercialKeys || summary.unresolvedBranchRowsExcluded || summary.invalidDateRowsExcluded || summary.metadataConflictCount
           ? "PARTIAL"
           : "READY";
     return Object.freeze({ status, rows, summary, diagnostics: actuals.diagnostics, duplicateCommercialKeys: commercialRows.duplicateKeys });

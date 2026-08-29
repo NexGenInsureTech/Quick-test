@@ -89,6 +89,9 @@ Purpose : Render additive canonical and master-data diagnostics
     const commercialPerformance = global.BancaTrackerCore && global.BancaTrackerCore.state
       ? global.BancaTrackerCore.state.commercialPerformance
       : null;
+    const commercialRollup = global.BancaTrackerCore && global.BancaTrackerCore.state
+      ? global.BancaTrackerCore.state.commercialRollup
+      : null;
     branchUniverseDiagnostics.findings.forEach((finding) => {
       findings.groups.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, count: 1 });
       findings.details.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, row: finding.bank, field: "branchId", message: `${finding.bank}: governed eligible ${finding.governedEligible}; observed ${finding.observed == null ? "—" : finding.observed}; active ${finding.active == null ? "—" : finding.active}.` });
@@ -114,6 +117,7 @@ Purpose : Render additive canonical and master-data diagnostics
       branchUniverseDiagnostics,
       branchCommercial,
       commercialPerformance,
+      commercialRollup,
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -208,6 +212,19 @@ Purpose : Render additive canonical and master-data diagnostics
         ["Invalid-date Rows Excluded", model.commercialPerformance.summary.invalidDateRowsExcluded],
         ["Unresolved-branch Rows Excluded", model.commercialPerformance.summary.unresolvedBranchRowsExcluded],
         ["Duplicate Commercial Keys", model.commercialPerformance.summary.duplicateCommercialKeys],
+      ] : []),
+      ...(model.commercialRollup ? [
+        ["Commercial Roll-up Readiness", model.commercialRollup.status],
+        ["Commercial Available Periods", model.commercialRollup.diagnostics.availablePeriods.join(", ") || "None"],
+        ["Commercial Latest Available", model.commercialRollup.diagnostics.latestAvailablePeriod || "None"],
+        ["Commercial Latest Actual", model.commercialRollup.diagnostics.latestActualPeriod || "None"],
+        ["Commercial Financial Years", model.commercialRollup.diagnostics.availableFinancialYears.join(", ") || "None"],
+        ["Commercial Unique Excluded Facts", model.commercialRollup.diagnostics.uniqueExcludedFactCount],
+        ["Commercial Unique Excluded Premium", model.commercialRollup.diagnostics.uniqueExcludedPremium],
+        ["Commercial Missing Branch", model.commercialRollup.diagnostics.missingBranchCount],
+        ["Commercial Missing Period", model.commercialRollup.diagnostics.missingPeriodCount],
+        ["Commercial Metadata Conflicts", model.commercialRollup.diagnostics.metadataConflictCount],
+        ["Commercial Unmapped Dimensions", Object.entries(model.commercialRollup.diagnostics.unmappedDimensionCounts).filter(([, count]) => count).map(([key, count]) => `${key}: ${count}`).join(", ") || "None"],
       ] : []),
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],
