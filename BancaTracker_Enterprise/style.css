@@ -179,6 +179,20 @@ th {
 .commercial-priority-controls select { min-height: 32px; box-sizing: border-box }
 .commercial-priority-rank { display: inline-block; min-width: 28px; padding: 3px 7px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-weight: 700; text-align: center }
 .commercial-priority-empty { color: #556070 }
+.commercial-drilldown-panel { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
+.commercial-drilldown-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px }
+.commercial-drilldown-parent { margin: 0; color: #334155 }
+.commercial-drilldown-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-drilldown-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-drilldown-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-drilldown-reconciliation { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-drilldown-reconciliation > div { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc }
+.commercial-drilldown-reconciliation span { white-space: nowrap }
+.commercial-drilldown-table { overflow-x: auto }
+.commercial-drilldown-empty { color: #556070 }
+.commercial-drilldown-select { padding: 2px 4px; border: 1px solid transparent; background: transparent; color: #17375e; font: inherit; text-align: left; text-decoration: underline; cursor: pointer }
+.commercial-drilldown-select:hover, .commercial-drilldown-select:focus-visible { border-color: #64748b; outline: 2px solid transparent; text-decoration: none }
+.commercial-drilldown-select.is-selected { border-color: #64748b; background: #eef2f6; text-decoration: none }
 
 @media(max-width:900px) {
     .grid {
@@ -187,4 +201,7 @@ th {
     .quality-grid { grid-template-columns: 1fr }
     .commercial-controls { align-items: stretch; flex-direction: column }
     .commercial-priority-controls { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-controls { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-header { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-reconciliation { flex-direction: column }
 }

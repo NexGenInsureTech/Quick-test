@@ -195,6 +195,6 @@ for (const forbidden of ["Repository", "IndexedDB", "commercialPerformanceUI", "
 assert.doesNotMatch(source, /getDimensionValue\([^\n]+\)\.label/);
 assert.match(source, /getDimensionValue\(enriched, parentDimension\)\.key === parentKey/);
 assert.ok(source.indexOf("scopeRows(facts") < source.indexOf("buildExecution({"));
-for (const untouched of ["js/analytics/commercialExecution.js", "js/analytics/commercialExecutionStatus.js", "js/analytics/commercialExecutionPriority.js", "js/commercialPerformanceUI.js", "style.css"]) assert.strictEqual(childProcess.execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
+for (const untouched of ["js/analytics/commercialExecution.js", "js/analytics/commercialExecutionStatus.js", "js/analytics/commercialExecutionPriority.js"]) assert.strictEqual(childProcess.execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
 assert.match(fs.readFileSync(path.join(__dirname, "..", "README.md"), "utf8"), /Commercial execution drill-down is a pure parent-scoped orchestration authority/);
 console.log("Step 4V commercial execution drill-down tests passed: approved paths, durable parent scoping, leakage prevention, authority composition, reconciliation, diagnostics, purity, immutability, and preservation.");

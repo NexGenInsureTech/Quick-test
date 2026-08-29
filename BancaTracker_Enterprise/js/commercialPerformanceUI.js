@@ -9,13 +9,15 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE" } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null } } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
   let lastExecutionResult = null;
   let lastExecutionStatus = null;
   let lastExecutionPriority = null;
+  let lastExecutionContext = null;
+  let lastExecutionDrilldown = null;
 
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
@@ -211,12 +213,12 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       if (!statusResult.rows.length) { element("executionTable").innerHTML = `<p class="empty-state">No execution status rows are available (${escape(String(statusResult.status).replace(/_/g, " "))}).</p>`; return; }
       const visible = filterExecutionRows(statusResult.rows);
       if (!visible.length) { element("executionTable").innerHTML = `<p class="empty-state">No rows match the selected attention filter.</p>`; return; }
-      const rows = visible.map((classified) => { const row = classified.source; return `<tr data-dimension-key="${escape(classified.key)}"><td>${escape(classified.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td>${statusChip(classified.budgetPositionStatus)}</td><td>${statusChip(classified.paceStatus)}</td><td>${statusChip(classified.projectionStatus)}</td><td>${attentionCell(classified)}</td><td>${reasonCell(classified)}</td></tr>`; }).join("");
+      const rows = visible.map((classified) => { const row = classified.source; const selected = state.execution.drilldown.parentDimension === state.execution.dimension && state.execution.drilldown.parentKey === classified.key; return `<tr data-dimension-key="${escape(classified.key)}"><td><button type="button" class="commercial-drilldown-select${selected ? " is-selected" : ""}" aria-pressed="${selected}" data-parent-key="${escape(classified.key)}" data-parent-label="${escape(classified.label)}">${escape(classified.label)}</button></td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td>${statusChip(classified.budgetPositionStatus)}</td><td>${statusChip(classified.paceStatus)}</td><td>${statusChip(classified.projectionStatus)}</td><td>${attentionCell(classified)}</td><td>${reasonCell(classified)}</td></tr>`; }).join("");
       element("executionTable").innerHTML = `<p class="scorecard-note commercial-execution-filter-count">Showing ${visible.length} of ${statusResult.rows.length} rows</p><table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Pace Gap</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Budget Position</th><th>Pace Status</th><th>Projection Status</th><th>Attention</th><th>Reasons</th></tr></thead><tbody>${rows}</tbody></table>`;
       return;
     }
     if (!result || !result.rows.length) { element("executionTable").innerHTML = `<p class="empty-state">No execution rows are available.</p>`; return; }
-    const rows = result.rows.map((row) => `<tr data-dimension-key="${escape(row.key)}"><td>${escape(row.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td>${escape(money(row.expectedBudgetToDate))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.averageDailyActual)}">${escape(money(row.averageDailyActual))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td class="${semanticClass(row.projectedBudgetGap)}">${escape(signedMoney(row.projectedBudgetGap))}</td></tr>`).join("");
+    const rows = result.rows.map((row) => { const selected = state.execution.drilldown.parentDimension === state.execution.dimension && state.execution.drilldown.parentKey === row.key; return `<tr data-dimension-key="${escape(row.key)}"><td><button type="button" class="commercial-drilldown-select${selected ? " is-selected" : ""}" aria-pressed="${selected}" data-parent-key="${escape(row.key)}" data-parent-label="${escape(row.label)}">${escape(row.label)}</button></td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td>${escape(money(row.expectedBudgetToDate))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.averageDailyActual)}">${escape(money(row.averageDailyActual))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td class="${semanticClass(row.projectedBudgetGap)}">${escape(signedMoney(row.projectedBudgetGap))}</td></tr>`; }).join("");
     element("executionTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Average Daily Actual</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Projected Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   function renderExecutionPriority(priorityResult = lastExecutionPriority) {
@@ -226,26 +228,102 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     if (!priorityResult.rankingApplicable) { container.innerHTML = `<p class="commercial-priority-empty">Prioritisation is not applicable to the Overall view.</p>`; return; }
     if (state.execution.priorityView === "REFERENCE_PRIORITY") {
       if (!priorityResult.referencePriority.length) { container.innerHTML = `<p class="commercial-priority-empty">No reference-attention entities currently require prioritisation.</p>`; return; }
-      const rows = priorityResult.referencePriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td>${escape(row.label)}</td><td>${escape(statusLabel(row.referenceReasonCode))}</td></tr>`).join("");
+      const rows = priorityResult.referencePriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td><button type="button" class="commercial-drilldown-select" data-parent-key="${escape(row.key)}" data-parent-label="${escape(row.label)}">${escape(row.label)}</button></td><td>${escape(statusLabel(row.referenceReasonCode))}</td></tr>`).join("");
       container.innerHTML = `<table><thead><tr><th>Rank</th><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Reference Reason</th></tr></thead><tbody>${rows}</tbody></table>`;
       return;
     }
     if (!priorityResult.executionPriority.length) { container.innerHTML = `<p class="commercial-priority-empty">No entities currently require execution prioritisation.</p>`; return; }
-    const rows = priorityResult.executionPriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td>${escape(row.label)}</td><td>${escape(money(row.priorityBasis.projectedShortfallAmount))}</td><td>${escape(money(row.priorityBasis.paceGapMagnitude))}</td><td>${escape(money(row.priorityBasis.budget))}</td><td>${escape(statusLabel(row.sourceStatus.paceStatus))}</td><td>${escape(statusLabel(row.sourceStatus.projectionStatus))}</td><td>Execution attention</td></tr>`).join("");
+    const rows = priorityResult.executionPriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td><button type="button" class="commercial-drilldown-select" data-parent-key="${escape(row.key)}" data-parent-label="${escape(row.label)}">${escape(row.label)}</button></td><td>${escape(money(row.priorityBasis.projectedShortfallAmount))}</td><td>${escape(money(row.priorityBasis.paceGapMagnitude))}</td><td>${escape(money(row.priorityBasis.budget))}</td><td>${escape(statusLabel(row.sourceStatus.paceStatus))}</td><td>${escape(statusLabel(row.sourceStatus.projectionStatus))}</td><td>Execution attention</td></tr>`).join("");
     container.innerHTML = `<table><thead><tr><th>Rank</th><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Projected Shortfall</th><th>Pace Gap Magnitude</th><th>Budget</th><th>Pace</th><th>Projection</th><th>Attention</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  function clearExecutionDrilldown(message = "Select an execution entity to view governed child context.") {
+    state.execution.drilldown = { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null };
+    lastExecutionDrilldown = null;
+    element("executionDrilldownParent").textContent = message;
+    element("executionDrilldownControls").hidden = true;
+    element("executionDrilldownStatus").textContent = "";
+    element("executionDrilldownReconciliation").innerHTML = "";
+    element("executionDrilldownTable").innerHTML = "";
+  }
+  function drilldownStatusMessage(status) {
+    const messages = {
+      EMPTY: "No governed child entities are available for this breakdown.",
+      PARENT_NOT_FOUND: "The selected entity is no longer available in the current execution snapshot.",
+      INVALID_DRILLDOWN: "The selected child breakdown is not governed for this parent.",
+      INVALID_INPUT: "The drill-down inputs are not compatible with the current execution snapshot.",
+    };
+    return messages[status] || `Drill-down status: ${String(status || "NOT AVAILABLE").replace(/_/g, " ")}`;
+  }
+  function renderExecutionDrilldown(result = lastExecutionDrilldown) {
+    const selection = state.execution.drilldown;
+    if (!selection.parentKey) { clearExecutionDrilldown(); return; }
+    const allowed = global.BancaTrackerCommercialExecutionDrilldown.getAllowedDrilldowns(selection.parentDimension);
+    element("executionDrilldownParent").textContent = `Selected Parent: ${selection.parentLabel} · ${dimensionLabels[selection.parentDimension] || selection.parentDimension} · ${periodLabel(state.execution.selectedPeriod)} · As of Day ${state.execution.asOfDay}`;
+    if (!allowed.length) {
+      element("executionDrilldownControls").hidden = true;
+      element("executionDrilldownStatus").textContent = selection.parentDimension === "BRANCH" ? "Branch is the terminal commercial execution level." : "No governed child breakdown is available.";
+      element("executionDrilldownReconciliation").innerHTML = ""; element("executionDrilldownTable").innerHTML = "";
+      return;
+    }
+    element("executionDrilldownControls").hidden = false;
+    element("executionDrilldownChild").innerHTML = allowed.map((value) => option(value, dimensionLabels[value] || value, value === selection.childDimension)).join("");
+    if (!result) { element("executionDrilldownStatus").textContent = "Choose a governed child breakdown."; element("executionDrilldownReconciliation").innerHTML = ""; element("executionDrilldownTable").innerHTML = ""; return; }
+    element("executionDrilldownStatus").textContent = drilldownStatusMessage(result.status);
+    if (["INVALID_INPUT", "INVALID_DRILLDOWN", "PARENT_NOT_FOUND"].includes(result.status)) { element("executionDrilldownReconciliation").innerHTML = ""; element("executionDrilldownTable").innerHTML = ""; return; }
+    const actual = result.reconciliation.actual; const budget = result.reconciliation.budget;
+    element("executionDrilldownReconciliation").innerHTML = `<div><strong>Actual</strong><span>Parent: ${escape(money(actual.parent))}</span><span>Children: ${escape(money(actual.children))}</span><span>Difference: ${escape(signedMoney(actual.difference))}</span><span>Complete: ${actual.complete ? "Yes" : "No"}</span></div><div><strong>Budget</strong><span>Parent: ${escape(money(budget.parent))}</span><span>Children: ${escape(money(budget.children))}</span><span>Difference: ${escape(signedMoney(budget.difference))}</span><span>Complete: ${budget.complete ? "Yes" : "No"}</span></div>`;
+    if (!result.rows.length) { element("executionDrilldownTable").innerHTML = `<p class="commercial-drilldown-empty">${escape(drilldownStatusMessage(result.status))}</p>`; return; }
+    const rows = result.rows.map((item) => {
+      const execution = item.execution || {}; const attention = item.attention || {}; const priority = item.priority || {};
+      const rank = priority.execution && priority.execution.priorityRank !== null && priority.execution.priorityRank !== undefined ? priority.execution.priorityRank : priority.reference && priority.reference.priorityRank !== null && priority.reference.priorityRank !== undefined ? priority.reference.priorityRank : null;
+      return `<tr data-child-key="${escape(item.key)}"><td>${escape(item.label)}</td><td>${escape(money(execution.actualToDate))}</td><td>${escape(money(execution.budget))}</td><td>${escape(percent(execution.budgetAchievementToDatePct))}</td><td>${escape(money(execution.expectedBudgetToDate))}</td><td>${escape(signedMoney(execution.paceGap))}</td><td>${escape(money(execution.requiredDailyRunRate))}</td><td>${escape(money(execution.projectedMonthEndActual))}</td><td>${escape(signedMoney(execution.projectedBudgetGap))}</td><td>${attention.executionAttention ? "Yes" : "No"}</td><td>${attention.referenceAttention ? "Yes" : "No"}</td><td>${rank === null ? "N/A" : escape(rank)}</td></tr>`;
+    }).join("");
+    element("executionDrilldownTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[result.childDimension] || result.childDimension)}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Gap</th><th>Execution Attention</th><th>Reference Attention</th><th>Priority Rank</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  function buildExecutionDrilldown() {
+    const selection = state.execution.drilldown;
+    if (!selection.parentKey || !selection.childDimension || !lastExecutionResult || !lastExecutionContext || !global.BancaTrackerCommercialExecutionDrilldown) { renderExecutionDrilldown(null); return null; }
+    lastExecutionDrilldown = global.BancaTrackerCommercialExecutionDrilldown.buildDrilldown({
+      parentSelection: selection, childDimension: selection.childDimension,
+      parentExecutionResult: lastExecutionResult,
+      performanceResult: lastExecutionContext.performanceResult,
+      periodContext: lastExecutionContext.periodContext,
+      facts: lastExecutionContext.facts,
+      authorityContext: lastExecutionContext.authorityContext,
+      periodKey: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay,
+    });
+    renderExecutionDrilldown(lastExecutionDrilldown);
+    return lastExecutionDrilldown;
+  }
+  function handleExecutionParentSelect(parentKey, parentLabel) {
+    const parentDimension = state.execution.dimension;
+    const allowed = global.BancaTrackerCommercialExecutionDrilldown.getAllowedDrilldowns(parentDimension);
+    state.execution.drilldown = { parentDimension, parentKey, parentLabel, childDimension: allowed[0] || null };
+    renderExecutionTable(lastExecutionResult, lastExecutionStatus); renderExecutionPriority(lastExecutionPriority);
+    if (!allowed.length) { lastExecutionDrilldown = null; renderExecutionDrilldown(null); return null; }
+    return buildExecutionDrilldown();
+  }
+  function handleExecutionDrilldownChildChange(value) {
+    state.execution.drilldown.childDimension = value || element("executionDrilldownChild").value || null;
+    return buildExecutionDrilldown();
   }
   function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
     if (!global.BancaTrackerCommercialExecution) return null;
     resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
-    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); return null; }
+    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); return null; }
     const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
     const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
     const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
     const statusOverall = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(overall);
     const statusTable = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(table);
     const priority = global.BancaTrackerCommercialExecutionPriority && statusTable && global.BancaTrackerCommercialExecutionPriority.buildPriority(table, statusTable);
-    lastExecutionResult = table; lastExecutionStatus = statusTable || null; lastExecutionPriority = priority || null;
+    lastExecutionResult = table; lastExecutionStatus = statusTable || null; lastExecutionPriority = priority || null; lastExecutionContext = common;
     renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionStatusSummary(statusOverall, statusTable); renderExecutionTable(table, statusTable); renderExecutionPriority(priority);
+    const selected = state.execution.drilldown;
+    if (selected.parentKey) {
+      if (selected.parentDimension !== state.execution.dimension || !table.rows.some((row) => row.key === selected.parentKey)) clearExecutionDrilldown("The selected entity is no longer available in the current execution snapshot.");
+      else buildExecutionDrilldown();
+    } else renderExecutionDrilldown(null);
     return { overall, table, statusOverall, statusTable, priority };
   }
 
@@ -262,7 +340,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
-        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null);
+        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available.");
       }
       return null;
     }
@@ -285,9 +363,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function handleDailyEntityChange(value) { state.comparison.selectedEntityKey = value || element("dailyEntity").value; renderDaily(lastDailyResult); return lastDailyResult; }
   function handleDailyViewChange(value) { state.comparison.dailyViewMode = value || element("dailyViewMode").value; renderDaily(lastDailyResult); return lastDailyResult; }
   function currentExecutionContext() { const performance = global.BancaTrackerCore.state.commercialPerformance; return { periodContext: global.BancaTrackerCommercialRollups.buildPeriodContext(performance), performance, authorityContext: global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext() }; }
-  function handleExecutionPeriodChange(value) { state.execution.selectedPeriod = value || element("executionPeriod").value; state.execution.asOfExplicit = false; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext, true); }
+  function handleExecutionPeriodChange(value) { state.execution.selectedPeriod = value || element("executionPeriod").value; state.execution.asOfExplicit = false; clearExecutionDrilldown("Select an execution entity for the new month."); const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext, true); }
   function handleExecutionAsOfChange(value) { state.execution.asOfDay = Number(value === undefined ? element("executionAsOfDay").value : value); state.execution.asOfExplicit = true; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
-  function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
+  function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; clearExecutionDrilldown("Select an execution entity for the new dimension."); const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
   function handleExecutionAttentionFilterChange(value) { state.execution.attentionFilter = value || element("executionAttentionFilter").value || "ALL"; element("executionAttentionFilter").value = state.execution.attentionFilter; renderExecutionTable(lastExecutionResult, lastExecutionStatus); return lastExecutionStatus; }
   function handleExecutionPriorityViewChange(value) { state.execution.priorityView = value || element("executionPriorityView").value || "NONE"; element("executionPriorityView").value = state.execution.priorityView; renderExecutionPriority(lastExecutionPriority); return lastExecutionPriority; }
   function init() {
@@ -306,8 +384,10 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionDimension").addEventListener("change", function () { handleExecutionDimensionChange(this.value); });
     element("executionAttentionFilter").addEventListener("change", function () { handleExecutionAttentionFilterChange(this.value); });
     element("executionPriorityView").addEventListener("change", function () { handleExecutionPriorityViewChange(this.value); });
+    element("executionDrilldownChild").addEventListener("change", function () { handleExecutionDrilldownChildChange(this.value); });
+    [element("executionTable"), element("executionPriorityTable")].forEach((container) => container.addEventListener("click", function (event) { const control = event.target.closest && event.target.closest(".commercial-drilldown-select"); if (control) handleExecutionParentSelect(control.dataset.parentKey, control.dataset.parentLabel); }));
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, money, percent, signedMoney, points, growth });
 })(window);
