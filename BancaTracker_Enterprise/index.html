@@ -269,10 +269,12 @@
             <label for="executionPeriod">Execution Month<select id="executionPeriod"></select></label>
             <label for="executionAsOfDay">As-of Day<select id="executionAsOfDay"></select></label>
             <label for="executionDimension">Dimension<select id="executionDimension"></select></label>
+            <label class="commercial-execution-attention-filter" for="executionAttentionFilter">Attention Filter<select id="executionAttentionFilter"><option value="ALL">All</option><option value="EXECUTION_ATTENTION">Execution attention</option><option value="REFERENCE_ATTENTION">Reference attention</option><option value="NO_ATTENTION">No attention</option></select></label>
           </div>
           <div id="executionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
           <p id="executionObservationNote" class="scorecard-note"></p>
           <p id="executionSnapshotCue" class="scorecard-note"></p>
+          <div id="executionAttentionSummary" class="commercial-execution-attention-summary" aria-live="polite"></div>
         </div>
         <section id="executionKpis" class="cards" aria-label="Commercial execution KPIs"></section>
         <div class="panel commercial-table-wrap">

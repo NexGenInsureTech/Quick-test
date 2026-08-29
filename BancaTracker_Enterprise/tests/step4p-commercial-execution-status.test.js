@@ -130,7 +130,7 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 assert.ok(html.indexOf("commercialExecutionStatus.js") > html.indexOf("commercialExecution.js"));
 const readme = fs.readFileSync(path.join(__dirname, "..", "README.md"), "utf8");
 assert.match(readme, /pure, on-demand interpretation authority/);
-for (const untouched of ["js/analytics/commercialExecution.js", "js/commercialPerformanceUI.js", "style.css", "app.js", "js/core.js", "js/analytics/commercialComparison.js", "js/analytics/dailyCommercialComparison.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/target.js"]) {
+for (const untouched of ["js/analytics/commercialExecution.js", "app.js", "js/core.js", "js/analytics/commercialComparison.js", "js/analytics/dailyCommercialComparison.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/target.js"]) {
   assert.strictEqual(require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
 }
 console.log("Step 4P commercial execution status tests passed: supplied-result facets, deterministic attention/reasons, null/zero/signed edges, summaries, ordering, source propagation, purity, immutability, and preservation.");

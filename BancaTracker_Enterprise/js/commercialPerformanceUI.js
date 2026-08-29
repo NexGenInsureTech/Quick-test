@@ -9,10 +9,12 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK" } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL" } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
+  let lastExecutionResult = null;
+  let lastExecutionStatus = null;
 
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
@@ -162,6 +164,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const daysInMonth = execution.selectedPeriod ? global.BancaTrackerCommercialExecution.getDaysInPeriod(execution.selectedPeriod) : 0;
     element("executionAsOfDay").innerHTML = Array.from({ length: daysInMonth + 1 }, (_, day) => option(String(day), day === 0 ? "No observations" : `Day ${day}`, day === execution.asOfDay)).join("");
     element("executionDimension").innerHTML = Object.entries(dimensionLabels).map(([value, label]) => option(value, label, value === execution.dimension)).join("");
+    element("executionAttentionFilter").value = execution.attentionFilter;
   }
   function renderExecutionReadiness(result) {
     if (!result) { element("executionReadiness").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return; }
@@ -177,7 +180,39 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const values = row ? [["Actual to Date", money(row.actualToDate), row.actualToDate], ["Monthly Budget", money(row.budget), row.budget], ["Budget Achievement to Date", percent(row.budgetAchievementToDatePct), row.budgetAchievementToDatePct], ["Expected Budget to Date (Calendar-linear)", money(row.expectedBudgetToDate), row.expectedBudgetToDate], ["Pace Gap", signedMoney(row.paceGap), row.paceGap], ["Average Daily Actual", money(row.averageDailyActual), row.averageDailyActual], ["Required Daily Run-rate", money(row.requiredDailyRunRate), row.requiredDailyRunRate], ["Projected Month-end Actual", money(row.projectedMonthEndActual), row.projectedMonthEndActual], ["Projected Achievement", percent(row.projectedAchievementPct), row.projectedAchievementPct], ["Projected Budget Gap", signedMoney(row.projectedBudgetGap), row.projectedBudgetGap]] : [];
     element("executionKpis").innerHTML = values.map(([label, value, raw]) => `<div class="card"><div>${escape(label)}</div><div class="value ${semanticClass(raw)}">${escape(value)}</div></div>`).join("");
   }
-  function renderExecutionTable(result) {
+  function statusLabel(code) { return global.BancaTrackerCommercialExecutionStatus.getStatusLabel(code); }
+  function statusChip(code) { return `<span class="commercial-status-chip">${escape(statusLabel(code))}</span>`; }
+  function attentionCell(row) {
+    const labels = [];
+    if (row.executionAttention) labels.push(`<span class="commercial-attention-chip">Execution attention</span>`);
+    if (row.referenceAttention) labels.push(`<span class="commercial-attention-chip">Reference attention</span>`);
+    return labels.length ? `<div class="commercial-execution-status">${labels.join("")}</div>` : "â€”";
+  }
+  function reasonCell(row) {
+    return row.attentionReasons.length ? `<div class="commercial-reason-list">${row.attentionReasons.map(statusChip).join("")}</div>` : "â€”";
+  }
+  function filterExecutionRows(rows) {
+    if (state.execution.attentionFilter === "EXECUTION_ATTENTION") return rows.filter((row) => row.executionAttention);
+    if (state.execution.attentionFilter === "REFERENCE_ATTENTION") return rows.filter((row) => row.referenceAttention);
+    if (state.execution.attentionFilter === "NO_ATTENTION") return rows.filter((row) => !row.executionAttention && !row.referenceAttention);
+    return rows;
+  }
+  function renderExecutionStatusSummary(overallStatus, tableStatus) {
+    if (!overallStatus || !tableStatus) { element("executionAttentionSummary").innerHTML = ""; return; }
+    if (!overallStatus.rows.length) { element("executionAttentionSummary").innerHTML = `<span class="commercial-status-chip">${escape(String(overallStatus.status).replace(/_/g, " "))}</span>`; return; }
+    const overall = overallStatus.rows[0];
+    const summary = tableStatus.summary;
+    element("executionAttentionSummary").innerHTML = `${statusChip(overall.budgetPositionStatus)}${statusChip(overall.paceStatus)}${statusChip(overall.projectionStatus)}<span class="commercial-attention-chip">Execution Attention: ${summary.executionAttentionCount}</span><span class="commercial-attention-chip">Reference Attention: ${summary.referenceAttentionCount}</span><span class="commercial-status-chip">Observed Rows: ${summary.rowsWithObservations}</span><span class="commercial-status-chip">Projected Shortfall Rows: ${summary.projectedShortfallCount}</span><span class="commercial-status-chip">Budget Achieved / Exceeded: ${summary.budgetAchievedCount + summary.budgetExceededCount}</span>`;
+  }
+  function renderExecutionTable(result, statusResult = lastExecutionStatus) {
+    if (statusResult) {
+      if (!statusResult.rows.length) { element("executionTable").innerHTML = `<p class="empty-state">No execution status rows are available (${escape(String(statusResult.status).replace(/_/g, " "))}).</p>`; return; }
+      const visible = filterExecutionRows(statusResult.rows);
+      if (!visible.length) { element("executionTable").innerHTML = `<p class="empty-state">No rows match the selected attention filter.</p>`; return; }
+      const rows = visible.map((classified) => { const row = classified.source; return `<tr data-dimension-key="${escape(classified.key)}"><td>${escape(classified.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td>${statusChip(classified.budgetPositionStatus)}</td><td>${statusChip(classified.paceStatus)}</td><td>${statusChip(classified.projectionStatus)}</td><td>${attentionCell(classified)}</td><td>${reasonCell(classified)}</td></tr>`; }).join("");
+      element("executionTable").innerHTML = `<p class="scorecard-note commercial-execution-filter-count">Showing ${visible.length} of ${statusResult.rows.length} rows</p><table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Pace Gap</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Budget Position</th><th>Pace Status</th><th>Projection Status</th><th>Attention</th><th>Reasons</th></tr></thead><tbody>${rows}</tbody></table>`;
+      return;
+    }
     if (!result || !result.rows.length) { element("executionTable").innerHTML = `<p class="empty-state">No execution rows are available.</p>`; return; }
     const rows = result.rows.map((row) => `<tr data-dimension-key="${escape(row.key)}"><td>${escape(row.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td>${escape(money(row.expectedBudgetToDate))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.averageDailyActual)}">${escape(money(row.averageDailyActual))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td class="${semanticClass(row.projectedBudgetGap)}">${escape(signedMoney(row.projectedBudgetGap))}</td></tr>`).join("");
     element("executionTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Average Daily Actual</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Projected Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -185,12 +220,15 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
     if (!global.BancaTrackerCommercialExecution) return null;
     resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
-    if (!state.execution.selectedPeriod) { renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return null; }
+    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return null; }
     const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
     const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
     const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
-    renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionTable(table);
-    return { overall, table };
+    const statusOverall = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(overall);
+    const statusTable = global.BancaTrackerCommercialExecutionStatus && global.BancaTrackerCommercialExecutionStatus.buildStatus(table);
+    lastExecutionResult = table; lastExecutionStatus = statusTable || null;
+    renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionStatusSummary(statusOverall, statusTable); renderExecutionTable(table, statusTable);
+    return { overall, table, statusOverall, statusTable };
   }
 
   function render() {
@@ -206,7 +244,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
-        element("executionKpis").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`;
+        lastExecutionResult = null; lastExecutionStatus = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`;
       }
       return null;
     }
@@ -232,6 +270,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function handleExecutionPeriodChange(value) { state.execution.selectedPeriod = value || element("executionPeriod").value; state.execution.asOfExplicit = false; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext, true); }
   function handleExecutionAsOfChange(value) { state.execution.asOfDay = Number(value === undefined ? element("executionAsOfDay").value : value); state.execution.asOfExplicit = true; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
   function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
+  function handleExecutionAttentionFilterChange(value) { state.execution.attentionFilter = value || element("executionAttentionFilter").value || "ALL"; element("executionAttentionFilter").value = state.execution.attentionFilter; renderExecutionTable(lastExecutionResult, lastExecutionStatus); return lastExecutionStatus; }
   function init() {
     if (initialized) return;
     element("commercialScope").addEventListener("change", function () { handleScopeChange(this.value); });
@@ -246,8 +285,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionPeriod").addEventListener("change", function () { handleExecutionPeriodChange(this.value); });
     element("executionAsOfDay").addEventListener("change", function () { handleExecutionAsOfChange(this.value); });
     element("executionDimension").addEventListener("change", function () { handleExecutionDimensionChange(this.value); });
+    element("executionAttentionFilter").addEventListener("change", function () { handleExecutionAttentionFilterChange(this.value); });
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionTable, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, money, percent, signedMoney, points, growth });
 })(window);
