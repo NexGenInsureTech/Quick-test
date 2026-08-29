@@ -15,6 +15,7 @@ Purpose : Render read-only master metadata and canonical readiness
     { key: "employee", type: "EMPLOYEE_MASTER", label: "Employee Master", purpose: "Employee identity and role" },
     { key: "hierarchy", type: "HIERARCHY", label: "Organisation Hierarchy", purpose: "RM → CSM → ASM → ZSM → NH" },
     { key: "assignment", type: "BRANCH_ASSIGNMENT", label: "Branch Assignment", purpose: "Branch → assigned RM" },
+    { key: "commercial", type: "BRANCH_BUDGET_POTENTIAL", label: "Branch Budget & Potential", purpose: "Period-specific branch Budget and Potential" },
   ]);
 
   const COVERAGE_DEFINITIONS = Object.freeze([
@@ -198,6 +199,7 @@ Purpose : Render read-only master metadata and canonical readiness
   function renderImportPreview(preview) {
     document.getElementById("masterImportPreview").hidden = false;
     const universe = preview.universeReadiness;
+    const commercial = preview.commercialSummary;
     document.getElementById("masterImportSummary").innerHTML = [
       ["Master", global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label],
       ["File", preview.fileName || "—"], ["Rows", preview.rowCount],
@@ -209,6 +211,17 @@ Purpose : Render read-only master metadata and canonical readiness
         ["Excluded", universe.explicitlyIneligibleRecords],
         ["Eligibility Unknown", universe.eligibilityUnknownRecords],
         ["Bank Identity Unresolved", universe.bankIdentityUnresolvedRecords],
+      ] : []),
+      ...(commercial ? [
+        ["Commercial Readiness", preview.commercialReadiness.status],
+        ["Commercial Valid Rows", commercial.validRows],
+        ["Commercial Invalid Rows", commercial.invalidRows],
+        ["Distinct Branches", commercial.distinctBranches],
+        ["Distinct Periods", commercial.distinctPeriods],
+        ["Budget Present", commercial.budgetPresent],
+        ["Potential Present", commercial.potentialPresent],
+        ["Duplicate Branch-period", commercial.duplicateBranchPeriods],
+        ["Unmapped Branches", commercial.unmappedBranches],
       ] : []),
     ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
     const findings = preview.findings.slice(0, FINDING_LIMIT);
@@ -272,6 +285,9 @@ Purpose : Render read-only master metadata and canonical readiness
         await global.BancaTrackerMasterDataImport.commitImport();
         if (global.BancaTrackerLiveBranchUniverseAuthority && typeSelect.value === "BRANCH_MASTER") {
           await global.BancaTrackerLiveBranchUniverseAuthority.loadContext();
+        }
+        if (global.BancaTrackerLiveBranchCommercialAuthority && typeSelect.value === "BRANCH_BUDGET_POTENTIAL") {
+          await global.BancaTrackerLiveBranchCommercialAuthority.loadContext();
         }
         status.textContent = "Master activated successfully.";
         document.getElementById("masterImportPreview").hidden = true;

@@ -15,7 +15,7 @@ Purpose : IndexedDB schema and persistent data structure constants
 
   const DATABASE = Object.freeze({
     NAME: "bancatracker-enterprise",
-    VERSION: 1,
+    VERSION: 2,
   });
 
   /*==============================================================
@@ -29,6 +29,7 @@ Purpose : IndexedDB schema and persistent data structure constants
     EMPLOYEE_MASTER: "employeeMaster",
     HIERARCHY_RELATIONSHIPS: "hierarchyRelationships",
     BRANCH_ASSIGNMENTS: "branchAssignments",
+    BRANCH_BUDGET_POTENTIAL: "branchBudgetPotential",
     BUDGETS: "budgets",
     POTENTIALS: "potentials",
     PRODUCT_MASTER: "productMaster",
@@ -193,6 +194,16 @@ Purpose : IndexedDB schema and persistent data structure constants
           keyPath: "active",
           options: Object.freeze({ unique: false }),
         }),
+      ]),
+    }),
+
+    [STORES.BRANCH_BUDGET_POTENTIAL]: Object.freeze({
+      keyPath: "recordId",
+      indexes: Object.freeze([
+        Object.freeze({ name: "datasetId", keyPath: "datasetId", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "branchId", keyPath: "branchId", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "periodKey", keyPath: "periodKey", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "branchPeriodKey", keyPath: ["branchId", "periodKey"], options: Object.freeze({ unique: false }) }),
       ]),
     }),
 

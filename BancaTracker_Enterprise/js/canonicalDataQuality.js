@@ -83,6 +83,9 @@ Purpose : Render additive canonical and master-data diagnostics
       ? universeAuthority.assessObserved(global.BancaTrackerCore && global.BancaTrackerCore.state.derived)
       : { observedGovernedBranches: 0, activeGovernedBranches: 0, nearActiveGovernedBranches: 0, findings: [] };
     const findings = aggregateFindings(shadowResult);
+    const branchCommercial = global.BancaTrackerLiveBranchCommercialAuthority
+      ? global.BancaTrackerLiveBranchCommercialAuthority.getCachedContext()
+      : null;
     branchUniverseDiagnostics.findings.forEach((finding) => {
       findings.groups.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, count: 1 });
       findings.details.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, row: finding.bank, field: "branchId", message: `${finding.bank}: governed eligible ${finding.governedEligible}; observed ${finding.observed == null ? "—" : finding.observed}; active ${finding.active == null ? "—" : finding.active}.` });
@@ -106,6 +109,7 @@ Purpose : Render additive canonical and master-data diagnostics
       branchUniverse: shadowResult && shadowResult.branchUniverseReadiness || null,
       branchUniverseAuthority,
       branchUniverseDiagnostics,
+      branchCommercial,
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -172,6 +176,21 @@ Purpose : Render additive canonical and master-data diagnostics
           [`${bank} Governed Eligible`, item.governedEligible],
           [`${bank} Universe Variance`, item.variance],
         ]),
+      ] : []),
+      ...(model.branchCommercial ? [
+        ["Branch Budget & Potential", model.branchCommercial.status],
+        ["Commercial Records", model.branchCommercial.summary.records],
+        ["Commercial Invalid Rows", model.branchCommercial.summary.invalidRows],
+        ["Commercial Distinct Branches", model.branchCommercial.summary.distinctBranches],
+        ["Commercial Distinct Periods", model.branchCommercial.summary.distinctPeriods],
+        ["Budget Present", model.branchCommercial.summary.budgetPresent],
+        ["Budget Missing", model.branchCommercial.summary.budgetMissing],
+        ["Potential Present", model.branchCommercial.summary.potentialPresent],
+        ["Potential Missing", model.branchCommercial.summary.potentialMissing],
+        ["Duplicate Branch-period", model.branchCommercial.summary.duplicateBranchPeriods],
+        ["Unmapped Commercial Branches", model.branchCommercial.summary.unmappedBranches],
+        ["Invalid Commercial Numeric Values", model.branchCommercial.summary.invalidNumericValues],
+        ["Invalid Commercial Periods", model.branchCommercial.summary.invalidPeriods],
       ] : []),
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],

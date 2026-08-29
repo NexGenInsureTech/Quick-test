@@ -45,6 +45,13 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       preparer: "BancaTrackerBranchAssignmentMaster",
       dependencies: ["BRANCH_MASTER", "EMPLOYEE_MASTER"],
     }),
+    BRANCH_BUDGET_POTENTIAL: Object.freeze({
+      label: "Branch Budget & Potential",
+      required: ["BANK ID", "BRANCH CODE", "PERIOD", "BUDGET", "POTENTIAL"],
+      optional: ["BRANCH NAME"],
+      preparer: "BancaTrackerBranchBudgetPotentialMaster",
+      dependencies: ["BRANCH_MASTER"],
+    }),
   });
 
   let currentPreview = null;
@@ -144,6 +151,8 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       rawRows,
       dependencyContext: dependencies.context,
       universeReadiness: prepared.universeReadiness || null,
+      commercialSummary: prepared.commercialSummary || null,
+      commercialReadiness: prepared.commercialReadiness || null,
     });
     currentPreview = preview;
     return preview;

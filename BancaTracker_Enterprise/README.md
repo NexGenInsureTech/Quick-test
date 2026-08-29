@@ -42,6 +42,8 @@ Invalid premium, missing Month/Bank/Branch, and structurally unusable rows are r
 - Branch Master `ACTIVATION ELIGIBLE` normalizes separately to `activationEligible: true | false | null`. Missing eligibility keeps an older Branch Master usable for resolution but makes its governed-universe contract incomplete.
 - A `READY` Branch Master makes the governed denominator authoritative, counting distinct `branchId` values where `active === true` and `activationEligible === true`. Eligible branches remain in the denominator even with no transactions. Authority is all-or-nothing; governed-versus-legacy differences are reported, not silently reconciled.
 - Unknown transaction banks remain visible in premium, contribution, and Data Quality, but receive no fabricated activation denominator.
+- Branch Budget means expected or committed premium assigned to a durable branch for an explicit monthly `periodKey` (`YYYY-MM`). Branch Potential means estimated addressable premium opportunity for that branch and period; it is distinct from Budget, actual premium, forecast, and achievement.
+- Branch Budget & Potential is governed reference data keyed by `branchId + periodKey`, not a transaction measure. Future aggregation must sum distinct commercial master rows and must never multiply a value by transaction-row count. Blank means `null`, not zero; explicit zero is valid, while negative or invalid numeric values are rejected.
 - Conflicting current-period Zone/State mappings are represented as `Multiple mappings`, never by first-row selection.
 
 ## Data Quality diagnostics
