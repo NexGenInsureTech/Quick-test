@@ -161,6 +161,10 @@ th {
 .commercial-status-partial { background: #fff0c2; color: #795600 }
 .commercial-table-wrap { overflow-x: auto }
 .commercial-negative { color: #b00020; font-weight: 600 }
+.commercial-comparison-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-comparison-readiness { margin-top: 12px; color: #334155 }
+.commercial-presence { font-weight: 700 }
+.commercial-positive { color: #155b3a; font-weight: 600 }
 
 @media(max-width:900px) {
     .grid {

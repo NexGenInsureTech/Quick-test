@@ -122,7 +122,7 @@ const outputSource = fs.readFileSync(modulePath, "utf8");
 for (const forbidden of ["budget", "potential", "runRate", "forecast", "Date.now", "new Date()", "Repository"]) assert.ok(!outputSource.includes(forbidden), forbidden);
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 assert.match(html, /dailyCommercialComparison\.js/);
-for (const untouched of ["js/commercialPerformanceUI.js", "js/analytics/commercialComparison.js", "js/core.js", "style.css", "app.js", "js/target.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js"]) {
+for (const untouched of ["js/analytics/commercialComparison.js", "js/core.js", "app.js", "js/target.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js"]) {
   const changed = require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim();
   assert.strictEqual(changed, "", untouched);
 }

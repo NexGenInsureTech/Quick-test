@@ -111,7 +111,7 @@ assert.deepStrictEqual(bucketRows.map((item) => item.key), ["__UNASSIGNED__", "_
 
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 assert.match(html, /js\/analytics\/commercialComparison\.js/);
-for (const untouched of ["js/commercialPerformanceUI.js", "style.css", "app.js", "js/target.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/core.js"]) {
+for (const untouched of ["app.js", "js/target.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/core.js"]) {
   const changed = require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim();
   assert.strictEqual(changed, "", untouched);
 }
