@@ -86,6 +86,9 @@ Purpose : Render additive canonical and master-data diagnostics
     const branchCommercial = global.BancaTrackerLiveBranchCommercialAuthority
       ? global.BancaTrackerLiveBranchCommercialAuthority.getCachedContext()
       : null;
+    const commercialPerformance = global.BancaTrackerCore && global.BancaTrackerCore.state
+      ? global.BancaTrackerCore.state.commercialPerformance
+      : null;
     branchUniverseDiagnostics.findings.forEach((finding) => {
       findings.groups.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, count: 1 });
       findings.details.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, row: finding.bank, field: "branchId", message: `${finding.bank}: governed eligible ${finding.governedEligible}; observed ${finding.observed == null ? "—" : finding.observed}; active ${finding.active == null ? "—" : finding.active}.` });
@@ -110,6 +113,7 @@ Purpose : Render additive canonical and master-data diagnostics
       branchUniverseAuthority,
       branchUniverseDiagnostics,
       branchCommercial,
+      commercialPerformance,
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -191,6 +195,19 @@ Purpose : Render additive canonical and master-data diagnostics
         ["Unmapped Commercial Branches", model.branchCommercial.summary.unmappedBranches],
         ["Invalid Commercial Numeric Values", model.branchCommercial.summary.invalidNumericValues],
         ["Invalid Commercial Periods", model.branchCommercial.summary.invalidPeriods],
+      ] : []),
+      ...(model.commercialPerformance ? [
+        ["Commercial Performance Readiness", model.commercialPerformance.status],
+        ["Actual Branch-periods", model.commercialPerformance.summary.actualBranchPeriods],
+        ["Commercial Branch-periods", model.commercialPerformance.summary.commercialBranchPeriods],
+        ["Joined Branch-periods", model.commercialPerformance.summary.joinedBranchPeriods],
+        ["Actual-only Branch-periods", model.commercialPerformance.summary.actualOnlyBranchPeriods],
+        ["Commercial-only Branch-periods", model.commercialPerformance.summary.commercialOnlyBranchPeriods],
+        ["Commercial Budget Missing", model.commercialPerformance.summary.budgetMissingCount],
+        ["Commercial Potential Missing", model.commercialPerformance.summary.potentialMissingCount],
+        ["Invalid-date Rows Excluded", model.commercialPerformance.summary.invalidDateRowsExcluded],
+        ["Unresolved-branch Rows Excluded", model.commercialPerformance.summary.unresolvedBranchRowsExcluded],
+        ["Duplicate Commercial Keys", model.commercialPerformance.summary.duplicateCommercialKeys],
       ] : []),
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],

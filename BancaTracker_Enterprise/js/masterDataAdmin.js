@@ -288,6 +288,7 @@ Purpose : Render read-only master metadata and canonical readiness
         }
         if (global.BancaTrackerLiveBranchCommercialAuthority && typeSelect.value === "BRANCH_BUDGET_POTENTIAL") {
           await global.BancaTrackerLiveBranchCommercialAuthority.loadContext();
+          if (global.BancaTrackerCore) global.BancaTrackerCore.refresh();
         }
         status.textContent = "Master activated successfully.";
         document.getElementById("masterImportPreview").hidden = true;
