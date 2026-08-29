@@ -20,6 +20,7 @@
       ><button id="targetTab">Target &amp; Growth</button
       ><span id="status">Upload CSV</span
       ><button id="productivityTab">Productivity &amp; Opportunity</button
+      ><button id="commercialTab">Commercial Performance</button
       ><button id="qualityTab">Data Quality</button
       ><button id="masterDataTab">Master Data</button>
     </div>
@@ -222,6 +223,20 @@
         <div id="businessTypeSplit"></div>
       </div>
     </div>
+    <div id="commercialPage" style="display: none">
+      <div class="panel commercial-controls" aria-label="Commercial performance controls">
+        <label for="commercialScope">Scope<select id="commercialScope"><option value="MONTH">Month</option><option value="YTD">YTD</option><option value="FY">Financial Year</option></select></label>
+        <label for="commercialPeriod">Period<select id="commercialPeriod"></select></label>
+        <label for="commercialFinancialYear">Financial Year<select id="commercialFinancialYear"></select></label>
+        <label for="commercialDimension">Roll-up<select id="commercialDimension"></select></label>
+      </div>
+      <div id="commercialReadiness" class="panel commercial-readiness" aria-live="polite"></div>
+      <section id="commercialKpis" class="cards" aria-label="Commercial performance KPIs"></section>
+      <div class="panel commercial-table-wrap">
+        <h2>Governed Commercial Roll-up</h2>
+        <div id="commercialTable"></div>
+      </div>
+    </div>
     <div id="qualityPage" style="display: none">
       <section id="qualitySummary" class="cards"></section>
       <p id="qualityScope" class="scorecard-note">
@@ -368,6 +383,7 @@
     <script src="js/productivity.js"></script>
     <script src="js/core.js"></script>
     <script src="js/performance.js"></script>
+    <script src="js/commercialPerformanceUI.js"></script>
     <script src="app.js"></script>
     <script src="js/activation.js"></script>
     <script src="js/scorecard.js"></script>

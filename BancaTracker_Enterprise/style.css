@@ -152,10 +152,20 @@ th {
 .master-confirmation { margin-top: 12px; padding: 12px; border-left: 4px solid #17375e; background: #f3f5f7 }
 .master-import-error { color: #b00020; font-weight: 600 }
 .canonical-quality-section { margin-top: 24px; padding-top: 8px; border-top: 2px solid #ddd }
+.commercial-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px }
+.commercial-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-readiness { border-left: 4px solid #17375e; color: #334155 }
+.commercial-status { display: inline-block; border-radius: 12px; padding: 3px 8px; margin-right: 8px; font-size: 12px; font-weight: 700; background: #e9ecef; color: #273444 }
+.commercial-status-ready { background: #d1e7dd; color: #155b3a }
+.commercial-status-partial { background: #fff0c2; color: #795600 }
+.commercial-table-wrap { overflow-x: auto }
+.commercial-negative { color: #b00020; font-weight: 600 }
 
 @media(max-width:900px) {
     .grid {
         grid-template-columns: 1fr
     }
     .quality-grid { grid-template-columns: 1fr }
+    .commercial-controls { align-items: stretch; flex-direction: column }
 }

@@ -2,7 +2,7 @@
 (function (global) {
   const pages = [
     ["misTab", "misPage"], ["actTab", "activationPage"], ["scoreTab", "scorecardPage"],
-    ["targetTab", "targetPage"], ["productivityTab", "productivityPage"], ["qualityTab", "qualityPage"],
+    ["targetTab", "targetPage"], ["productivityTab", "productivityPage"], ["commercialTab", "commercialPage"], ["qualityTab", "qualityPage"],
     ["masterDataTab", "masterDataPage"]
   ];
   function showPage(pageId) {
