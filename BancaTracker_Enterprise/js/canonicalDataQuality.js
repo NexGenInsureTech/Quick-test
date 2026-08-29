@@ -77,9 +77,20 @@ Purpose : Render additive canonical and master-data diagnostics
   function buildModel(shadowResult) {
     const diagnostics = global.BancaTrackerReadinessDiagnostics;
     const readiness = diagnostics.buildReadiness(shadowResult || null);
+    const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
+    const branchUniverseAuthority = universeAuthority ? universeAuthority.getUniverse() : null;
+    const branchUniverseDiagnostics = universeAuthority
+      ? universeAuthority.assessObserved(global.BancaTrackerCore && global.BancaTrackerCore.state.derived)
+      : { observedGovernedBranches: 0, activeGovernedBranches: 0, nearActiveGovernedBranches: 0, findings: [] };
+    const findings = aggregateFindings(shadowResult);
+    branchUniverseDiagnostics.findings.forEach((finding) => {
+      findings.groups.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, count: 1 });
+      findings.details.push({ severity: finding.severity, category: "BRANCH_UNIVERSE", code: finding.code, row: finding.bank, field: "branchId", message: `${finding.bank}: governed eligible ${finding.governedEligible}; observed ${finding.observed == null ? "—" : finding.observed}; active ${finding.active == null ? "—" : finding.active}.` });
+      findings.totalCount += 1;
+    });
     return {
       readiness,
-      findings: aggregateFindings(shadowResult),
+      findings,
       dateAuthority: shadowResult && shadowResult.dateAuthoritySummary
         ? shadowResult.dateAuthoritySummary
         : { canonical: 0, legacyFallback: 0, invalid: 0, unspecified: 0 },
@@ -93,6 +104,8 @@ Purpose : Render additive canonical and master-data diagnostics
         ? shadowResult.hierarchyAuthoritySummary
         : { resolved: 0, partial: 0, masterAbsent: 0, assignmentUnresolved: 0, hierarchyUnmapped: 0, invalidChain: 0, unspecified: 0, missingEmployeeMetadata: 0 },
       branchUniverse: shadowResult && shadowResult.branchUniverseReadiness || null,
+      branchUniverseAuthority,
+      branchUniverseDiagnostics,
       geographyAuthority: shadowResult && shadowResult.geographyAuthoritySummary
         ? shadowResult.geographyAuthoritySummary
         : { governedBranch: 0, governedSourceState: 0, legacyFallback: 0, unmapped: 0, unspecified: 0, branchSourceStateMismatch: 0 },
@@ -146,6 +159,19 @@ Purpose : Render additive canonical and master-data diagnostics
         ["Universe Explicitly Excluded", model.branchUniverse.explicitlyIneligibleRecords],
         ["Universe Eligibility Unknown", model.branchUniverse.eligibilityUnknownRecords],
         ["Universe Bank Identity Unresolved", model.branchUniverse.bankIdentityUnresolvedRecords],
+      ] : []),
+      ...(model.branchUniverseAuthority ? [
+        ["Branch Universe Authority", model.branchUniverseAuthority.authority],
+        ["Authority Reason", model.branchUniverseAuthority.reason],
+        ["Governed Eligible Total", model.branchUniverseAuthority.governed.total],
+        ["Observed Governed Branches", model.branchUniverseDiagnostics.observedGovernedBranches],
+        ["Active Governed Branches", model.branchUniverseDiagnostics.activeGovernedBranches],
+        ["Near-active Governed Branches", model.branchUniverseDiagnostics.nearActiveGovernedBranches],
+        ...Object.entries(model.branchUniverseAuthority.variance.byBank).flatMap(([bank, item]) => [
+          [`${bank} Legacy Configured`, item.legacyConfigured],
+          [`${bank} Governed Eligible`, item.governedEligible],
+          [`${bank} Universe Variance`, item.variance],
+        ]),
       ] : []),
       ["Governed Geography: Branch", model.geographyAuthority.governedBranch || 0],
       ["Governed Geography: Source State", model.geographyAuthority.governedSourceState || 0],

@@ -21,11 +21,21 @@ Purpose : Apply durable Branch Master identity to live fact records
   }
 
   async function loadContext(repository = global.BancaTrackerRepository) {
-    if (!repository) return setCachedContext({ branchMaps: null });
+    if (!repository) {
+      const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
+      const branchUniverse = universeAuthority ? universeAuthority.setFromBranchMaster([]) : null;
+      return setCachedContext({ branchMaps: null, branchRecords: [], branchUniverse });
+    }
     const records = await repository
       .getActiveMasterRecords("BRANCH_MASTER")
       .catch(() => []);
+    const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
+    const branchUniverse = universeAuthority
+      ? universeAuthority.setFromBranchMaster(records)
+      : null;
     return setCachedContext({
+      branchRecords: records,
+      branchUniverse,
       branchMaps: records.length
         ? global.BancaTrackerBranchResolver.buildLookupMaps(records)
         : null,

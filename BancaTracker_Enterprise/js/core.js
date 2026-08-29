@@ -3,7 +3,7 @@
   const config = global.BancaTrackerConfig;
   const utils = global.BancaTrackerUtils;
   const emptyImportSummary = { totalRows: 0, acceptedRows: 0, rejectedRows: 0, warningRows: 0, negativePremiumRows: 0, rejectionReasons: {}, warningReasons: {}, unconfiguredMonths: [] };
-  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, activePage: "misPage", headerMap: {}, months: [], banks: [], importSummary: emptyImportSummary, dataQuality: global.BancaTrackerDataQuality.build([], config, emptyImportSummary), productivity: null, derived: null, context: null };
+  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, activePage: "misPage", headerMap: {}, months: [], banks: [], importSummary: emptyImportSummary, dataQuality: global.BancaTrackerDataQuality.build([], config, emptyImportSummary), productivity: null, derived: null, context: null, branchUniverseAuthority: null };
   function setStatus(message, isError) { const status = document.getElementById("status"); status.textContent = message; status.classList.toggle("status-error", Boolean(isError)); }
   function populateFilters() {
     const monthFilter = document.getElementById("monthFilter"); const bankFilter = document.getElementById("bankFilter");
@@ -80,6 +80,9 @@
     const hierarchyAuthority = global.BancaTrackerLiveHierarchyAuthority;
     const geographyAuthority = global.BancaTrackerLiveGeographyAuthority;
     const context = authorityContext || (geographyAuthority && geographyAuthority.getCachedContext()) || (hierarchyAuthority && hierarchyAuthority.getCachedContext()) || (assignmentAuthority && assignmentAuthority.getCachedContext()) || (branchAuthority && branchAuthority.getCachedContext());
+    const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
+    state.branchUniverseAuthority = context && context.branchUniverse ||
+      (universeAuthority && universeAuthority.getUniverse()) || null;
     const branchRows = branchAuthority ? branchAuthority.applyRecords(dateRows, context) : dateRows;
     const assignmentRows = assignmentAuthority ? assignmentAuthority.applyRecords(branchRows, context) : branchRows;
     const hierarchyRows = hierarchyAuthority ? hierarchyAuthority.applyRecords(assignmentRows, context) : assignmentRows;

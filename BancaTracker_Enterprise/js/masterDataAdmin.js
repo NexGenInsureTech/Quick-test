@@ -270,6 +270,9 @@ Purpose : Render read-only master metadata and canonical readiness
         status.className = "scorecard-note";
         status.textContent = "Staging, saving and activating master…";
         await global.BancaTrackerMasterDataImport.commitImport();
+        if (global.BancaTrackerLiveBranchUniverseAuthority && typeSelect.value === "BRANCH_MASTER") {
+          await global.BancaTrackerLiveBranchUniverseAuthority.loadContext();
+        }
         status.textContent = "Master activated successfully.";
         document.getElementById("masterImportPreview").hidden = true;
         await render();

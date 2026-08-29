@@ -65,6 +65,9 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
       return {
         overallStatus: "NOT_RUN",
         branchUniverse: null,
+        branchUniverseAuthority: global.BancaTrackerLiveBranchUniverseAuthority
+          ? global.BancaTrackerLiveBranchUniverseAuthority.getUniverse()
+          : null,
         masters: {},
         records: { source: 0, canonical: 0, ready: 0, readyWithWarnings: 0, invalid: 0 },
         resolution: emptyResolution(),
@@ -219,6 +222,9 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
     return {
       overallStatus,
       branchUniverse: shadowResult && shadowResult.branchUniverseReadiness || null,
+      branchUniverseAuthority: global.BancaTrackerLiveBranchUniverseAuthority
+        ? global.BancaTrackerLiveBranchUniverseAuthority.getUniverse()
+        : null,
       masters,
       records,
       resolution,
