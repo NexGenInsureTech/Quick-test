@@ -104,11 +104,11 @@ const css = fs.readFileSync(path.join(__dirname, "..", "style.css"), "utf8");
 const source = fs.readFileSync(path.join(__dirname, "..", "js/commercialPerformanceUI.js"), "utf8");
 for (const id of ["comparisonBasePeriod", "comparisonPeriod", "comparisonDimension", "dailyEntity", "dailyViewMode"]) assert.match(html, new RegExp(`for="${id}"`));
 assert.match(html, /Day-wise Premium Movement/);
-assert.doesNotMatch(html, /Daily Budget|Run-rate|Forecast|Pacing/i);
+assert.doesNotMatch(html, /Daily Budget|Advanced Forecast/i);
 assert.match(css, /commercial-comparison-section/);
 assert.match(css, /commercial-table-wrap[^}]*overflow-x: auto/);
 for (const forbidden of [/actualChange\s*=|actualChangePct\s*=|achievementPointChange\s*=|penetrationPointChange\s*=|dailyActual\s*-|cumulativeActual\s*-/]) assert.doesNotMatch(source, forbidden);
-assert.doesNotMatch(source, /Repository|IndexedDB|runRate|forecast|pacing/i);
+assert.doesNotMatch(source, /Repository|IndexedDB|advancedForecast/i);
 for (const untouched of ["js/analytics/commercialComparison.js", "js/analytics/dailyCommercialComparison.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/target.js", "js/core.js", "app.js"]) {
   assert.strictEqual(require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
 }

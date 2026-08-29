@@ -9,7 +9,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK" } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
@@ -139,6 +139,60 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     return { overall, table, daily };
   }
 
+  function defaultExecutionPeriod(periodContext) { return periodContext.latestActualPeriod || periodContext.latestAvailablePeriod || null; }
+  function resolveExecutionState(periodContext, forceDefaultAsOf = false) {
+    const execution = state.execution;
+    if (!periodContext.availablePeriods.includes(execution.selectedPeriod)) {
+      execution.selectedPeriod = defaultExecutionPeriod(periodContext);
+      execution.asOfExplicit = false;
+      forceDefaultAsOf = true;
+    }
+    if (!execution.selectedPeriod) { execution.asOfDay = null; return; }
+    const daysInMonth = global.BancaTrackerCommercialExecution.getDaysInPeriod(execution.selectedPeriod);
+    const invalid = !Number.isInteger(execution.asOfDay) || execution.asOfDay < 0 || execution.asOfDay > daysInMonth;
+    if (forceDefaultAsOf || !execution.asOfExplicit || invalid) {
+      const resolved = global.BancaTrackerCommercialExecution.resolveAsOfDay(global.BancaTrackerCore.state.factData || [], execution.selectedPeriod);
+      execution.asOfDay = resolved.valid ? resolved.asOfDay : 0;
+      execution.asOfExplicit = false;
+    }
+  }
+  function renderExecutionControls(periodContext) {
+    const execution = state.execution;
+    element("executionPeriod").innerHTML = periodContext.availablePeriods.map((value) => option(value, periodLabel(value), value === execution.selectedPeriod)).join("");
+    const daysInMonth = execution.selectedPeriod ? global.BancaTrackerCommercialExecution.getDaysInPeriod(execution.selectedPeriod) : 0;
+    element("executionAsOfDay").innerHTML = Array.from({ length: daysInMonth + 1 }, (_, day) => option(String(day), day === 0 ? "No observations" : `Day ${day}`, day === execution.asOfDay)).join("");
+    element("executionDimension").innerHTML = Object.entries(dimensionLabels).map(([value, label]) => option(value, label, value === execution.dimension)).join("");
+  }
+  function renderExecutionReadiness(result) {
+    if (!result) { element("executionReadiness").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return; }
+    const statusClass = result.status === "READY" ? " commercial-status-ready" : result.status === "PARTIAL" ? " commercial-status-partial" : "";
+    const coverage = result.coverage || {};
+    element("executionReadiness").innerHTML = `<span class="commercial-status${statusClass}">${escape(String(result.status).replace(/_/g, " "))}</span>${escape(periodLabel(result.selectedPeriod))} · As of Day ${result.asOfDay} · ${result.observedDays} observed days · ${result.remainingDays} remaining calendar days<br><span class="scorecard-note">Budget Coverage: ${coverage.budgetPresentCount || 0} present / ${coverage.budgetMissingCount || 0} missing</span>`;
+    element("executionObservationNote").textContent = result.asOfDay === 0 ? "No Actual observations in this period yet. As-of Day controls the execution cutoff; transactions after that day are excluded from pacing calculations." : "As-of Day controls the execution cutoff. Transactions after that day are excluded from pacing calculations.";
+    const organisationDimensions = ["ASSIGNED_RM", "CSM", "ASM", "ZSM", "NATIONAL_HEAD"];
+    element("executionSnapshotCue").textContent = organisationDimensions.includes(state.execution.dimension) ? "Historical execution attribution uses the current active hierarchy snapshot." : "";
+  }
+  function renderExecutionKpis(result) {
+    const row = result && result.rows && result.rows[0];
+    const values = row ? [["Actual to Date", money(row.actualToDate), row.actualToDate], ["Monthly Budget", money(row.budget), row.budget], ["Budget Achievement to Date", percent(row.budgetAchievementToDatePct), row.budgetAchievementToDatePct], ["Expected Budget to Date (Calendar-linear)", money(row.expectedBudgetToDate), row.expectedBudgetToDate], ["Pace Gap", signedMoney(row.paceGap), row.paceGap], ["Average Daily Actual", money(row.averageDailyActual), row.averageDailyActual], ["Required Daily Run-rate", money(row.requiredDailyRunRate), row.requiredDailyRunRate], ["Projected Month-end Actual", money(row.projectedMonthEndActual), row.projectedMonthEndActual], ["Projected Achievement", percent(row.projectedAchievementPct), row.projectedAchievementPct], ["Projected Budget Gap", signedMoney(row.projectedBudgetGap), row.projectedBudgetGap]] : [];
+    element("executionKpis").innerHTML = values.map(([label, value, raw]) => `<div class="card"><div>${escape(label)}</div><div class="value ${semanticClass(raw)}">${escape(value)}</div></div>`).join("");
+  }
+  function renderExecutionTable(result) {
+    if (!result || !result.rows.length) { element("executionTable").innerHTML = `<p class="empty-state">No execution rows are available.</p>`; return; }
+    const rows = result.rows.map((row) => `<tr data-dimension-key="${escape(row.key)}"><td>${escape(row.label)}</td><td class="${semanticClass(row.actualToDate)}">${escape(money(row.actualToDate))}</td><td>${escape(money(row.budget))}</td><td>${escape(percent(row.budgetAchievementToDatePct))}</td><td>${escape(money(row.expectedBudgetToDate))}</td><td class="${semanticClass(row.paceGap)}">${escape(signedMoney(row.paceGap))}</td><td class="${semanticClass(row.averageDailyActual)}">${escape(money(row.averageDailyActual))}</td><td class="${semanticClass(row.requiredDailyRunRate)}">${escape(money(row.requiredDailyRunRate))}</td><td class="${semanticClass(row.projectedMonthEndActual)}">${escape(money(row.projectedMonthEndActual))}</td><td>${escape(percent(row.projectedAchievementPct))}</td><td class="${semanticClass(row.projectedBudgetGap)}">${escape(signedMoney(row.projectedBudgetGap))}</td></tr>`).join("");
+    element("executionTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Average Daily Actual</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Achievement</th><th>Projected Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
+    if (!global.BancaTrackerCommercialExecution) return null;
+    resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
+    if (!state.execution.selectedPeriod) { renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; return null; }
+    const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
+    const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
+    const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
+    renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionTable(table);
+    return { overall, table };
+  }
+
   function render() {
     const performance = global.BancaTrackerCore && global.BancaTrackerCore.state.commercialPerformance;
     const rollups = global.BancaTrackerCommercialRollups;
@@ -150,6 +204,10 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
         syncComparisonState(periodContext); renderComparisonControls(periodContext); renderComparisonReadiness(null);
         element("comparisonKpis").innerHTML = ""; element("comparisonTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderDaily({ entities: [] });
       }
+      if (global.BancaTrackerCommercialExecution) {
+        resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
+        element("executionKpis").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`;
+      }
       return null;
     }
     renderControls(periodContext);
@@ -159,7 +217,8 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const table = rollups.buildRollup(performance, scope, state.dimension, authorityContext);
     renderReadiness(overall, periodContext); renderKpis(overall.summary); renderTable(table);
     const comparison = renderComparison(periodContext, performance, authorityContext);
-    return { periodContext, overall, table, comparison };
+    const execution = renderExecution(periodContext, performance, authorityContext);
+    return { periodContext, overall, table, comparison, execution };
   }
   function handleScopeChange(value) { state.scopeType = value || element("commercialScope").value; return render(); }
   function handlePeriodChange(value) { state.selectedPeriod = value || element("commercialPeriod").value; state.selectedFinancialYear = global.BancaTrackerCommercialRollups.getFinancialYear(state.selectedPeriod); return render(); }
@@ -169,6 +228,10 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function handleComparisonDimensionChange(value) { state.comparison.dimension = value || element("comparisonDimension").value; state.comparison.selectedEntityKey = null; return render(); }
   function handleDailyEntityChange(value) { state.comparison.selectedEntityKey = value || element("dailyEntity").value; renderDaily(lastDailyResult); return lastDailyResult; }
   function handleDailyViewChange(value) { state.comparison.dailyViewMode = value || element("dailyViewMode").value; renderDaily(lastDailyResult); return lastDailyResult; }
+  function currentExecutionContext() { const performance = global.BancaTrackerCore.state.commercialPerformance; return { periodContext: global.BancaTrackerCommercialRollups.buildPeriodContext(performance), performance, authorityContext: global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext() }; }
+  function handleExecutionPeriodChange(value) { state.execution.selectedPeriod = value || element("executionPeriod").value; state.execution.asOfExplicit = false; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext, true); }
+  function handleExecutionAsOfChange(value) { state.execution.asOfDay = Number(value === undefined ? element("executionAsOfDay").value : value); state.execution.asOfExplicit = true; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
+  function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
   function init() {
     if (initialized) return;
     element("commercialScope").addEventListener("change", function () { handleScopeChange(this.value); });
@@ -180,8 +243,11 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("comparisonDimension").addEventListener("change", function () { handleComparisonDimensionChange(this.value); });
     element("dailyEntity").addEventListener("change", function () { handleDailyEntityChange(this.value); });
     element("dailyViewMode").addEventListener("change", function () { handleDailyViewChange(this.value); });
+    element("executionPeriod").addEventListener("change", function () { handleExecutionPeriodChange(this.value); });
+    element("executionAsOfDay").addEventListener("change", function () { handleExecutionAsOfChange(this.value); });
+    element("executionDimension").addEventListener("change", function () { handleExecutionDimensionChange(this.value); });
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionTable, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, money, percent, signedMoney, points, growth });
 })(window);

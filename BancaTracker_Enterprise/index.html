@@ -262,6 +262,25 @@
           <div id="dailyMovementTable"></div>
         </div>
       </section>
+      <section class="commercial-execution-section" aria-labelledby="commercialExecutionHeading">
+        <div class="panel">
+          <h2 id="commercialExecutionHeading">Commercial Execution</h2>
+          <div class="commercial-controls" aria-label="Commercial execution controls">
+            <label for="executionPeriod">Execution Month<select id="executionPeriod"></select></label>
+            <label for="executionAsOfDay">As-of Day<select id="executionAsOfDay"></select></label>
+            <label for="executionDimension">Dimension<select id="executionDimension"></select></label>
+          </div>
+          <div id="executionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+          <p id="executionObservationNote" class="scorecard-note"></p>
+          <p id="executionSnapshotCue" class="scorecard-note"></p>
+        </div>
+        <section id="executionKpis" class="cards" aria-label="Commercial execution KPIs"></section>
+        <div class="panel commercial-table-wrap">
+          <h2>Execution Pacing &amp; Run-rate</h2>
+          <p class="scorecard-note">Projected Month-end Actual is a simple linear projection based on observed average daily Actual.</p>
+          <div id="executionTable"></div>
+        </div>
+      </section>
     </div>
     <div id="qualityPage" style="display: none">
       <section id="qualitySummary" class="cards"></section>

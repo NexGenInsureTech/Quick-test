@@ -165,6 +165,7 @@ th {
 .commercial-comparison-readiness { margin-top: 12px; color: #334155 }
 .commercial-presence { font-weight: 700 }
 .commercial-positive { color: #155b3a; font-weight: 600 }
+.commercial-execution-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
 
 @media(max-width:900px) {
     .grid {
