@@ -3,6 +3,8 @@
 
 const assert = require("assert");
 const path = require("path");
+const fs = require("fs");
+const vm = require("vm");
 
 global.window = global;
 const load = (file) => require(path.join(__dirname, "..", file));
@@ -26,6 +28,17 @@ const load = (file) => require(path.join(__dirname, "..", file));
 ].forEach(load);
 
 const Diagnostics = BancaTrackerReadinessDiagnostics;
+
+const browserContext = { window: {} };
+vm.runInNewContext(
+  fs.readFileSync(path.join(__dirname, "..", "js/enrichment/readinessDiagnostics.js"), "utf8"),
+  browserContext,
+);
+assert.strictEqual(typeof browserContext.window.BancaTrackerReadinessDiagnostics.buildReadiness, "function");
+assert.strictEqual(
+  browserContext.window.BancaTrackerReadinessDiagnostics.buildReadiness({ status: "NOT_RUN" }).overallStatus,
+  "NOT_RUN",
+);
 
 function hasCode(items, code) {
   return items.some((item) => item.code === code);

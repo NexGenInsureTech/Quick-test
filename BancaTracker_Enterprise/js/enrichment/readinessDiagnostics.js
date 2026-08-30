@@ -6,7 +6,7 @@ Module  : Enrichment Foundation
 Purpose : Build in-memory readiness diagnostics from shadow enrichment
 ==============================================================*/
 
-(function () {
+(function (global) {
   "use strict";
 
   const MASTER_NAMES = Object.freeze([
@@ -269,4 +269,4 @@ Purpose : Build in-memory readiness diagnostics from shadow enrichment
     buildReadiness,
     getStatusLabel,
   });
-})();
+})(window);
