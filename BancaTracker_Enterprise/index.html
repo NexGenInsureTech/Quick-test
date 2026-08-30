@@ -300,6 +300,19 @@
             <div id="executionDrilldownReconciliation" class="commercial-drilldown-reconciliation" aria-label="Drill-down reconciliation"></div>
             <div id="executionDrilldownTable" class="commercial-drilldown-table"></div>
           </section>
+          <section class="commercial-driver-panel" aria-labelledby="executionDriverHeading">
+            <div class="commercial-driver-header">
+              <h3 id="executionDriverHeading">Driver Analysis</h3>
+              <p id="executionDriverParent" class="commercial-driver-parent">Select an execution entity to analyse its LOB or Product drivers.</p>
+            </div>
+            <div class="commercial-driver-controls" aria-label="Driver analysis controls">
+              <label for="executionDriverMode">Analysis Mode<select id="executionDriverMode"><option value="EXECUTION_SNAPSHOT">Execution Snapshot</option><option value="MONTH_COMPARISON">Month Comparison</option></select></label>
+              <label for="executionDriverDimension">Driver Dimension<select id="executionDriverDimension"></select></label>
+            </div>
+            <p id="executionDriverStatus" class="commercial-driver-empty" aria-live="polite"></p>
+            <div id="executionDriverReconciliation" class="commercial-driver-reconciliation" aria-label="Driver analysis reconciliation"></div>
+            <div id="executionDriverTable" class="commercial-driver-table"></div>
+          </section>
         </div>
       </section>
     </div>

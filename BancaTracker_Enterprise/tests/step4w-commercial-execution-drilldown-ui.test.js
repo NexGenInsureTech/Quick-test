@@ -145,7 +145,7 @@ assert.match(source, /data-parent-key/);
 assert.doesNotMatch(source, /performanceResult\.rows\.filter|facts\.filter|getDimensionValue|scopeRows|aggregatePerformance|reduce\(\(sum/);
 assert.doesNotMatch(source, /executionAttention\s*=|referenceAttention\s*=|priorityRank\s*=|priorityRank\+\+|\.sort\([^)]*priority/);
 assert.doesNotMatch(source, /reconciliation\.(actual|budget)\.[a-zA-Z]+\s*=|childActual|childBudget/);
-assert.doesNotMatch(source, /Repository|IndexedDB|"PRODUCT"|"LOB"|LINE_OF_BUSINESS/i);
+assert.doesNotMatch(source, /Repository|IndexedDB|LINE_OF_BUSINESS/i);
 assert.doesNotMatch(elements.executionDrilldownChild.innerHTML, /Product|LOB|Daily|Comparison/i);
 for (const untouched of ["js/analytics/commercialExecutionDrilldown.js", "js/analytics/commercialExecutionPriority.js", "js/analytics/commercialExecutionStatus.js", "js/analytics/commercialExecution.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/target.js", "js/core.js", "app.js"]) assert.strictEqual(childProcess.execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: root, encoding: "utf8" }).trim(), "", untouched);
 assert.match(fs.readFileSync(path.join(root, "README.md"), "utf8"), /Commercial execution drill-down UI presents supplied Step 4V context only/);

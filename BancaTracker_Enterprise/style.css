@@ -193,6 +193,17 @@ th {
 .commercial-drilldown-select { padding: 2px 4px; border: 1px solid transparent; background: transparent; color: #17375e; font: inherit; text-align: left; text-decoration: underline; cursor: pointer }
 .commercial-drilldown-select:hover, .commercial-drilldown-select:focus-visible { border-color: #64748b; outline: 2px solid transparent; text-decoration: none }
 .commercial-drilldown-select.is-selected { border-color: #64748b; background: #eef2f6; text-decoration: none }
+.commercial-driver-panel { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
+.commercial-driver-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px }
+.commercial-driver-parent { margin: 0; color: #334155 }
+.commercial-driver-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-driver-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-driver-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-driver-reconciliation { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-driver-reconciliation > div { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc }
+.commercial-driver-reconciliation span { white-space: nowrap }
+.commercial-driver-table { overflow-x: auto }
+.commercial-driver-empty { color: #556070 }
 
 @media(max-width:900px) {
     .grid {
@@ -204,4 +215,7 @@ th {
     .commercial-drilldown-controls { align-items: stretch; flex-direction: column }
     .commercial-drilldown-header { align-items: stretch; flex-direction: column }
     .commercial-drilldown-reconciliation { flex-direction: column }
+    .commercial-driver-controls { align-items: stretch; flex-direction: column }
+    .commercial-driver-header { align-items: stretch; flex-direction: column }
+    .commercial-driver-reconciliation { flex-direction: column }
 }

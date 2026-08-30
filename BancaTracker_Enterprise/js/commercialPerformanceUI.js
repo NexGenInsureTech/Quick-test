@@ -9,7 +9,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null } } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null }, driverAnalysis: { parentDimension: null, parentKey: null, parentLabel: null, mode: "EXECUTION_SNAPSHOT", driverDimension: "LOB" } } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
@@ -18,6 +18,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   let lastExecutionPriority = null;
   let lastExecutionContext = null;
   let lastExecutionDrilldown = null;
+  let lastDriverAnalysis = null;
 
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
@@ -280,6 +281,70 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     }).join("");
     element("executionDrilldownTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[result.childDimension] || result.childDimension)}</th><th>Actual to Date</th><th>Budget</th><th>Budget Achievement</th><th>Expected Budget to Date</th><th>Pace Gap</th><th>Required Daily Run-rate</th><th>Projected Month-end</th><th>Projected Gap</th><th>Execution Attention</th><th>Reference Attention</th><th>Priority Rank</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+  function clearDriverAnalysis(message = "Select an execution entity to analyse its LOB or Product drivers.") {
+    state.execution.driverAnalysis.parentDimension = null; state.execution.driverAnalysis.parentKey = null; state.execution.driverAnalysis.parentLabel = null;
+    lastDriverAnalysis = null;
+    element("executionDriverParent").textContent = message;
+    element("executionDriverStatus").textContent = "";
+    element("executionDriverReconciliation").innerHTML = "";
+    element("executionDriverTable").innerHTML = "";
+  }
+  function driverStatusMessage(result) {
+    const messages = {
+      EMPTY: result && result.mode === "EXECUTION_SNAPSHOT" ? "No driver production is available at this execution cutoff." : "No driver production is available for these comparison months.",
+      PARENT_NOT_FOUND: "The selected entity is no longer available in the current governed data.",
+      INVALID_INPUT: "Compatible governed parent authority is not available for this analysis.",
+      INVALID_PARENT: "The selected entity is not compatible with driver analysis.",
+      INVALID_PERIOD: "The selected periods are not compatible with driver analysis.",
+    };
+    return messages[result && result.status] || `Driver analysis status: ${String(result && result.status || "NOT AVAILABLE").replace(/_/g, " ")}`;
+  }
+  function renderDriverAnalysisControls() {
+    const analysis = state.execution.driverAnalysis;
+    const drivers = global.BancaTrackerCommercialDriverAnalysis ? global.BancaTrackerCommercialDriverAnalysis.getSupportedDriverDimensions() : [];
+    if (!drivers.includes(analysis.driverDimension)) analysis.driverDimension = drivers[0] || "LOB";
+    element("executionDriverMode").value = analysis.mode;
+    element("executionDriverDimension").innerHTML = drivers.map((value) => option(value, value === "PRODUCT" ? "Product" : value, value === analysis.driverDimension)).join("");
+  }
+  function renderDriverAnalysis(result = lastDriverAnalysis) {
+    const analysis = state.execution.driverAnalysis;
+    renderDriverAnalysisControls();
+    if (!analysis.parentKey) { clearDriverAnalysis(); return; }
+    const selectionText = `${analysis.parentLabel} · ${dimensionLabels[analysis.parentDimension] || analysis.parentDimension}`;
+    element("executionDriverParent").textContent = `Selected Parent: ${selectionText}`;
+    if (!result) { element("executionDriverStatus").textContent = "Driver analysis is not available for the current governed context."; element("executionDriverReconciliation").innerHTML = ""; element("executionDriverTable").innerHTML = ""; return; }
+    element("executionDriverStatus").textContent = driverStatusMessage(result);
+    if (["INVALID_INPUT", "INVALID_PARENT", "INVALID_PERIOD", "PARENT_NOT_FOUND"].includes(result.status)) { element("executionDriverReconciliation").innerHTML = ""; element("executionDriverTable").innerHTML = ""; return; }
+    if (result.mode === "EXECUTION_SNAPSHOT") {
+      const reconciliation = result.reconciliation;
+      element("executionDriverReconciliation").innerHTML = reconciliation ? `<div><strong>Actual</strong><span>Parent: ${escape(money(reconciliation.parentActual))}</span><span>Drivers: ${escape(money(reconciliation.driverActual))}</span><span>Difference: ${escape(signedMoney(reconciliation.difference))}</span></div>` : "";
+      if (!result.rows.length) { element("executionDriverTable").innerHTML = `<p class="commercial-driver-empty">${escape(driverStatusMessage(result))}</p>`; return; }
+      const rows = result.rows.map((row) => `<tr data-driver-key="${escape(row.key)}"><td>${escape(row.key === "__UNMAPPED__" ? `Unmapped ${result.driverDimension === "PRODUCT" ? "Product" : "LOB"}` : row.label)}</td><td class="${semanticClass(row.actual)}">${escape(money(row.actual))}</td><td>${escape(percent(row.contributionPercent))}</td></tr>`).join("");
+      element("executionDriverTable").innerHTML = `<table><thead><tr><th>Driver</th><th>Actual to Date</th><th>Contribution %</th></tr></thead><tbody>${rows}</tbody></table>`;
+      return;
+    }
+    const reconciliation = result.reconciliation || {};
+    element("executionDriverReconciliation").innerHTML = ["base", "comparison", "change"].map((key) => reconciliation[key] ? `<div><strong>${escape(key === "base" ? "Base" : key === "comparison" ? "Comparison" : "Change")}</strong><span>Parent: ${escape(money(reconciliation[key].parent))}</span><span>Drivers: ${escape(money(reconciliation[key].drivers))}</span><span>Difference: ${escape(signedMoney(reconciliation[key].difference))}</span></div>` : "").join("");
+    if (!result.rows.length) { element("executionDriverTable").innerHTML = `<p class="commercial-driver-empty">${escape(driverStatusMessage(result))}</p>`; return; }
+    const direction = (value) => value === "UP" ? "Growth" : value === "DOWN" ? "Degrowth" : "Flat";
+    const rows = result.rows.map((row) => `<tr data-driver-key="${escape(row.key)}"><td>${escape(row.key === "__UNMAPPED__" ? `Unmapped ${result.driverDimension === "PRODUCT" ? "Product" : "LOB"}` : row.label)}</td><td class="${semanticClass(row.baseActual)}">${escape(money(row.baseActual))}</td><td class="${semanticClass(row.comparisonActual)}">${escape(money(row.comparisonActual))}</td><td class="${semanticClass(row.change)}">${escape(signedMoney(row.change))}</td><td>${escape(percent(row.growthPercent))}</td><td>${escape(direction(row.direction))}</td></tr>`).join("");
+    element("executionDriverTable").innerHTML = `<table><thead><tr><th>Driver</th><th>Base Actual</th><th>Comparison Actual</th><th>Change</th><th>Growth / Degrowth</th><th>Direction</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  function buildDriverAnalysis() {
+    const selection = state.execution.driverAnalysis;
+    if (!selection.parentKey || !lastExecutionContext || !global.BancaTrackerCommercialDriverAnalysis) { renderDriverAnalysis(null); return null; }
+    const common = { parentSelection: selection, driverDimension: selection.driverDimension, facts: lastExecutionContext.facts, authorityContext: lastExecutionContext.authorityContext };
+    if (selection.mode === "MONTH_COMPARISON") {
+      const comparison = state.comparison;
+      if (!comparison.basePeriod || !comparison.comparisonPeriod || !global.BancaTrackerCommercialComparison) { lastDriverAnalysis = null; renderDriverAnalysis(null); return null; }
+      const parentComparisonResult = global.BancaTrackerCommercialComparison.buildComparison({ performanceResult: lastExecutionContext.performanceResult, periodContext: lastExecutionContext.periodContext, authorityContext: lastExecutionContext.authorityContext, basePeriod: comparison.basePeriod, comparisonPeriod: comparison.comparisonPeriod, dimension: selection.parentDimension });
+      lastDriverAnalysis = global.BancaTrackerCommercialDriverAnalysis.buildComparisonDrivers({ ...common, basePeriod: comparison.basePeriod, comparisonPeriod: comparison.comparisonPeriod, parentComparisonResult });
+    } else {
+      lastDriverAnalysis = global.BancaTrackerCommercialDriverAnalysis.buildExecutionDrivers({ ...common, periodKey: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, parentExecutionResult: lastExecutionResult });
+    }
+    renderDriverAnalysis(lastDriverAnalysis);
+    return lastDriverAnalysis;
+  }
   function buildExecutionDrilldown() {
     const selection = state.execution.drilldown;
     if (!selection.parentKey || !selection.childDimension || !lastExecutionResult || !lastExecutionContext || !global.BancaTrackerCommercialExecutionDrilldown) { renderExecutionDrilldown(null); return null; }
@@ -299,9 +364,10 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const parentDimension = state.execution.dimension;
     const allowed = global.BancaTrackerCommercialExecutionDrilldown.getAllowedDrilldowns(parentDimension);
     state.execution.drilldown = { parentDimension, parentKey, parentLabel, childDimension: allowed[0] || null };
+    state.execution.driverAnalysis.parentDimension = parentDimension; state.execution.driverAnalysis.parentKey = parentKey; state.execution.driverAnalysis.parentLabel = parentLabel;
     renderExecutionTable(lastExecutionResult, lastExecutionStatus); renderExecutionPriority(lastExecutionPriority);
-    if (!allowed.length) { lastExecutionDrilldown = null; renderExecutionDrilldown(null); return null; }
-    return buildExecutionDrilldown();
+    if (!allowed.length) { lastExecutionDrilldown = null; renderExecutionDrilldown(null); buildDriverAnalysis(); return null; }
+    const drilldown = buildExecutionDrilldown(); buildDriverAnalysis(); return drilldown;
   }
   function handleExecutionDrilldownChildChange(value) {
     state.execution.drilldown.childDimension = value || element("executionDrilldownChild").value || null;
@@ -310,7 +376,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
     if (!global.BancaTrackerCommercialExecution) return null;
     resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
-    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); return null; }
+    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available."); return null; }
     const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
     const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
     const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
@@ -324,6 +390,11 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       if (selected.parentDimension !== state.execution.dimension || !table.rows.some((row) => row.key === selected.parentKey)) clearExecutionDrilldown("The selected entity is no longer available in the current execution snapshot.");
       else buildExecutionDrilldown();
     } else renderExecutionDrilldown(null);
+    const driver = state.execution.driverAnalysis;
+    if (driver.parentKey) {
+      if (driver.parentDimension !== state.execution.dimension || !table.rows.some((row) => row.key === driver.parentKey)) clearDriverAnalysis("The selected entity is no longer available in the current governed data.");
+      else buildDriverAnalysis();
+    } else renderDriverAnalysis(null);
     return { overall, table, statusOverall, statusTable, priority };
   }
 
@@ -340,7 +411,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
-        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available.");
+        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available.");
       }
       return null;
     }
@@ -365,7 +436,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function currentExecutionContext() { const performance = global.BancaTrackerCore.state.commercialPerformance; return { periodContext: global.BancaTrackerCommercialRollups.buildPeriodContext(performance), performance, authorityContext: global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext() }; }
   function handleExecutionPeriodChange(value) { state.execution.selectedPeriod = value || element("executionPeriod").value; state.execution.asOfExplicit = false; clearExecutionDrilldown("Select an execution entity for the new month."); const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext, true); }
   function handleExecutionAsOfChange(value) { state.execution.asOfDay = Number(value === undefined ? element("executionAsOfDay").value : value); state.execution.asOfExplicit = true; const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
-  function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; clearExecutionDrilldown("Select an execution entity for the new dimension."); const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
+  function handleExecutionDimensionChange(value) { state.execution.dimension = value || element("executionDimension").value; clearExecutionDrilldown("Select an execution entity for the new dimension."); clearDriverAnalysis("Select an execution entity for the new dimension."); const context = currentExecutionContext(); return renderExecution(context.periodContext, context.performance, context.authorityContext); }
+  function handleDriverAnalysisModeChange(value) { state.execution.driverAnalysis.mode = value || element("executionDriverMode").value || "EXECUTION_SNAPSHOT"; return buildDriverAnalysis(); }
+  function handleDriverAnalysisDimensionChange(value) { state.execution.driverAnalysis.driverDimension = value || element("executionDriverDimension").value || "LOB"; return buildDriverAnalysis(); }
   function handleExecutionAttentionFilterChange(value) { state.execution.attentionFilter = value || element("executionAttentionFilter").value || "ALL"; element("executionAttentionFilter").value = state.execution.attentionFilter; renderExecutionTable(lastExecutionResult, lastExecutionStatus); return lastExecutionStatus; }
   function handleExecutionPriorityViewChange(value) { state.execution.priorityView = value || element("executionPriorityView").value || "NONE"; element("executionPriorityView").value = state.execution.priorityView; renderExecutionPriority(lastExecutionPriority); return lastExecutionPriority; }
   function init() {
@@ -385,9 +458,11 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionAttentionFilter").addEventListener("change", function () { handleExecutionAttentionFilterChange(this.value); });
     element("executionPriorityView").addEventListener("change", function () { handleExecutionPriorityViewChange(this.value); });
     element("executionDrilldownChild").addEventListener("change", function () { handleExecutionDrilldownChildChange(this.value); });
+    element("executionDriverMode").addEventListener("change", function () { handleDriverAnalysisModeChange(this.value); });
+    element("executionDriverDimension").addEventListener("change", function () { handleDriverAnalysisDimensionChange(this.value); });
     [element("executionTable"), element("executionPriorityTable")].forEach((container) => container.addEventListener("click", function (event) { const control = event.target.closest && event.target.closest(".commercial-drilldown-select"); if (control) handleExecutionParentSelect(control.dataset.parentKey, control.dataset.parentLabel); }));
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, renderDriverAnalysis, buildDriverAnalysis, clearDriverAnalysis, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, handleDriverAnalysisModeChange, handleDriverAnalysisDimensionChange, money, percent, signedMoney, points, growth });
 })(window);
