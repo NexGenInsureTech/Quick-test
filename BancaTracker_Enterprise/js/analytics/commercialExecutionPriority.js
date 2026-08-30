@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialExecutionPriority.js
 Module  : Analytics
 Purpose : Rank supplied execution and reference attention deterministically

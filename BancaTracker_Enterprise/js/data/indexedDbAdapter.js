@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : indexedDbAdapter.js
 Module  : Data Foundation
 Purpose : IndexedDB connection, schema creation and generic storage access

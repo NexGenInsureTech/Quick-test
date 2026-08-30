@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialExecutionStatus.js
 Module  : Analytics
 Purpose : Interpret governed commercial execution results without recalculation

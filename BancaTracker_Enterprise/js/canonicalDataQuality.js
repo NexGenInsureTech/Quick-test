@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : canonicalDataQuality.js
 Module  : Data Quality
 Purpose : Render additive canonical and master-data diagnostics

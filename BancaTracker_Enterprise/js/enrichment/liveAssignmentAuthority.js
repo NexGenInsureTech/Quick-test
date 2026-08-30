@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveAssignmentAuthority.js
 Module  : Enrichment Foundation
 Purpose : Resolve governed branch ownership while preserving source RM identity

@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : assignmentResolver.js
 Module  : Enrichment Foundation
 Purpose : Resolve the governed RM assignment for a durable branch

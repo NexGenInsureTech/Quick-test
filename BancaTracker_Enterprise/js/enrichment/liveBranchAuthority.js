@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveBranchAuthority.js
 Module  : Enrichment Foundation
 Purpose : Apply durable Branch Master identity to live fact records

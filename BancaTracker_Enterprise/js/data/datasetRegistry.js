@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : datasetRegistry.js
 Module  : Data Foundation
 Purpose : Canonical dataset, status, role and resolution constants

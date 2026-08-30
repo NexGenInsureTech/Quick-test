@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : masterDataAdmin.js
 Module  : Master Data Administration
 Purpose : Render read-only master metadata and canonical readiness

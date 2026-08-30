@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialExecutionDrilldown.js
 Module  : Analytics
 Purpose : Compose parent-scoped commercial execution drill-down context

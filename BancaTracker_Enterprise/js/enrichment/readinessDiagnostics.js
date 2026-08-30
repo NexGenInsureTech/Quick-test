@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : readinessDiagnostics.js
 Module  : Enrichment Foundation
 Purpose : Build in-memory readiness diagnostics from shadow enrichment

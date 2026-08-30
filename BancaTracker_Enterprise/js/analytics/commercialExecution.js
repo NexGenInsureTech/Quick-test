@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialExecution.js
 Module  : Analytics
 Purpose : Govern calendar-day Budget pacing and simple observed-average projection

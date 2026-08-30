@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : dateResolver.js
 Module  : Enrichment Foundation
 Purpose : Parse policy-issued dates and derive canonical time fields

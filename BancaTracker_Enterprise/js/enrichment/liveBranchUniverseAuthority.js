@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveBranchUniverseAuthority.js
 Module  : Enrichment Foundation
 Purpose : Provide one live activation-denominator authority

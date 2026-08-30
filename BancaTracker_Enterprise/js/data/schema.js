@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : schema.js
 Module  : Data Foundation
 Purpose : IndexedDB schema and persistent data structure constants

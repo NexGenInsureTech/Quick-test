@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialPerformanceUI.js
 Module  : Commercial Performance UI
 Purpose : Render cached governed commercial roll-ups without owning formulas

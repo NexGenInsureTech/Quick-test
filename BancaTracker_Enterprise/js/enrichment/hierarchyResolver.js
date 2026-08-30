@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : hierarchyResolver.js
 Module  : Enrichment Foundation
 Purpose : Resolve reporting chains from active hierarchy masters

@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : branchResolver.js
 Module  : Enrichment Foundation
 Purpose : Resolve durable branches from the active Branch Master

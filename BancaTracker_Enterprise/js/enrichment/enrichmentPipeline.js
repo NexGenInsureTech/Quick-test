@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : enrichmentPipeline.js
 Module  : Enrichment Foundation
 Purpose : Compose canonical transaction enrichment with provenance

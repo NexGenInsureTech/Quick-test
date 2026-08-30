@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : repository.js
 Module  : Data Foundation
 Purpose : Dataset lifecycle, versioning and active dataset registry

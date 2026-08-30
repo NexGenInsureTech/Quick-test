@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveHierarchyAuthority.js
 Module  : Enrichment Foundation
 Purpose : Apply governed organisation hierarchy to live fact records

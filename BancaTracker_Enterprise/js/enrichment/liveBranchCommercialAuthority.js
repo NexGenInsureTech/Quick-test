@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveBranchCommercialAuthority.js
 Module  : Enrichment Foundation
 Purpose : Cache and resolve governed branch-period commercial references

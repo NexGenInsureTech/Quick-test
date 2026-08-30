@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : shadowEnrichment.js
 Module  : Enrichment Foundation
 Purpose : Run fail-safe canonical enrichment beside authoritative v8.1 data

@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : masterDataImport.js
 Module  : Master Data Administration
 Purpose : Parse, validate, stage, persist and activate master CSV datasets

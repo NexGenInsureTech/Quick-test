@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : branchBudgetPotentialMaster.js
 Module  : Master Data
 Purpose : Govern period-specific branch Budget and Potential reference data

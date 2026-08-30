@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : branchAssignmentMaster.js
 Module  : Master Data
 Purpose : Normalize and validate durable Branch to RM assignments

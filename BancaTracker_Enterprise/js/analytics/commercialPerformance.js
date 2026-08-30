@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialPerformance.js
 Module  : Analytics
 Purpose : Aggregate and join branch-period Actual, Budget and Potential safely

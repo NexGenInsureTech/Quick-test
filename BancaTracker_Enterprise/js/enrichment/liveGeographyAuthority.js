@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : liveGeographyAuthority.js
 Module  : Enrichment Foundation
 Purpose : Apply governed State and Zone authority to live fact records

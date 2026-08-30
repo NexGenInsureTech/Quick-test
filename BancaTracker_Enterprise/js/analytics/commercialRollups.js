@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialRollups.js
 Module  : Analytics
 Purpose : Govern commercial period scopes and dimension roll-ups

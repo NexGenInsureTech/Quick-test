@@ -1,10 +1,16 @@
-# BancaTracker Enterprise v8.1
+# BancaTracker Enterprise v8.2.0
 
 ## Management Focus & Data Trust
 
-Status: **Release candidate — acceptance fixes and hardening complete.**
+Status: **v8.2.0 release identity established; browser acceptance is tracked separately.**
 
 BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Intelligence, Management Scorecard and drill-down, Target & Growth, Productivity & Opportunity, and Data Quality views. It has no backend, database, framework, CDN, telemetry, or external library.
+
+v8.2.0 adds a governed persistent master-data foundation, canonical policy-date authority, governed geography, durable branch identity, assigned RM and organisation hierarchy authorities, governed branch universe, branch Budget & Potential, commercial performance and roll-ups, month comparison, daily premium movement, execution pacing/attention/prioritisation, structural management drill-down, independent LOB/Product driver analysis, and canonical/master Data Quality integration.
+
+## Upgrading from v8.1.x to v8.2.0
+
+The browser database upgrades to schema version 2 additively; existing stores are not intentionally cleared and active-dataset metadata persists. Upload and activate the new governed masters where required. Readiness may remain partial until required masters exist. Legacy analytics remain available, and branch Budget/Potential remains separate from legacy `target.js` session targets. No migration behavior beyond these implemented guarantees is promised.
 
 ## Architecture
 
@@ -91,7 +97,7 @@ Overall and bank-specific targets are retained in browser session storage. Month
 - No uploaded data or targets are transmitted over a network.
 - Synthetic Node benchmarks cover CSV/shared analytics through 500K rows but are not browser certification.
 
-Known limitations: data and analytics are memory-resident; very large imports depend on browser/hardware capacity; negative-premium business treatment is not yet approved; branch identity depends on names; configured universes require governance; targets are session-only; and 1M-row browser support is not claimed.
+Known v8.2.0 limitations: organisation attribution uses the current hierarchy snapshot rather than historical effective dating; Product/LOB identities remain transaction-derived; Product/LOB Budget/Potential is not allocated; execution projection is simple linear pacing, not a forecast model; legacy targets remain session-based and separate; browser-local storage/capacity constraints apply; negative premium is preserved factually without additional business-policy classification; and 1M-row browser support is not claimed.
 
 ## Running tests
 
@@ -100,4 +106,4 @@ node tests/run-all.js
 node --max-old-space-size=4096 tests/benchmark.js
 ```
 
-The master runner excludes benchmarks and runs Phase 5, Phase 6, and Steps 8.1A–8.1E.
+The master runner excludes benchmarks and runs 38 regression groups covering the v8.1 compatibility baseline and v8.2 authorities/UI. Real-browser production acceptance is completed separately in R2B/R3.

@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : geographyResolver.js
 Module  : Enrichment Foundation
 Purpose : Resolve State and Zone from active Geography Master

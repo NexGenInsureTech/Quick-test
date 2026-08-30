@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : branchMaster.js
 Module  : Master Data
 Purpose : Normalize, validate and prepare durable Branch Master records

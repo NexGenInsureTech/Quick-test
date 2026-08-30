@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : dailyCommercialComparison.js
 Module  : Analytics
 Purpose : Compare signed daily and cumulative Actual Premium by calendar day

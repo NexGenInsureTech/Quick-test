@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialDriverAnalysis.js
 Module  : Analytics
 Purpose : Govern parent-scoped LOB and Product commercial driver analysis

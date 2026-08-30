@@ -1,6 +1,6 @@
 /*==============================================================
 BancaTracker Enterprise
-Version : 8.2.0-dev
+Version : 8.2.0
 File    : commercialComparison.js
 Module  : Analytics
 Purpose : Compare two governed commercial MONTH roll-ups by durable key
