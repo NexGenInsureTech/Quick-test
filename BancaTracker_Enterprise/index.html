@@ -1,175 +1,511 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>BancaTracker Enterprise v8 MVP</title>
-    <link rel='stylesheet' href='style.css'>
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
+  <body>
     <h1>BancaTracker Enterprise v8 MVP</h1>
-    <div class='toolbar'><input type='file' id='csvFile' accept='.csv'><select id='monthFilter'>
-            <option value='ALL'>All Months</option>
-        </select><select id='bankFilter'><option value='ALL'>All Banks</option></select><button id='misTab'>Performance MIS</button><button id='actTab'>Activation Cockpit</button><button id='scoreTab'>Management Scorecard</button><button id='targetTab'>Target &amp; Growth</button><span
-            id='status'>Upload CSV</span><button id='productivityTab'>Productivity &amp; Opportunity</button><button id='qualityTab'>Data Quality</button></div>
-    <div id='importSummary' class='import-summary' aria-live='polite'></div>
-    <div id='misPage'>
-        <section id='kpis' class='cards'></section>
-        <p id='performanceScope' class='activation-note'></p>
-        <div class='panel'>
-            <h2>Current Period Business</h2>
-            <div id='monthlyCards' class='monthly-grid'></div>
-        </div>
-        <div class='grid'>
-            <div class='panel'>
-                <h2>Bank Dashboard</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Bank</th>
-                            <th>Premium</th>
-                            <th>Contribution %</th>
-                        </tr>
-                    </thead>
-                    <tbody id='bankTable'></tbody>
-                </table>
-            </div>
-            <div class='panel'>
-                <h2>RM Dashboard</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>RM</th>
-                            <th>Premium</th>
-                            <th>Contribution %</th>
-                        </tr>
-                    </thead>
-                    <tbody id='rmTable'></tbody>
-                </table>
-            </div>
-        </div>
-        <div class='panel'>
-            <h2>LOB Dashboard</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>LOB</th>
-                        <th>Premium</th>
-                        <th>Contribution %</th>
-                    </tr>
-                </thead>
-                <tbody id='lobTable'></tbody>
-            </table>
-        </div>
+    <div class="toolbar">
+      <input type="file" id="csvFile" accept=".csv" /><select id="monthFilter">
+        <option value="ALL">All Months</option></select
+      ><select id="bankFilter">
+        <option value="ALL">All Banks</option></select
+      ><button id="misTab">Performance MIS</button
+      ><button id="actTab">Activation Cockpit</button
+      ><button id="scoreTab">Management Scorecard</button
+      ><button id="targetTab">Target &amp; Growth</button
+      ><span id="status">Upload CSV</span
+      ><button id="productivityTab">Productivity &amp; Opportunity</button
+      ><button id="commercialTab">Commercial Performance</button
+      ><button id="qualityTab">Data Quality</button
+      ><button id="masterDataTab">Master Data</button>
     </div>
-    <div id='activationPage' style='display:none'>
-        <section id='activationKpis' class='cards'></section>
-        <p id='activationScope' class='activation-note'></p>
-        <div class='grid'>
-            <div class='panel'>
-                <h2>Branch Maturity Pyramid</h2>
-                <div id='branchPyramid'></div>
-            </div>
-            <div class='panel'>
-                <h2>Bank Activation %</h2>
-                <div id='bankActivation'></div>
-            </div>
+    <div id="importSummary" class="import-summary" aria-live="polite"></div>
+    <div id="misPage">
+      <section id="kpis" class="cards"></section>
+      <p id="performanceScope" class="activation-note"></p>
+      <div class="panel">
+        <h2>Current Period Business</h2>
+        <div id="monthlyCards" class="monthly-grid"></div>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h2>Bank Dashboard</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Bank</th>
+                <th>Premium</th>
+                <th>Contribution %</th>
+              </tr>
+            </thead>
+            <tbody id="bankTable"></tbody>
+          </table>
         </div>
-        <div class="panel opportunity-panel">
-            <h2>Opportunity Branches</h2>
-            <p id="opportunityCount" class="activation-note"></p>
-            <div id="opportunityBranches"></div>
+        <div class="panel">
+          <h2>RM Dashboard</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>RM</th>
+                <th>Premium</th>
+                <th>Contribution %</th>
+              </tr>
+            </thead>
+            <tbody id="rmTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>LOB Dashboard</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>LOB</th>
+              <th>Premium</th>
+              <th>Contribution %</th>
+            </tr>
+          </thead>
+          <tbody id="lobTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="activationPage" style="display: none">
+      <section id="activationKpis" class="cards"></section>
+      <p id="activationScope" class="activation-note"></p>
+      <div class="grid">
+        <div class="panel">
+          <h2>Branch Maturity Pyramid</h2>
+          <div id="branchPyramid"></div>
+        </div>
+        <div class="panel">
+          <h2>Bank Activation %</h2>
+          <div id="bankActivation"></div>
+        </div>
+      </div>
+      <div class="panel opportunity-panel">
+        <h2>Opportunity Branches</h2>
+        <p id="opportunityCount" class="activation-note"></p>
+        <div id="opportunityBranches"></div>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h2>Zone Activation</h2>
+          <div id="zoneActivation"></div>
+        </div>
+        <div class="panel">
+          <h2>State Activation</h2>
+          <div id="stateActivation"></div>
+        </div>
+      </div>
+    </div>
+    <div id="scorecardPage" style="display: none">
+      <section id="scorecardSummary" class="cards"></section>
+      <p id="scorecardScope" class="scorecard-note"></p>
+      <p class="scorecard-note">
+        Use the scorecard to move from Partner Bank to RM/IMD productivity and
+        then to branch opportunities.
+      </p>
+      <div class="panel">
+        <h2>Partner Scorecard</h2>
+        <div id="partnerScorecard"></div>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h2>Management Priority</h2>
+          <p class="scorecard-note">
+            Rules apply in order: NO DATA when no current premium and no
+            observed branches; CRITICAL for a bank-level Data Quality ERROR or
+            configured-bank activation below 10% with Near Active branches;
+            UNCONFIGURED when current business exists but no branch universe is
+            configured; HIGH below 20% with Near Active; MEDIUM below 40% or
+            with Near Active; LOW at 40%+ with no Near Active. Data Quality
+            ERROR is shown separately from commercial signals.
+          </p>
+        </div>
+        <div class="panel">
+          <h2>Management Actions</h2>
+          <div id="managementActions"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Management Exceptions</h2>
+        <p class="scorecard-note">
+          Shows Data Quality errors, CRITICAL/HIGH banks, RMs or IMDs with
+          multiple Near Active branches, and branches within the configured
+          immediate-opportunity gap.
+        </p>
+        <div id="managementExceptions"></div>
+      </div>
+      <div id="managementDetail" class="panel productivity-table">
+        <p class="empty-state">Select a Partner Bank from the scorecard.</p>
+      </div>
+    </div>
+    <div id="targetPage" style="display: none">
+      <div class="panel target-config">
+        <h2>Target Configuration</h2>
+        <div class="target-form">
+          <label
+            >Overall FY Target (₹ Cr)<input
+              id="overallTarget"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Enter target"
+          /></label>
+          <label>Bank<select id="targetBank"></select></label>
+          <label
+            >Bank Target (₹ Cr)<input
+              id="bankTarget"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Enter target"
+          /></label>
+          <button id="saveOverallTarget" type="button">Save Overall</button>
+          <button id="saveBankTarget" type="button">Add / Update Bank</button>
+        </div>
+        <p id="targetConfigStatus" class="target-note">
+          Targets are retained for this browser session only.
+        </p>
+      </div>
+      <section id="targetKpis" class="cards"></section>
+      <div class="panel">
+        <h2>Target Progress</h2>
+        <div id="targetProgress"></div>
+        <p id="targetProgressNote" class="target-note"></p>
+      </div>
+      <div class="panel">
+        <h2>Management Interpretation</h2>
+        <div id="targetInterpretation"></div>
+      </div>
+    </div>
+    <div id="productivityPage" style="display: none">
+      <section id="productivitySummary" class="cards"></section>
+      <p id="productivityScope" class="scorecard-note">
+        Upload a CSV to build current-period productivity intelligence.
+      </p>
+      <div class="panel productivity-table">
+        <h2>RM Productivity</h2>
+        <p class="scorecard-note">
+          BA Code is the current technical identifier; conflicting RM-name
+          mappings are shown rather than resolved.
+        </p>
+        <div id="rmProductivity"></div>
+      </div>
+      <div class="panel productivity-table">
+        <h2>IMD Productivity</h2>
+        <p class="scorecard-note">
+          IMDs are grouped by Bank + IMD Code because global IMD-code uniqueness
+          is not guaranteed.
+        </p>
+        <div id="imdProductivity"></div>
+      </div>
+      <div class="panel productivity-table">
+        <h2>Branch Productivity</h2>
+        <div id="branchProductivity"></div>
+      </div>
+      <div class="panel productivity-table">
+        <h2>Opportunity Ownership</h2>
+        <div id="opportunityOwnership"></div>
+      </div>
+      <h2>Opportunity Concentration</h2>
+      <div id="opportunityConcentration" class="grid"></div>
+      <div class="panel">
+        <h2>Business Type Premium</h2>
+        <p class="scorecard-note">
+          Source labels are preserved; blank values appear as Unknown.
+        </p>
+        <div id="businessTypeSplit"></div>
+      </div>
+    </div>
+    <div id="commercialPage" style="display: none">
+      <div class="panel commercial-controls" aria-label="Commercial performance controls">
+        <label for="commercialScope">Scope<select id="commercialScope"><option value="MONTH">Month</option><option value="YTD">YTD</option><option value="FY">Financial Year</option></select></label>
+        <label for="commercialPeriod">Period<select id="commercialPeriod"></select></label>
+        <label for="commercialFinancialYear">Financial Year<select id="commercialFinancialYear"></select></label>
+        <label for="commercialDimension">Roll-up<select id="commercialDimension"></select></label>
+      </div>
+      <div id="commercialReadiness" class="panel commercial-readiness" aria-live="polite"></div>
+      <section id="commercialKpis" class="cards" aria-label="Commercial performance KPIs"></section>
+      <div class="panel commercial-table-wrap">
+        <h2>Governed Commercial Roll-up</h2>
+        <div id="commercialTable"></div>
+      </div>
+      <section class="commercial-comparison-section" aria-labelledby="commercialComparisonHeading">
+        <div class="panel">
+          <h2 id="commercialComparisonHeading">Commercial Comparison</h2>
+          <div class="commercial-controls" aria-label="Commercial comparison controls">
+            <label for="comparisonBasePeriod">Base Month<select id="comparisonBasePeriod"></select></label>
+            <label for="comparisonPeriod">Comparison Month<select id="comparisonPeriod"></select></label>
+            <label for="comparisonDimension">Dimension<select id="comparisonDimension"></select></label>
+          </div>
+          <div id="comparisonReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+        </div>
+        <section id="comparisonKpis" class="cards" aria-label="Commercial comparison KPIs"></section>
+        <div class="panel commercial-table-wrap">
+          <h2>Month Comparison</h2>
+          <div id="comparisonTable"></div>
+        </div>
+        <div class="panel commercial-table-wrap">
+          <h2>Day-wise Premium Movement</h2>
+          <div class="commercial-controls" aria-label="Daily movement controls">
+            <label id="dailyEntityControl" for="dailyEntity">Entity<select id="dailyEntity"></select></label>
+            <label for="dailyViewMode">View<select id="dailyViewMode"><option value="DAILY">Daily</option><option value="CUMULATIVE">Cumulative</option></select></label>
+          </div>
+          <p id="dailyStatus" class="scorecard-note" aria-live="polite"></p>
+          <p id="dailySnapshotCue" class="scorecard-note"></p>
+          <div id="dailyMovementTable"></div>
+        </div>
+      </section>
+      <section class="commercial-execution-section" aria-labelledby="commercialExecutionHeading">
+        <div class="panel">
+          <h2 id="commercialExecutionHeading">Commercial Execution</h2>
+          <div class="commercial-controls" aria-label="Commercial execution controls">
+            <label for="executionPeriod">Execution Month<select id="executionPeriod"></select></label>
+            <label for="executionAsOfDay">As-of Day<select id="executionAsOfDay"></select></label>
+            <label for="executionDimension">Dimension<select id="executionDimension"></select></label>
+            <label class="commercial-execution-attention-filter" for="executionAttentionFilter">Attention Filter<select id="executionAttentionFilter"><option value="ALL">All</option><option value="EXECUTION_ATTENTION">Execution attention</option><option value="REFERENCE_ATTENTION">Reference attention</option><option value="NO_ATTENTION">No attention</option></select></label>
+          </div>
+          <div id="executionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+          <p id="executionObservationNote" class="scorecard-note"></p>
+          <p id="executionSnapshotCue" class="scorecard-note"></p>
+          <div id="executionAttentionSummary" class="commercial-execution-attention-summary" aria-live="polite"></div>
+        </div>
+        <section id="executionKpis" class="cards" aria-label="Commercial execution KPIs"></section>
+        <div class="panel commercial-table-wrap">
+          <h2>Execution Pacing &amp; Run-rate</h2>
+          <p class="scorecard-note">Projected Month-end Actual is a simple linear projection based on observed average daily Actual.</p>
+          <div id="executionTable"></div>
+          <div class="commercial-priority-table" aria-labelledby="executionPriorityHeading">
+            <h3 id="executionPriorityHeading">Governed Prioritisation</h3>
+            <div class="commercial-priority-controls">
+              <label for="executionPriorityView">Priority View<select id="executionPriorityView"><option value="NONE">None</option><option value="EXECUTION_PRIORITY">Execution priority</option><option value="REFERENCE_PRIORITY">Reference priority</option></select></label>
+            </div>
+            <div id="executionPriorityTable" aria-live="polite"></div>
+          </div>
+          <section class="commercial-drilldown-panel" aria-labelledby="executionDrilldownHeading">
+            <div class="commercial-drilldown-header">
+              <h3 id="executionDrilldownHeading">Governed Child Context</h3>
+              <p id="executionDrilldownParent" class="commercial-drilldown-parent">Select an execution entity to view governed child context.</p>
+            </div>
+            <div id="executionDrilldownControls" class="commercial-drilldown-controls" hidden>
+              <label for="executionDrilldownChild">Child Breakdown<select id="executionDrilldownChild"></select></label>
+            </div>
+            <p id="executionDrilldownStatus" class="commercial-drilldown-empty" aria-live="polite"></p>
+            <div id="executionDrilldownReconciliation" class="commercial-drilldown-reconciliation" aria-label="Drill-down reconciliation"></div>
+            <div id="executionDrilldownTable" class="commercial-drilldown-table"></div>
+          </section>
+          <section class="commercial-driver-panel" aria-labelledby="executionDriverHeading">
+            <div class="commercial-driver-header">
+              <h3 id="executionDriverHeading">Driver Analysis</h3>
+              <p id="executionDriverParent" class="commercial-driver-parent">Select an execution entity to analyse its LOB or Product drivers.</p>
+            </div>
+            <div class="commercial-driver-controls" aria-label="Driver analysis controls">
+              <label for="executionDriverMode">Analysis Mode<select id="executionDriverMode"><option value="EXECUTION_SNAPSHOT">Execution Snapshot</option><option value="MONTH_COMPARISON">Month Comparison</option></select></label>
+              <label for="executionDriverDimension">Driver Dimension<select id="executionDriverDimension"></select></label>
+            </div>
+            <p id="executionDriverStatus" class="commercial-driver-empty" aria-live="polite"></p>
+            <div id="executionDriverReconciliation" class="commercial-driver-reconciliation" aria-label="Driver analysis reconciliation"></div>
+            <div id="executionDriverTable" class="commercial-driver-table"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+    <div id="qualityPage" style="display: none">
+      <section id="qualitySummary" class="cards"></section>
+      <p id="qualityScope" class="scorecard-note">
+        Upload a CSV to build full-upload diagnostics.
+      </p>
+      <div class="panel">
+        <h2>Hierarchy Conflicts</h2>
+        <div id="hierarchyConflicts"></div>
+      </div>
+      <div class="panel">
+        <h2>Identity Conflicts</h2>
+        <div id="identityConflicts"></div>
+      </div>
+      <div class="panel">
+        <h2>Month &amp; Bank Coverage</h2>
+        <div id="monthBankCoverage"></div>
+      </div>
+      <div class="panel">
+        <h2>Premium Quality</h2>
+        <div id="premiumQuality"></div>
+      </div>
+      <div class="panel">
+        <h2>Optional Field Completeness</h2>
+        <div id="fieldCompleteness"></div>
+      </div>
+      <div class="panel">
+        <h2>Duplicate Signals</h2>
+        <div id="duplicateSignals"></div>
+      </div>
+      <div class="panel">
+        <h2>Branch Universe Sanity</h2>
+        <div id="branchUniverseSanity"></div>
+      </div>
+      <section class="canonical-quality-section" aria-labelledby="canonicalQualityHeading">
+        <h2 id="canonicalQualityHeading">Canonical &amp; Master Data Quality</h2>
+        <p id="canonicalQualityScope" class="scorecard-note"></p>
+        <section id="canonicalQualitySummary" class="cards" aria-live="polite"></section>
+        <div class="grid">
+          <div class="panel master-data-table">
+            <h2>Master Coverage</h2>
+            <div id="canonicalMasterCoverage"></div>
+          </div>
+          <div class="panel master-data-table">
+            <h2>Resolution Quality</h2>
+            <div id="canonicalResolutionQuality"></div>
+          </div>
         </div>
         <div class="grid">
-            <div class="panel">
-                <h2>Zone Activation</h2>
-                <div id="zoneActivation"></div>
-            </div>
-            <div class="panel">
-                <h2>State Activation</h2>
-                <div id="stateActivation"></div>
-            </div>
+          <div class="panel master-data-table">
+            <h2>Source vs Canonical Comparison</h2>
+            <div id="canonicalComparisons"></div>
+          </div>
+          <div class="panel">
+            <h2>Reconciliation Status</h2>
+            <div id="canonicalReconciliation"></div>
+          </div>
         </div>
+        <div class="panel master-data-table">
+          <h2>Canonical Finding Summary</h2>
+          <div id="canonicalFindingSummary"></div>
+        </div>
+        <div class="panel master-data-table">
+          <h2>Canonical Finding Detail</h2>
+          <div id="canonicalFindingDetails"></div>
+          <p id="canonicalFindingLimit" class="table-limit-note"></p>
+        </div>
+      </section>
     </div>
-    <div id='scorecardPage' style='display:none'>
-        <section id='scorecardSummary' class='cards'></section>
-        <p id='scorecardScope' class='scorecard-note'></p>
-        <p class='scorecard-note'>Use the scorecard to move from Partner Bank to RM/IMD productivity and then to branch opportunities.</p>
-        <div class='panel'>
-            <h2>Partner Scorecard</h2>
-            <div id='partnerScorecard'></div>
+    <div id="masterDataPage" style="display: none">
+      <header class="master-data-header">
+        <h2>Master Data</h2>
+        <p class="scorecard-note">Reference data and canonical-readiness status</p>
+      </header>
+      <section id="masterReadinessSummary" class="cards" aria-live="polite"></section>
+      <section class="panel" aria-labelledby="masterImportHeading">
+        <h2 id="masterImportHeading">Import Structural Master</h2>
+        <div class="master-import-controls">
+          <label>Master type<select id="masterImportType"></select></label>
+          <label>CSV file<input id="masterImportFile" type="file" accept=".csv,text/csv" /></label>
+          <button id="cancelMasterImport" type="button">Cancel</button>
         </div>
-        <div class='grid'>
-            <div class='panel'>
-                <h2>Management Priority</h2>
-                <p class='scorecard-note'>Rules apply in order: NO DATA when no current premium and no observed branches; CRITICAL for a bank-level Data Quality ERROR or configured-bank activation below 10% with Near Active branches; UNCONFIGURED when current business exists but no branch universe is configured; HIGH below 20% with Near Active; MEDIUM below 40% or with Near Active; LOW at 40%+ with no Near Active. Data Quality ERROR is shown separately from commercial signals.</p>
-            </div>
-            <div class='panel'>
-                <h2>Management Actions</h2>
-                <div id='managementActions'></div>
-            </div>
+        <p id="masterSchemaHelp" class="scorecard-note"></p>
+        <p id="masterImportStatus" class="scorecard-note" aria-live="polite">Select a master type and CSV file to validate.</p>
+        <div id="masterImportPreview" hidden>
+          <section id="masterImportSummary" class="cards"></section>
+          <div class="master-data-table">
+            <table>
+              <thead><tr><th>Severity</th><th>Code</th><th>Row</th><th>Field</th><th>Message</th></tr></thead>
+              <tbody id="masterImportFindings"></tbody>
+            </table>
+          </div>
+          <p id="masterFindingLimit" class="table-limit-note"></p>
+          <button id="reviewMasterActivation" type="button" disabled>Review Activation</button>
+          <div id="masterActivationConfirmation" class="master-confirmation" hidden>
+            <p id="masterActivationPrompt"></p>
+            <button id="confirmMasterActivation" type="button">Confirm and Activate</button>
+            <button id="closeMasterActivation" type="button">Go Back</button>
+          </div>
         </div>
-        <div class='panel'><h2>Management Exceptions</h2><p class='scorecard-note'>Shows Data Quality errors, CRITICAL/HIGH banks, RMs or IMDs with multiple Near Active branches, and branches within the configured immediate-opportunity gap.</p><div id='managementExceptions'></div></div>
-        <div id='managementDetail' class='panel productivity-table'><p class='empty-state'>Select a Partner Bank from the scorecard.</p></div>
+      </section>
+      <div class="panel master-data-table">
+        <h2>Structural Master Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Master</th>
+              <th>Status</th>
+              <th>Active Dataset</th>
+              <th>Rows</th>
+              <th>Purpose / Coverage</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="masterStatusRows"></tbody>
+        </table>
+      </div>
+      <div class="panel master-data-table">
+        <h2>Resolution Coverage</h2>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Coverage</th><th>Resolved / Eligible</th></tr>
+          </thead>
+          <tbody id="masterCoverageRows"></tbody>
+        </table>
+      </div>
+      <div class="grid">
+        <section class="panel" aria-labelledby="masterBlockersHeading">
+          <h2 id="masterBlockersHeading">Blockers</h2>
+          <div id="masterBlockers"></div>
+        </section>
+        <section class="panel" aria-labelledby="masterWarningsHeading">
+          <h2 id="masterWarningsHeading">Warnings</h2>
+          <div id="masterWarnings"></div>
+        </section>
+      </div>
     </div>
-    <div id='targetPage' style='display:none'>
-        <div class='panel target-config'>
-            <h2>Target Configuration</h2>
-            <div class='target-form'>
-                <label>Overall FY Target (₹ Cr)<input id='overallTarget' type='number' min='0' step='any' placeholder='Enter target'></label>
-                <label>Bank<select id='targetBank'></select></label>
-                <label>Bank Target (₹ Cr)<input id='bankTarget' type='number' min='0' step='any' placeholder='Enter target'></label>
-                <button id='saveOverallTarget' type='button'>Save Overall</button>
-                <button id='saveBankTarget' type='button'>Add / Update Bank</button>
-            </div>
-            <p id='targetConfigStatus' class='target-note'>Targets are retained for this browser session only.</p>
-        </div>
-        <section id='targetKpis' class='cards'></section>
-        <div class='panel'>
-            <h2>Target Progress</h2>
-            <div id='targetProgress'></div>
-            <p id='targetProgressNote' class='target-note'></p>
-        </div>
-        <div class='panel'>
-            <h2>Management Interpretation</h2>
-            <div id='targetInterpretation'></div>
-        </div>
-    </div>
-    <div id='productivityPage' style='display:none'>
-        <section id='productivitySummary' class='cards'></section>
-        <p id='productivityScope' class='scorecard-note'>Upload a CSV to build current-period productivity intelligence.</p>
-        <div class='panel productivity-table'><h2>RM Productivity</h2><p class='scorecard-note'>BA Code is the current technical identifier; conflicting RM-name mappings are shown rather than resolved.</p><div id='rmProductivity'></div></div>
-        <div class='panel productivity-table'><h2>IMD Productivity</h2><p class='scorecard-note'>IMDs are grouped by Bank + IMD Code because global IMD-code uniqueness is not guaranteed.</p><div id='imdProductivity'></div></div>
-        <div class='panel productivity-table'><h2>Branch Productivity</h2><div id='branchProductivity'></div></div>
-        <div class='panel productivity-table'><h2>Opportunity Ownership</h2><div id='opportunityOwnership'></div></div>
-        <h2>Opportunity Concentration</h2><div id='opportunityConcentration' class='grid'></div>
-        <div class='panel'><h2>Business Type Premium</h2><p class='scorecard-note'>Source labels are preserved; blank values appear as Unknown.</p><div id='businessTypeSplit'></div></div>
-    </div>
-    <div id='qualityPage' style='display:none'>
-        <section id='qualitySummary' class='cards'></section>
-        <p id='qualityScope' class='scorecard-note'>Upload a CSV to build full-upload diagnostics.</p>
-        <div class='panel'><h2>Hierarchy Conflicts</h2><div id='hierarchyConflicts'></div></div>
-        <div class='panel'><h2>Identity Conflicts</h2><div id='identityConflicts'></div></div>
-        <div class='panel'><h2>Month &amp; Bank Coverage</h2><div id='monthBankCoverage'></div></div>
-        <div class='panel'><h2>Premium Quality</h2><div id='premiumQuality'></div></div>
-        <div class='panel'><h2>Optional Field Completeness</h2><div id='fieldCompleteness'></div></div>
-        <div class='panel'><h2>Duplicate Signals</h2><div id='duplicateSignals'></div></div>
-        <div class='panel'><h2>Branch Universe Sanity</h2><div id='branchUniverseSanity'></div></div>
-    </div>
-    <script src='js/config.js'></script>
-    <script src='js/csvProcessor.js'></script>
-    <script src='js/utilities.js'></script>
-    <script src='js/analytics.js'></script>
-    <script src='js/dataQuality.js'></script>
-    <script src='js/productivity.js'></script>
-    <script src='js/core.js'></script>
-    <script src='js/performance.js'></script>
-    <script src='app.js'></script>
-    <script src='js/activation.js'></script>
-    <script src='js/scorecard.js'></script>
-    <script src='js/target.js'></script>
-</body>
+    <script src="js/config.js"></script>
+    <script src="js/csvProcessor.js"></script>
+    <script src="js/utilities.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/analytics/commercialPerformance.js"></script>
+    <script src="js/analytics/commercialRollups.js"></script>
+    <script src="js/analytics/commercialComparison.js"></script>
+    <script src="js/analytics/dailyCommercialComparison.js"></script>
+    <script src="js/analytics/commercialExecution.js"></script>
+    <script src="js/analytics/commercialExecutionStatus.js"></script>
+    <script src="js/analytics/commercialExecutionPriority.js"></script>
+    <script src="js/analytics/commercialExecutionDrilldown.js"></script>
+    <script src="js/analytics/commercialDriverAnalysis.js"></script>
+    <script src="js/dataQuality.js"></script>
+    <script src="js/productivity.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/performance.js"></script>
+    <script src="js/commercialPerformanceUI.js"></script>
+    <script src="app.js"></script>
+    <script src="js/activation.js"></script>
+    <script src="js/scorecard.js"></script>
+    <script src="js/target.js"></script>
 
+    <!-- BancaTracker v8.2 Data Foundation -->
+    <script src="js/data/schema.js"></script>
+    <script src="js/data/datasetRegistry.js"></script>
+    <script src="js/data/indexedDbAdapter.js"></script>
+    <script src="js/data/repository.js"></script>
+
+    <!-- BancaTracker v8.2 Master Data Foundation -->
+    <script src="js/masters/geographyMaster.js"></script>
+    <script src="js/masters/branchMaster.js"></script>
+    <script src="js/masters/employeeMaster.js"></script>
+    <script src="js/masters/hierarchyMaster.js"></script>
+    <script src="js/masters/branchAssignmentMaster.js"></script>
+    <script src="js/masters/branchBudgetPotentialMaster.js"></script>
+
+    <!-- BancaTracker v8.2 Enrichment Foundation -->
+    <script src="js/enrichment/dateResolver.js"></script>
+    <script src="js/enrichment/geographyResolver.js"></script>
+    <script src="js/enrichment/branchResolver.js"></script>
+    <script src="js/enrichment/hierarchyResolver.js"></script>
+    <script src="js/enrichment/assignmentResolver.js"></script>
+    <script src="js/enrichment/enrichmentPipeline.js"></script>
+    <script src="js/enrichment/liveBranchUniverseAuthority.js"></script>
+    <script src="js/enrichment/liveBranchAuthority.js"></script>
+    <script src="js/enrichment/liveAssignmentAuthority.js"></script>
+    <script src="js/enrichment/liveHierarchyAuthority.js"></script>
+    <script src="js/enrichment/liveGeographyAuthority.js"></script>
+    <script src="js/enrichment/liveBranchCommercialAuthority.js"></script>
+    <script src="js/enrichment/shadowEnrichment.js"></script>
+    <script src="js/enrichment/readinessDiagnostics.js"></script>
+    <script src="js/canonicalDataQuality.js"></script>
+    <script src="js/masterDataImport.js"></script>
+    <script src="js/masterDataAdmin.js"></script>
+  </body>
 </html>

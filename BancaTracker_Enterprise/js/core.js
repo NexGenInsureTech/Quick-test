@@ -3,7 +3,7 @@
   const config = global.BancaTrackerConfig;
   const utils = global.BancaTrackerUtils;
   const emptyImportSummary = { totalRows: 0, acceptedRows: 0, rejectedRows: 0, warningRows: 0, negativePremiumRows: 0, rejectionReasons: {}, warningReasons: {}, unconfiguredMonths: [] };
-  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, activePage: "misPage", headerMap: {}, months: [], banks: [], importSummary: emptyImportSummary, dataQuality: global.BancaTrackerDataQuality.build([], config, emptyImportSummary), productivity: null, derived: null, context: null };
+  const state = { factData: [], filteredData: [], filters: { month: "ALL", bank: "ALL" }, activePage: "misPage", headerMap: {}, months: [], banks: [], importSummary: emptyImportSummary, dataQuality: global.BancaTrackerDataQuality.build([], config, emptyImportSummary), productivity: null, derived: null, context: null, branchUniverseAuthority: null, commercialPerformance: null, commercialRollup: null };
   function setStatus(message, isError) { const status = document.getElementById("status"); status.textContent = message; status.classList.toggle("status-error", Boolean(isError)); }
   function populateFilters() {
     const monthFilter = document.getElementById("monthFilter"); const bankFilter = document.getElementById("bankFilter");
@@ -39,23 +39,67 @@
   }
 
   function safeRender(name, renderer, argument) { if (typeof renderer !== "function") return; try { renderer(argument); } catch (error) { console.error(`${name} render failed`, error); setStatus(`${name} could not render. Other pages remain available.`, true); } }
-  function renderPage(pageId) { const context = state.context; if (!context) return; const renderers = { misPage: ["Performance MIS", global.renderPerformance, { ...context, derived: state.derived }], activationPage: ["Activation Cockpit", global.refreshActivation, state.derived], scorecardPage: ["Management Scorecard", global.refreshScorecard, state.derived], targetPage: ["Target & Growth", global.refreshTarget, { ...context, derived: state.derived }], productivityPage: ["Productivity & Opportunity", global.renderProductivity, state.productivity], qualityPage: ["Data Quality", global.renderDataQuality, state.dataQuality] }; const entry = renderers[pageId]; if (entry) safeRender(entry[0], entry[1], entry[2]); }
+  function renderPage(pageId) { const context = state.context; if (pageId === "commercialPage") { safeRender("Commercial Performance", global.BancaTrackerCommercialPerformanceUI && global.BancaTrackerCommercialPerformanceUI.render); return; } if (!context) return; const renderers = { misPage: ["Performance MIS", global.renderPerformance, { ...context, derived: state.derived }], activationPage: ["Activation Cockpit", global.refreshActivation, state.derived], scorecardPage: ["Management Scorecard", global.refreshScorecard, state.derived], targetPage: ["Target & Growth", global.refreshTarget, { ...context, derived: state.derived }], productivityPage: ["Productivity & Opportunity", global.renderProductivity, state.productivity], qualityPage: ["Data Quality", global.renderDataQuality, state.dataQuality] }; const entry = renderers[pageId]; if (entry) safeRender(entry[0], entry[1], entry[2]); }
   function setActivePage(pageId) { state.activePage = pageId; renderPage(pageId); }
-  function refresh() { const started = performance.now(); const context = buildContext(); const derived = global.BancaTrackerAnalytics.build(context.currentPeriodData); const productivity = global.BancaTrackerProductivity.build(context, derived, state.dataQuality); state.context = context; state.derived = derived; state.productivity = productivity; renderPage(state.activePage); return performance.now() - started; }
+  function refresh() { const started = performance.now(); const context = buildContext(); const derived = global.BancaTrackerAnalytics.build(context.currentPeriodData); const productivity = global.BancaTrackerProductivity.build(context, derived, state.dataQuality); const commercialAuthority = global.BancaTrackerLiveBranchCommercialAuthority; const governedContext = global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext(); state.context = context; state.derived = derived; state.productivity = productivity; state.commercialPerformance = global.BancaTrackerCommercialPerformance ? global.BancaTrackerCommercialPerformance.buildPerformance(state.factData, commercialAuthority && commercialAuthority.getCachedContext()) : null; const periodContext = global.BancaTrackerCommercialRollups && state.commercialPerformance ? global.BancaTrackerCommercialRollups.buildPeriodContext(state.commercialPerformance) : null; state.commercialRollup = periodContext && periodContext.defaultSelectedPeriod ? global.BancaTrackerCommercialRollups.buildRollup(state.commercialPerformance, { type: "MONTH", periodKey: periodContext.defaultSelectedPeriod }, "OVERALL", governedContext) : null; renderPage(state.activePage); return performance.now() - started; }
 
-  function commitImport(result) {
-    setStatus("Building analytics...", false); state.factData = result.rows; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
+  function runShadowEnrichment(records) {
+    Promise.resolve().then(() => {
+      const shadow = global.BancaTrackerShadowEnrichment;
+      if (shadow && typeof shadow.run === "function") return shadow.run(records);
+      return null;
+    }).catch(() => null);
+  }
+
+  function applyDateAuthority(record) {
+    const legacyMonth = record.month;
+    const legacyDay = record.day;
+    const policyIssuedDate = String(record.policyIssuedDate || "").trim();
+    if (!policyIssuedDate) {
+      return { ...record, legacyMonth, legacyDay, dateAuthority: "LEGACY_FALLBACK" };
+    }
+    const resolver = global.BancaTrackerDateResolver;
+    const resolution = resolver && typeof resolver.resolve === "function"
+      ? resolver.resolve(policyIssuedDate)
+      : { success: false, error: "DATE_RESOLVER_UNAVAILABLE" };
+    if (!resolution.success) {
+      return { ...record, legacyMonth, legacyDay, month: null, day: null, dateAuthority: "INVALID", dateAuthorityError: resolution.error };
+    }
+    return {
+      ...record, legacyMonth, legacyDay,
+      month: resolution.monthLabel, day: resolution.day,
+      dateAuthority: "CANONICAL", year: resolution.year,
+      monthKey: resolution.monthKey, financialYear: resolution.financialYear,
+    };
+  }
+
+  function commitImport(result, authorityContext) {
+    const dateRows = result.rows.map(applyDateAuthority);
+    const branchAuthority = global.BancaTrackerLiveBranchAuthority;
+    const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority;
+    const hierarchyAuthority = global.BancaTrackerLiveHierarchyAuthority;
+    const geographyAuthority = global.BancaTrackerLiveGeographyAuthority;
+    const context = authorityContext || (geographyAuthority && geographyAuthority.getCachedContext()) || (hierarchyAuthority && hierarchyAuthority.getCachedContext()) || (assignmentAuthority && assignmentAuthority.getCachedContext()) || (branchAuthority && branchAuthority.getCachedContext());
+    const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
+    state.branchUniverseAuthority = context && context.branchUniverse ||
+      (universeAuthority && universeAuthority.getUniverse()) || null;
+    const branchRows = branchAuthority ? branchAuthority.applyRecords(dateRows, context) : dateRows;
+    const assignmentRows = assignmentAuthority ? assignmentAuthority.applyRecords(branchRows, context) : branchRows;
+    const hierarchyRows = hierarchyAuthority ? hierarchyAuthority.applyRecords(assignmentRows, context) : assignmentRows;
+    setStatus("Building analytics...", false); state.factData = geographyAuthority
+      ? geographyAuthority.applyRecords(hierarchyRows, context)
+      : hierarchyRows; result.rows = state.factData; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
     const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); });
     state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); result.summary.unconfiguredMonths = state.months.filter((month) => !config.FISCAL_MONTHS.includes(month)); state.importSummary = result.summary;
     state.dataQuality = global.BancaTrackerDataQuality.build(state.factData, config, result.summary);
-    populateFilters(); renderImportSummary(result.summary); refresh(); setStatus(`Loaded ${utils.formatInr(state.factData.length)} records`, false);
+    populateFilters(); renderImportSummary(result.summary); refresh(); setStatus(`Loaded ${utils.formatInr(state.factData.length)} records`, false); runShadowEnrichment(state.factData);
   }
 
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
   function loadCsvText(text) { try { const result = processSynchronously(text); commitImport(result); return result; } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text) { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(event.data.stage, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
-  function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
+  function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } const branchAuthority = global.BancaTrackerLiveBranchAuthority; const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority; const hierarchyAuthority = global.BancaTrackerLiveHierarchyAuthority; const geographyAuthority = global.BancaTrackerLiveGeographyAuthority; const commercialAuthority = global.BancaTrackerLiveBranchCommercialAuthority; const branchContext = branchAuthority ? await branchAuthority.loadContext() : null; const assignmentContext = assignmentAuthority ? await assignmentAuthority.loadContext(undefined, branchContext) : branchContext; const hierarchyContext = hierarchyAuthority ? await hierarchyAuthority.loadContext(undefined, assignmentContext) : assignmentContext; const authorityContext = geographyAuthority ? await geographyAuthority.loadContext(undefined, hierarchyContext) : hierarchyContext; if (commercialAuthority) await commercialAuthority.loadContext(); commitImport(result, authorityContext); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }
   function getPerformanceContext() { return state.context || buildContext(); }
-  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
+  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment, applyDateAuthority }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
 })(window);

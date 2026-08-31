@@ -24,7 +24,7 @@ assert.strictEqual(ba1.name, "RM One"); assert.strictEqual(ba1.observedBranches,
 const ba2 = p.rmMetrics.find((item) => item.code === "BA2"); assert.strictEqual(ba2.premiumPerActiveBranch, null); assert.notStrictEqual(String(ba2.premiumPerActiveBranch), "Infinity");
 const ba3 = p.rmMetrics.find((item) => item.code === "BA3"); assert.strictEqual(ba3.mappingConflict, true); assert.strictEqual(ba3.name, "Mapping conflict");
 assert.strictEqual(p.rmMetrics.filter((item) => item.name === "RM One").length, 2, "duplicate RM names with different BA Codes remain separate entities");
-const indianImdX = p.imdMetrics.find((item) => item.bank === "INDIAN BANK" && item.code === "IMD-X"); const karnatakaImdX = p.imdMetrics.find((item) => item.bank === "KARNATAKA BANK" && item.code === "IMD-X");
+const indianImdX = p.imdMetrics.find((item) => item.bank === "INDIAN BANK" && item.code === "IMD-X"); const karnatakaImdX = p.imdMetrics.find((item) => item.bank === "KARNATAKA BANK LTD." && item.code === "IMD-X");
 assert.ok(indianImdX && karnatakaImdX); assert.notStrictEqual(indianImdX.key, karnatakaImdX.key); assert.strictEqual(indianImdX.observedBaCodes, 2);
 const activeA = p.branchMetrics.find((item) => item.branch === "Active A"); assert.strictEqual(activeA.active, true); assert.strictEqual(activeA.gap, 0); assert.strictEqual(activeA.lobBreadth, 2); assert.strictEqual(activeA.productBreadth, 2); assert.strictEqual(activeA.baCodeLabel, "BA1");
 const nearD = p.opportunities.find((item) => item.branch === "Near D"); assert.strictEqual(nearD.rmLabel, "Multiple mappings"); assert.strictEqual(nearD.hierarchyConflict, true);
@@ -36,7 +36,7 @@ assert.ok(elements.productivityScope.textContent.includes("Jun-26 (CURRENT PERIO
 
 BancaTrackerCore.state.filters.month = "May-26"; BancaTrackerCore.refresh(); p = BancaTrackerCore.state.productivity;
 assert.strictEqual(p.scopeMonth, "May-26"); assert.strictEqual(p.branchMetrics.length, 1); assert.strictEqual(p.branchMetrics[0].branch, "Historical Only");
-BancaTrackerCore.state.filters.month = "ALL"; BancaTrackerCore.state.filters.bank = "KARNATAKA BANK"; BancaTrackerCore.refresh(); p = BancaTrackerCore.state.productivity;
-assert.strictEqual(p.scopeMonth, "Jun-26"); assert.strictEqual(p.rmMetrics.length, 1); assert.ok(p.branchMetrics.every((item) => item.bank === "KARNATAKA BANK"));
+BancaTrackerCore.state.filters.month = "ALL"; BancaTrackerCore.state.filters.bank = "KARNATAKA BANK LTD."; BancaTrackerCore.refresh(); p = BancaTrackerCore.state.productivity;
+assert.strictEqual(p.scopeMonth, "Jun-26"); assert.strictEqual(p.rmMetrics.length, 1); assert.ok(p.branchMetrics.every((item) => item.bank === "KARNATAKA BANK LTD."));
 BancaTrackerApp.showPage("misPage"); assert.ok(elements.kpis.innerHTML.includes("YTD Premium")); BancaTrackerApp.showPage("activationPage"); assert.ok(elements.activationKpis.innerHTML.includes("Active Branches")); BancaTrackerApp.showPage("scorecardPage"); assert.ok(elements.scorecardSummary.innerHTML.includes("Total Partner Banks")); BancaTrackerApp.showPage("targetPage"); assert.ok(elements.targetKpis.innerHTML.includes("FY Target"));
 console.log("v8.1 Step 8.1C tests passed: RM/IMD/branch productivity, ownership, concentration, breadth, scopes, filters, quality integration, and page regressions.");

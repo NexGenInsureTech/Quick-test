@@ -140,10 +140,82 @@ th {
 .management-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 0 }
 .management-summary > div { background: #f3f5f7; border-radius: 8px; padding: 10px; min-width: 120px }
 .management-subdetail { border-left: 4px solid #17375e }
+.master-data-header { margin-top: 18px }
+.master-data-header h2 { margin-bottom: 0 }
+.master-data-table { overflow-x: auto }
+.master-status { font-weight: 700 }
+.master-diagnostic-list { margin: 0; padding-left: 20px }
+.master-diagnostic-list li + li { margin-top: 6px }
+.master-import-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px }
+.master-import-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.master-import-controls input, .master-import-controls select, .master-import-controls button { min-height: 32px; box-sizing: border-box }
+.master-confirmation { margin-top: 12px; padding: 12px; border-left: 4px solid #17375e; background: #f3f5f7 }
+.master-import-error { color: #b00020; font-weight: 600 }
+.canonical-quality-section { margin-top: 24px; padding-top: 8px; border-top: 2px solid #ddd }
+.commercial-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px }
+.commercial-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-readiness { border-left: 4px solid #17375e; color: #334155 }
+.commercial-status { display: inline-block; border-radius: 12px; padding: 3px 8px; margin-right: 8px; font-size: 12px; font-weight: 700; background: #e9ecef; color: #273444 }
+.commercial-status-ready { background: #d1e7dd; color: #155b3a }
+.commercial-status-partial { background: #fff0c2; color: #795600 }
+.commercial-table-wrap { overflow-x: auto }
+.commercial-negative { color: #b00020; font-weight: 600 }
+.commercial-comparison-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-comparison-readiness { margin-top: 12px; color: #334155 }
+.commercial-presence { font-weight: 700 }
+.commercial-positive { color: #155b3a; font-weight: 600 }
+.commercial-execution-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-execution-attention-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.commercial-execution-status { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.commercial-status-chip, .commercial-attention-chip { display: inline-block; padding: 3px 8px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-size: 12px; font-weight: 600; white-space: nowrap }
+.commercial-attention-chip { border-style: double; background: #eef2f6 }
+.commercial-reason-list { display: flex; flex-wrap: wrap; gap: 4px; min-width: 150px }
+.commercial-reason-list .commercial-status-chip { font-weight: 400 }
+.commercial-execution-filter-count { margin: 0 0 8px }
+.commercial-priority-table { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; overflow-x: auto }
+.commercial-priority-controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px }
+.commercial-priority-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-priority-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-priority-rank { display: inline-block; min-width: 28px; padding: 3px 7px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-weight: 700; text-align: center }
+.commercial-priority-empty { color: #556070 }
+.commercial-drilldown-panel { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
+.commercial-drilldown-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px }
+.commercial-drilldown-parent { margin: 0; color: #334155 }
+.commercial-drilldown-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-drilldown-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-drilldown-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-drilldown-reconciliation { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-drilldown-reconciliation > div { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc }
+.commercial-drilldown-reconciliation span { white-space: nowrap }
+.commercial-drilldown-table { overflow-x: auto }
+.commercial-drilldown-empty { color: #556070 }
+.commercial-drilldown-select { padding: 2px 4px; border: 1px solid transparent; background: transparent; color: #17375e; font: inherit; text-align: left; text-decoration: underline; cursor: pointer }
+.commercial-drilldown-select:hover, .commercial-drilldown-select:focus-visible { border-color: #64748b; outline: 2px solid transparent; text-decoration: none }
+.commercial-drilldown-select.is-selected { border-color: #64748b; background: #eef2f6; text-decoration: none }
+.commercial-driver-panel { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
+.commercial-driver-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px }
+.commercial-driver-parent { margin: 0; color: #334155 }
+.commercial-driver-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-driver-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.commercial-driver-controls select { min-height: 32px; box-sizing: border-box }
+.commercial-driver-reconciliation { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 }
+.commercial-driver-reconciliation > div { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc }
+.commercial-driver-reconciliation span { white-space: nowrap }
+.commercial-driver-table { overflow-x: auto }
+.commercial-driver-empty { color: #556070 }
 
 @media(max-width:900px) {
     .grid {
         grid-template-columns: 1fr
     }
     .quality-grid { grid-template-columns: 1fr }
+    .commercial-controls { align-items: stretch; flex-direction: column }
+    .commercial-priority-controls { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-controls { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-header { align-items: stretch; flex-direction: column }
+    .commercial-drilldown-reconciliation { flex-direction: column }
+    .commercial-driver-controls { align-items: stretch; flex-direction: column }
+    .commercial-driver-header { align-items: stretch; flex-direction: column }
+    .commercial-driver-reconciliation { flex-direction: column }
 }

@@ -33,6 +33,12 @@
     return `${normalizeBank(bank)}::${String(branch || "Unknown").trim() || "Unknown"}`;
   }
 
+  function branchIdentityKey(row) {
+    if (row && (row.branchAuthority === "UNMAPPED" || row.branchAuthority === "AMBIGUOUS")) return null;
+    if (row && /^GOVERNED_/.test(row.branchAuthority || "") && row.branchId) return row.branchId;
+    return branchKey(row && row.bank, row && row.branch);
+  }
+
   function getBranchBand(premium) {
     if (premium <= 0) return "Zero";
     if (premium < 15000) return "1 - 14.9K";
@@ -48,6 +54,6 @@
   }
 
   global.BancaTrackerUtils = Object.freeze({
-    formatInr, formatPercent, orderMonths, premiumTotal, normalizeBank, branchKey, getBranchBand, escapeHtml
+    formatInr, formatPercent, orderMonths, premiumTotal, normalizeBank, branchKey, branchIdentityKey, getBranchBand, escapeHtml
   });
 })(window);
