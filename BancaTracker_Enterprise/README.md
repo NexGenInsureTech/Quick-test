@@ -2,7 +2,7 @@
 
 ## Management Focus & Data Trust
 
-Status: **v8.2.0 release identity established; browser acceptance is tracked separately.**
+Status: **v8.2.0 implementation and approved R2B real-browser acceptance are complete; final R3 release closure, tag, and publication remain pending.**
 
 BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Intelligence, Management Scorecard and drill-down, Target & Growth, Productivity & Opportunity, and Data Quality views. It has no backend, database, framework, CDN, telemetry, or external library.
 
@@ -106,4 +106,4 @@ node tests/run-all.js
 node --max-old-space-size=4096 tests/benchmark.js
 ```
 
-The master runner excludes benchmarks and runs 38 regression groups covering the v8.1 compatibility baseline and v8.2 authorities/UI. Real-browser production acceptance is completed separately in R2B/R3.
+The master runner excludes benchmarks and runs 38 regression groups covering the v8.1 compatibility baseline and v8.2 authorities/UI. Approved R2B real-browser acceptance passed persistence/reopen, master replacement safety, six-master activation/persistence, valid PR canonical enrichment, commercial performance/roll-up, invalid/edge-case handling, recovery, and console-clean checks. R2B-B3-01 (the readinessDiagnostics browser-runtime defect caused by an undeclared Node-style `global` reference) was resolved by aligning the module wrapper with the browser convention; post-fix regression passed 38/38. Final R3 release closure, tag, and publication remain pending.
