@@ -1,0 +1,9 @@
+﻿USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day,POLICY ISSUED DATE
+45000,Jul-26,TESTBANK,Test RM One,RM001,HEALTH,Test Branch North 1,North Test Zone,Test North State,0001,NEW,Health Protect,HP01,5,2026-07-05
+35000,Jul-26,TESTBANK,Test RM One,RM001,MOTOR,Test Branch North 2,North Test Zone,Test North State,0002,NEW,Motor Package,MP01,12,2026-07-12
+60000,Jul-26,TESTBANK,Test RM Two,RM002,SME,Test Branch South 1,South Test Zone,Test South State,0101,NEW,SME Secure,SME01,20,2026-07-20
+55000,Aug-26,TESTBANK,Test RM One,RM001,HEALTH,Test Branch North 1,North Test Zone,Test North State,0001,NEW,Health Protect,HP01,4,2026-08-04
+25000,Aug-26,TESTBANK,Test RM One,RM001,MOTOR,Test Branch North 2,North Test Zone,Test North State,0002,RENEWAL,Motor Package,MP01,10,2026-08-10
+70000,Aug-26,TESTBANK,Test RM Two,RM002,SME,Test Branch South 1,South Test Zone,Test South State,0101,NEW,SME Secure,SME01,18,2026-08-18
+-5000,Aug-26,TESTBANK,Test RM One,RM001,HEALTH,Test Branch North 1,North Test Zone,Test North State,0001,ENDORSEMENT,Health Protect,HP01,22,2026-08-22
+0,Aug-26,TESTBANK,Test RM One,RM001,MOTOR,Test Branch North 2,North Test Zone,Test North State,0002,ENDORSEMENT,Motor Package,MP01,23,2026-08-23
