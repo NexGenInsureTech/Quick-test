@@ -49,6 +49,18 @@ Purpose : Canonical dataset, status, role and resolution constants
     RM: "RM",
   });
 
+  const EMPLOYEE_DATA_CONTRACT = Object.freeze({
+    NAME: "EMPLOYEE_MASTER",
+    LEGACY_VERSION: 1,
+    CURRENT_VERSION: 2,
+    PROFILES: Object.freeze({
+      LEGACY_V1: "LEGACY_V1",
+      LEGACY_V1_ASSUMED: "LEGACY_V1_ASSUMED",
+      NATIVE_V2: "NATIVE_V2",
+      MIXED_TRANSITIONAL: "MIXED_TRANSITIONAL",
+    }),
+  });
+
   /*==============================================================
   RESOLUTION STATUS
   ==============================================================*/
@@ -191,6 +203,7 @@ Purpose : Canonical dataset, status, role and resolution constants
     DATASET_TYPES,
     DATASET_STATUS,
     EMPLOYEE_ROLES,
+    EMPLOYEE_DATA_CONTRACT,
     RESOLUTION_STATUS,
     RESOLUTION_CONFIDENCE,
     DATA_QUALITY_SEVERITY,

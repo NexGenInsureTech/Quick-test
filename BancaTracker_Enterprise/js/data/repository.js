@@ -405,6 +405,23 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     return Db.getAllByIndex(storeName, "datasetId", datasetId);
   }
 
+  async function getActiveEmployeeMasterContext() {
+    const dataset = await getActiveDataset(DATASET_TYPES.EMPLOYEE_MASTER);
+    if (!dataset) {
+      return Object.freeze({ status: "ABSENT", dataset: null, contract: null, records: Object.freeze([]), diagnostics: Object.freeze([]) });
+    }
+    const employeeMaster = window.BancaTrackerEmployeeMaster;
+    if (!employeeMaster || typeof employeeMaster.adaptPersistedDataset !== "function") {
+      throw new Error("BancaTrackerEmployeeMaster persistence adapter is unavailable.");
+    }
+    const contract = employeeMaster.classifyDatasetContract(dataset);
+    if (!contract.supported) {
+      return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
+    }
+    const records = await getActiveMasterRecords(DATASET_TYPES.EMPLOYEE_MASTER);
+    return employeeMaster.adaptPersistedDataset(dataset, records);
+  }
+
   async function saveStagedMasterRecords(datasetId, records) {
     const dataset = await getDataset(datasetId);
 
@@ -454,6 +471,7 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     saveStagedMasterRecords,
 
     getActiveMasterRecords,
+    getActiveEmployeeMasterContext,
   });
 
   window.BancaTrackerRepository = BancaTrackerRepository;

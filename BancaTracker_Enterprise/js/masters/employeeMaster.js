@@ -11,7 +11,7 @@ Purpose : Normalize and validate durable Employee Master v2 records
   if (!window.BancaTrackerDatasetRegistry) throw new Error("BancaTrackerDatasetRegistry must be loaded before employeeMaster.js");
 
   const Registry = window.BancaTrackerDatasetRegistry;
-  const { EMPLOYEE_ROLES, DATA_QUALITY_SEVERITY, DATA_QUALITY_CATEGORY } = Registry;
+  const { EMPLOYEE_ROLES, EMPLOYEE_DATA_CONTRACT, DATA_QUALITY_SEVERITY, DATA_QUALITY_CATEGORY } = Registry;
   const ROLE_ALIASES = Object.freeze({
     NATIONAL_HEAD: EMPLOYEE_ROLES.NATIONAL_HEAD, "NATIONAL HEAD": EMPLOYEE_ROLES.NATIONAL_HEAD, NH: EMPLOYEE_ROLES.NATIONAL_HEAD,
     ZSM: EMPLOYEE_ROLES.ZSM, "ZONAL SALES MANAGER": EMPLOYEE_ROLES.ZSM,
@@ -51,6 +51,59 @@ Purpose : Normalize and validate durable Employee Master v2 records
     if (["ACTIVE", "LEAVE"].includes(status)) return true;
     if (["INACTIVE", "EXITED", "SUSPENDED"].includes(status)) return false;
     return null;
+  }
+  function classifyDatasetContract(dataset) {
+    const declared = dataset && dataset.metadata && dataset.metadata.dataContract;
+    if (!declared) {
+      return Object.freeze({
+        supported: true, version: EMPLOYEE_DATA_CONTRACT.LEGACY_VERSION,
+        sourceProfile: EMPLOYEE_DATA_CONTRACT.PROFILES.LEGACY_V1_ASSUMED,
+        compatibility: true,
+        diagnostics: Object.freeze(["EMPLOYEE_DATASET_CONTRACT_UNDECLARED"]),
+      });
+    }
+    if (declared.name !== EMPLOYEE_DATA_CONTRACT.NAME || !Number.isInteger(declared.version)) {
+      return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["EMPLOYEE_DATASET_CONTRACT_INVALID"]) });
+    }
+    if (declared.version === EMPLOYEE_DATA_CONTRACT.LEGACY_VERSION && declared.sourceProfile === EMPLOYEE_DATA_CONTRACT.PROFILES.LEGACY_V1) {
+      return Object.freeze({ supported: true, version: 1, sourceProfile: declared.sourceProfile, compatibility: true, diagnostics: Object.freeze([]) });
+    }
+    if (declared.version === EMPLOYEE_DATA_CONTRACT.CURRENT_VERSION && [EMPLOYEE_DATA_CONTRACT.PROFILES.NATIVE_V2, EMPLOYEE_DATA_CONTRACT.PROFILES.MIXED_TRANSITIONAL].includes(declared.sourceProfile)) {
+      return Object.freeze({ supported: true, version: 2, sourceProfile: declared.sourceProfile, compatibility: declared.sourceProfile === EMPLOYEE_DATA_CONTRACT.PROFILES.MIXED_TRANSITIONAL, diagnostics: Object.freeze([]) });
+    }
+    return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["EMPLOYEE_DATASET_CONTRACT_UNSUPPORTED"]) });
+  }
+  function persistedRowToInput(record, contract) {
+    const legacyContract = contract.version === EMPLOYEE_DATA_CONTRACT.LEGACY_VERSION;
+    return {
+      "EMPLOYEE ID": record.employeeId,
+      "EMPLOYEE NAME": record.employeeName,
+      DESIGNATION: record.designation || null,
+      GRADE: record.grade, BAND: record.band, "EMPLOYMENT TYPE": record.employmentType,
+      FUNCTION: record.functionName, CHANNEL: record.channelName, "BASE LOCATION": record.baseLocation,
+      "DATE OF JOINING": record.dateOfJoining, "CHANNEL JOIN DATE": record.channelJoinDate,
+      "DESIGNATION EFFECTIVE DATE": record.designationEffectiveDate, "EMPLOYMENT STATUS": record.employmentStatus,
+      "EXIT DATE": record.exitDate,
+      ROLE: record.legacyRole || (legacyContract ? record.role : null),
+      ACTIVE: record.activeInput !== null && record.activeInput !== undefined ? record.activeInput : (legacyContract ? record.active : null),
+      "VALID FROM": record.validFrom, "VALID TO": record.validTo,
+    };
+  }
+  function adaptPersistedDataset(dataset, records) {
+    const contract = classifyDatasetContract(dataset);
+    if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
+    const normalized = (Array.isArray(records) ? records : []).map((record, index) => {
+      const adapted = normalizeRow(persistedRowToInput(record || {}, contract), record && record.datasetId || dataset.datasetId, record && record.sourceRowNumber || index + 2);
+      return Object.freeze({ ...adapted, sourceRecordId: record && record.recordId || null, compatibilityDerived: contract.compatibility });
+    });
+    return Object.freeze({
+      status: contract.compatibility ? "LEGACY_COMPATIBILITY" : "READY",
+      dataset, contract, records: Object.freeze(normalized), diagnostics: contract.diagnostics,
+    });
+  }
+  function toPersistedRecord(record) {
+    const { dateValidity, activeSupplied, statusInput, compatibilityMode, ...persisted } = record;
+    return Object.freeze(persisted);
   }
   function createFinding({ code, severity, field = null, value = null, message }) { return { code, severity, category: DATA_QUALITY_CATEGORY.HIERARCHY, field, value, message }; }
 
@@ -140,6 +193,6 @@ Purpose : Normalize and validate durable Employee Master v2 records
 
   window.BancaTrackerEmployeeMaster = Object.freeze({
     ROLE_ALIASES, EMPLOYMENT_STATUSES, EMPLOYMENT_TYPES, normalizeText, normalizeCode, normalizeBoolean, normalizeRole,
-    normalizeEmploymentStatus, normalizeEmploymentType, normalizeDate, normalizeRow, validateRow, validateDataset, prepareDataset,
+    normalizeEmploymentStatus, normalizeEmploymentType, normalizeDate, classifyDatasetContract, adaptPersistedDataset, toPersistedRecord, normalizeRow, validateRow, validateDataset, prepareDataset,
   });
 })();

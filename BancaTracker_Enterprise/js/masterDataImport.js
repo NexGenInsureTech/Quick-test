@@ -61,6 +61,24 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     return String(value == null ? "" : value).replace(/^\uFEFF/, "").trim().toUpperCase();
   }
 
+  function getEmployeeContractMetadata(headers) {
+    const contract = global.BancaTrackerDatasetRegistry.EMPLOYEE_DATA_CONTRACT;
+    const available = new Set((headers || []).map(normalizeHeader));
+    const hasNativeFields = available.has("DESIGNATION") || available.has("EMPLOYMENT STATUS");
+    const hasLegacyFields = available.has("ROLE") || available.has("ACTIVE");
+    const sourceProfile = hasNativeFields
+      ? (hasLegacyFields ? contract.PROFILES.MIXED_TRANSITIONAL : contract.PROFILES.NATIVE_V2)
+      : contract.PROFILES.LEGACY_V1;
+    return Object.freeze({
+      dataContract: Object.freeze({
+        name: contract.NAME,
+        version: sourceProfile === contract.PROFILES.LEGACY_V1 ? contract.LEGACY_VERSION : contract.CURRENT_VERSION,
+        sourceProfile,
+        normalizerVersion: contract.CURRENT_VERSION,
+      }),
+    });
+  }
+
   function parseText(text) {
     const parser = global.BancaTrackerCsvProcessor;
     if (!parser || typeof parser.parseCSV !== "function") {
@@ -153,6 +171,7 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       universeReadiness: prepared.universeReadiness || null,
       commercialSummary: prepared.commercialSummary || null,
       commercialReadiness: prepared.commercialReadiness || null,
+      contractMetadata: datasetType === "EMPLOYEE_MASTER" ? getEmployeeContractMetadata(headers) : null,
     });
     currentPreview = preview;
     return preview;
@@ -189,6 +208,9 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
         validRows: preview.validRows,
         warningCount: preview.warningCount,
         errorCount: preview.errorCount,
+        metadata: preview.contractMetadata
+          ? { ...preview.contractMetadata, dataContract: { ...preview.contractMetadata.dataContract, declaredAt: new Date().toISOString() } }
+          : null,
       });
       const prepared = global[schema.preparer].prepareDataset(
         preview.rawRows,
@@ -196,10 +218,13 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
         dependencies.context,
       );
       if (!prepared.valid) throw new Error("Master validation changed before persistence.");
-      await repository.saveStagedMasterRecords(staged.datasetId, prepared.records);
+      const recordsToPersist = preview.datasetType === "EMPLOYEE_MASTER"
+        ? prepared.records.map((record) => global.BancaTrackerEmployeeMaster.toPersistedRecord(record))
+        : prepared.records;
+      await repository.saveStagedMasterRecords(staged.datasetId, recordsToPersist);
       const activation = await repository.activateDataset(staged.datasetId);
       currentPreview = null;
-      return { success: true, dataset: staged, activation, records: prepared.records };
+      return { success: true, dataset: staged, activation, records: recordsToPersist };
     } catch (error) {
       if (staged && repository.markDatasetFailed) {
         try { await repository.markDatasetFailed(staged.datasetId, { message: error.message }); } catch (markError) { /* Preserve original failure. */ }
