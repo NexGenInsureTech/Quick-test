@@ -26,8 +26,8 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     }),
     EMPLOYEE_MASTER: Object.freeze({
       label: "Employee Master",
-      required: ["EMPLOYEE ID", "EMPLOYEE NAME", "ROLE", "ACTIVE"],
-      optional: ["VALID FROM", "VALID TO"],
+      required: ["EMPLOYEE ID", "EMPLOYEE NAME"],
+      optional: ["DESIGNATION", "GRADE", "BAND", "EMPLOYMENT TYPE", "FUNCTION", "CHANNEL", "BASE LOCATION", "DATE OF JOINING", "CHANNEL JOIN DATE", "DESIGNATION EFFECTIVE DATE", "EMPLOYMENT STATUS", "EXIT DATE", "ROLE", "ACTIVE", "VALID FROM", "VALID TO"],
       preparer: "BancaTrackerEmployeeMaster",
       dependencies: [],
     }),
