@@ -1,6 +1,8 @@
 /* Sprint 2B: Direct Reporting Hierarchy v2 authority. */
 "use strict";
 const assert = require("assert"); const path = require("path"); global.window = global;
+require(path.join(__dirname, "..", "js/data/schema.js"));
+require(path.join(__dirname, "..", "js/data/datasetRegistry.js"));
 require(path.join(__dirname, "..", "js/masters/directReportingHierarchy.js"));
 const Authority = BancaTrackerDirectReportingHierarchy;
 const employee = (employeeId, designation = "Employee", overrides = {}) => ({ employeeId, employeeName: employeeId, designation, employmentStatus: "ACTIVE", dateOfJoining: "2020-01-01", exitDate: null, ...overrides });

@@ -9,12 +9,9 @@ Purpose : Validate and resolve effective-dated direct reporting graphs
 (function (global) {
   "use strict";
 
-  const CONTRACT = Object.freeze({
-    NAME: "HIERARCHY_MASTER",
-    VERSION: 2,
-    SOURCE_PROFILE: "DIRECT_REPORTING_V2",
-    DATE_BOUNDARY: "INCLUSIVE",
-  });
+  if (!global.BancaTrackerDatasetRegistry) throw new Error("BancaTrackerDatasetRegistry must be loaded before directReportingHierarchy.js");
+  const DATA_CONTRACT = global.BancaTrackerDatasetRegistry.HIERARCHY_DATA_CONTRACT;
+  const CONTRACT = Object.freeze({ NAME: DATA_CONTRACT.NAME, VERSION: DATA_CONTRACT.CURRENT_VERSION, SOURCE_PROFILE: DATA_CONTRACT.PROFILES.DIRECT_REPORTING_V2, DATE_BOUNDARY: "INCLUSIVE" });
   const INFINITY = "9999-12-31";
 
   function normalizeText(value) {
@@ -51,6 +48,25 @@ Purpose : Validate and resolve effective-dated direct reporting graphs
       dateValidity: Object.freeze({ validFrom: validFrom.valid, validTo: validTo.valid }),
       sourceRowNumber: rowNumber,
     });
+  }
+  function toPersistedRecord(record) {
+    const { dateValidity, ...persisted } = record;
+    return Object.freeze(persisted);
+  }
+  function classifyDatasetContract(dataset) {
+    const declared = dataset && dataset.metadata && dataset.metadata.dataContract;
+    if (!declared) return Object.freeze({ supported: true, version: DATA_CONTRACT.LEGACY_VERSION, sourceProfile: DATA_CONTRACT.PROFILES.LEGACY_V1_ASSUMED, compatibility: true, diagnostics: Object.freeze(["HIERARCHY_DATASET_CONTRACT_UNDECLARED"]) });
+    if (declared.name !== DATA_CONTRACT.NAME || !Number.isInteger(declared.version)) return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["HIERARCHY_DATASET_CONTRACT_INVALID"]) });
+    if (declared.version === DATA_CONTRACT.LEGACY_VERSION && declared.sourceProfile === DATA_CONTRACT.PROFILES.LEGACY_V1) return Object.freeze({ supported: true, version: declared.version, sourceProfile: declared.sourceProfile, compatibility: true, diagnostics: Object.freeze([]) });
+    if (declared.version === DATA_CONTRACT.CURRENT_VERSION && declared.sourceProfile === DATA_CONTRACT.PROFILES.DIRECT_REPORTING_V2) return Object.freeze({ supported: true, version: declared.version, sourceProfile: declared.sourceProfile, compatibility: false, diagnostics: Object.freeze([]) });
+    return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["HIERARCHY_DATASET_CONTRACT_UNSUPPORTED"]) });
+  }
+  function adaptPersistedDataset(dataset, records) {
+    const contract = classifyDatasetContract(dataset);
+    if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
+    if (contract.compatibility) return Object.freeze({ status: "LEGACY_COMPATIBILITY", dataset, contract, records: Object.freeze([...(Array.isArray(records) ? records : [])]), diagnostics: contract.diagnostics });
+    const canonical = (Array.isArray(records) ? records : []).map((record) => Object.freeze({ recordId: record.recordId, datasetId: record.datasetId, employeeId: normalizeCode(record.employeeId), managerEmployeeId: normalizeCode(record.managerEmployeeId), validFrom: record.validFrom || null, validTo: record.validTo || null, sourceRowNumber: record.sourceRowNumber || null }));
+    return Object.freeze({ status: "READY", dataset, contract, records: Object.freeze(canonical), diagnostics: contract.diagnostics });
   }
   function finding(code, severity, record, message, details = {}) {
     return Object.freeze({ code, severity, employeeId: record && record.employeeId || null, sourceRowNumber: record && record.sourceRowNumber || null, message, ...details });
@@ -133,6 +149,12 @@ Purpose : Validate and resolve effective-dated direct reporting graphs
     const errorCount = findings.filter((item) => item.severity === "ERROR").length;
     return Object.freeze({ valid: errorCount === 0, errorCount, warningCount: findings.length - errorCount, findings: Object.freeze(findings), cycles: Object.freeze(cycles) });
   }
+  function prepareDataset(rawRows, datasetId, employeeRecords) {
+    if (!Array.isArray(rawRows)) throw new TypeError("Direct Reporting Hierarchy rows must be an array.");
+    const records = rawRows.map((row, index) => normalizeRecord(row, datasetId, index + 2));
+    const validation = validateDataset(records, employeeRecords);
+    return Object.freeze({ records: Object.freeze(records), findings: validation.findings, valid: validation.valid, errorCount: validation.errorCount, warningCount: validation.warningCount, cycles: validation.cycles });
+  }
   function componentCount(relationships) {
     const neighbors = new Map();
     const ensure = (id) => { if (!neighbors.has(id)) neighbors.set(id, new Set()); return neighbors.get(id); };
@@ -195,5 +217,5 @@ Purpose : Validate and resolve effective-dated direct reporting graphs
     });
   }
 
-  global.BancaTrackerDirectReportingHierarchy = Object.freeze({ CONTRACT, normalizeText, normalizeCode, parseDate, normalizeRecord, validateDataset, buildGraph, resolveEmployee, resolveEmployees });
+  global.BancaTrackerDirectReportingHierarchy = Object.freeze({ CONTRACT, normalizeText, normalizeCode, parseDate, normalizeRecord, toPersistedRecord, classifyDatasetContract, adaptPersistedDataset, validateDataset, prepareDataset, buildGraph, resolveEmployee, resolveEmployees });
 })(window);
