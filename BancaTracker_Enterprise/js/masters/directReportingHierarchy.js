@@ -65,7 +65,10 @@ Purpose : Validate and resolve effective-dated direct reporting graphs
     const contract = classifyDatasetContract(dataset);
     if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
     if (contract.compatibility) return Object.freeze({ status: "LEGACY_COMPATIBILITY", dataset, contract, records: Object.freeze([...(Array.isArray(records) ? records : [])]), diagnostics: contract.diagnostics });
-    const canonical = (Array.isArray(records) ? records : []).map((record) => Object.freeze({ recordId: record.recordId, datasetId: record.datasetId, employeeId: normalizeCode(record.employeeId), managerEmployeeId: normalizeCode(record.managerEmployeeId), validFrom: record.validFrom || null, validTo: record.validTo || null, sourceRowNumber: record.sourceRowNumber || null }));
+    const canonical = (Array.isArray(records) ? records : []).map((record, index) => {
+      const normalized = normalizeRecord(record, record.datasetId || dataset.datasetId, record.sourceRowNumber || index + 2);
+      return Object.freeze({ ...normalized, recordId: record.recordId || normalized.recordId, sourceRecordId: record.recordId || null });
+    });
     return Object.freeze({ status: "READY", dataset, contract, records: Object.freeze(canonical), diagnostics: contract.diagnostics });
   }
   function finding(code, severity, record, message, details = {}) {
