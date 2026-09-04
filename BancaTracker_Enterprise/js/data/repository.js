@@ -400,6 +400,15 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
       return [];
     }
 
+    if (datasetType === DATASET_TYPES.BRANCH_ASSIGNMENT) {
+      const dataset = await getDataset(datasetId);
+      const authority = window.BancaTrackerWorkforceDeployment;
+      if (authority && authority.classifyDatasetContract) {
+        const contract = authority.classifyDatasetContract(dataset);
+        if (contract.supported && !contract.compatibility) return [];
+      }
+    }
+
     const storeName = Registry.getStoreForDatasetType(datasetType);
 
     return Db.getAllByIndex(storeName, "datasetId", datasetId);
@@ -430,6 +439,18 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     const contract = authority.classifyDatasetContract(dataset);
     if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
     const records = await getActiveMasterRecords(DATASET_TYPES.HIERARCHY);
+    return authority.adaptPersistedDataset(dataset, records);
+  }
+
+  async function getActiveWorkforceDeploymentContext() {
+    const dataset = await getActiveDataset(DATASET_TYPES.BRANCH_ASSIGNMENT);
+    if (!dataset) return Object.freeze({ status: "ABSENT", dataset: null, contract: null, records: Object.freeze([]), diagnostics: Object.freeze([]) });
+    const authority = window.BancaTrackerWorkforceDeployment;
+    if (!authority || typeof authority.adaptPersistedDataset !== "function") throw new Error("BancaTrackerWorkforceDeployment persistence adapter is unavailable.");
+    const contract = authority.classifyDatasetContract(dataset);
+    if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
+    const storeName = Registry.getStoreForDatasetType(DATASET_TYPES.BRANCH_ASSIGNMENT);
+    const records = await Db.getAllByIndex(storeName, "datasetId", dataset.datasetId);
     return authority.adaptPersistedDataset(dataset, records);
   }
 
@@ -491,6 +512,7 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     getActiveMasterRecords,
     getActiveEmployeeMasterContext,
     getActiveHierarchyContext,
+    getActiveWorkforceDeploymentContext,
     getActiveDirectHierarchyResolutionContext,
   });
 

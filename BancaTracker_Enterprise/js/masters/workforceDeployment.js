@@ -13,6 +13,8 @@ Purpose : Normalize and validate native effective-dated workforce deployments
 
   const EmployeeMaster = global.BancaTrackerEmployeeMaster;
   const BranchMaster = global.BancaTrackerBranchMaster;
+  const Registry = global.BancaTrackerDatasetRegistry;
+  const CONTRACT = Registry.WORKFORCE_DEPLOYMENT_DATA_CONTRACT;
   const DEPLOYMENT_TYPES = Object.freeze(["PRIMARY", "SUPPORT"]); const INFINITY = "9999-12-31";
   function normalizeText(value) { return EmployeeMaster.normalizeText(value); }
   function normalizeCode(value) { return EmployeeMaster.normalizeCode(value); }
@@ -24,6 +26,14 @@ Purpose : Normalize and validate native effective-dated workforce deployments
   }
   function sourceValue(row, header, property) { return row && (row[header] !== undefined ? row[header] : row[property]); }
   function normalizeDeploymentType(value) { const normalized = normalizeCode(value); return DEPLOYMENT_TYPES.includes(normalized) ? normalized : null; }
+  function classifyDatasetContract(dataset) {
+    const declared = dataset && dataset.metadata && dataset.metadata.dataContract;
+    if (!declared) return Object.freeze({ supported: true, version: CONTRACT.LEGACY_VERSION, sourceProfile: CONTRACT.PROFILES.LEGACY_V1_ASSUMED, compatibility: true, diagnostics: Object.freeze(["WORKFORCE_DEPLOYMENT_CONTRACT_UNDECLARED"]) });
+    if (declared.name !== CONTRACT.NAME || !Number.isInteger(declared.version)) return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["WORKFORCE_DEPLOYMENT_CONTRACT_INVALID"]) });
+    if (declared.version === CONTRACT.LEGACY_VERSION && declared.sourceProfile === CONTRACT.PROFILES.LEGACY_V1) return Object.freeze({ supported: true, version: 1, sourceProfile: declared.sourceProfile, compatibility: true, diagnostics: Object.freeze([]) });
+    if (declared.version === CONTRACT.CURRENT_VERSION && declared.sourceProfile === CONTRACT.PROFILES.WORKFORCE_DEPLOYMENT_V2) return Object.freeze({ supported: true, version: 2, sourceProfile: declared.sourceProfile, compatibility: false, diagnostics: Object.freeze([]) });
+    return Object.freeze({ supported: false, status: "UNSUPPORTED_CONTRACT", diagnostics: Object.freeze(["WORKFORCE_DEPLOYMENT_CONTRACT_UNSUPPORTED"]) });
+  }
   function normalizeRecord(rawRecord, datasetId, rowNumber) {
     const employeeId = normalizeCode(sourceValue(rawRecord, "EMPLOYEE ID", "employeeId"));
     const bankId = normalizeCode(sourceValue(rawRecord, "BANK ID", "bankId"));
@@ -73,5 +83,12 @@ Purpose : Normalize and validate native effective-dated workforce deployments
     const errorCount = findings.filter((item) => item.severity === "ERROR").length; return Object.freeze({ valid: errorCount === 0, status: errorCount ? "INVALID" : "VALID", errorCount, warningCount: findings.length - errorCount, findings: Object.freeze(findings) });
   }
   function prepareDataset(rawRows, datasetId, employeeRecords, branchRecords) { const records = Object.freeze((Array.isArray(rawRows) ? rawRows : []).map((row, index) => normalizeRecord(row, datasetId, index + 2))); const validation = validateDataset(records, employeeRecords, branchRecords); return Object.freeze({ records, ...validation }); }
-  global.BancaTrackerWorkforceDeployment = Object.freeze({ DEPLOYMENT_TYPES, normalizeText, normalizeCode, normalizeDeploymentType, parseDate, normalizeRecord, intervalsOverlap, validateDataset, prepareDataset });
+  function toPersistedRecord(record) { const { dateValidity, deploymentTypeInput, ...persisted } = record; return Object.freeze(persisted); }
+  function adaptPersistedDataset(dataset, records) {
+    const contract = classifyDatasetContract(dataset); if (!contract.supported) return Object.freeze({ status: contract.status, dataset, contract, records: Object.freeze([]), diagnostics: contract.diagnostics });
+    if (contract.compatibility) return Object.freeze({ status: "LEGACY_COMPATIBILITY", dataset, contract, records: Object.freeze(Array.isArray(records) ? records : []), diagnostics: contract.diagnostics });
+    const normalized = (Array.isArray(records) ? records : []).map((record, index) => Object.freeze({ ...normalizeRecord(record, record && record.datasetId || dataset.datasetId, record && record.sourceRowNumber || index + 2), sourceRecordId: record && record.recordId || null }));
+    return Object.freeze({ status: "READY", dataset, contract, records: Object.freeze(normalized), diagnostics: contract.diagnostics });
+  }
+  global.BancaTrackerWorkforceDeployment = Object.freeze({ CONTRACT, DEPLOYMENT_TYPES, normalizeText, normalizeCode, normalizeDeploymentType, parseDate, normalizeRecord, intervalsOverlap, classifyDatasetContract, toPersistedRecord, adaptPersistedDataset, validateDataset, prepareDataset });
 })(window);

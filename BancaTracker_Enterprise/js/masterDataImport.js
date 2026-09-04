@@ -96,6 +96,15 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     });
   }
 
+  function getWorkforceDeploymentImportProfile(headers) {
+    const contract = global.BancaTrackerDatasetRegistry.WORKFORCE_DEPLOYMENT_DATA_CONTRACT;
+    const available = new Set((headers || []).map(normalizeHeader));
+    const native = available.has("DEPLOYMENT TYPE"); const legacy = available.has("RM ID");
+    if (native && legacy) return Object.freeze({ mixed: true, native: false, sourceProfile: null, required: ["BANK ID", "BRANCH CODE"] });
+    const sourceProfile = native ? contract.PROFILES.WORKFORCE_DEPLOYMENT_V2 : contract.PROFILES.LEGACY_V1;
+    return Object.freeze({ mixed: false, native, sourceProfile, required: native ? ["EMPLOYEE ID", "BANK ID", "BRANCH CODE", "DEPLOYMENT TYPE", "VALID FROM"] : SCHEMAS.BRANCH_ASSIGNMENT.required, metadata: Object.freeze({ dataContract: Object.freeze({ name: contract.NAME, version: native ? contract.CURRENT_VERSION : contract.LEGACY_VERSION, sourceProfile, normalizerVersion: native ? contract.CURRENT_VERSION : contract.LEGACY_VERSION, ...(native ? { dateBoundary: "INCLUSIVE" } : {}) }) }) });
+  }
+
   function parseText(text) {
     const parser = global.BancaTrackerCsvProcessor;
     if (!parser || typeof parser.parseCSV !== "function") {
@@ -139,12 +148,22 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       }));
   }
 
-  async function loadDependencyContext(datasetType, repository, hierarchyProfile = null) {
+  async function loadDependencyContext(datasetType, repository, hierarchyProfile = null, deploymentProfile = null) {
     const schema = SCHEMAS[datasetType];
     const dependencyStatus = {};
     const context = {};
     const findings = [];
     if (!schema.dependencies.length) return { context, dependencyStatus, findings };
+    if (datasetType === "BRANCH_ASSIGNMENT" && deploymentProfile && deploymentProfile.native) {
+      const [employeeContext, branchRecords] = await Promise.all([typeof repository.getActiveEmployeeMasterContext === "function" ? repository.getActiveEmployeeMasterContext() : null, repository.getActiveMasterRecords("BRANCH_MASTER")]);
+      const employeesAvailable = employeeContext && ["READY", "LEGACY_COMPATIBILITY"].includes(employeeContext.status) && employeeContext.records.length;
+      dependencyStatus.EMPLOYEE_MASTER = employeesAvailable ? employeeContext.status : employeeContext && employeeContext.status || "ABSENT";
+      dependencyStatus.BRANCH_MASTER = branchRecords.length ? "ACTIVE" : "ABSENT";
+      context.employeeRecords = employeesAvailable ? employeeContext.records : []; context.employeeContext = employeeContext; context.branchRecords = branchRecords;
+      if (!employeesAvailable) findings.push({ severity: "ERROR", code: "DEPLOYMENT_V2_EMPLOYEE_MASTER_UNAVAILABLE", field: "EMPLOYEE ID", message: "A supported active canonical Employee Master is required for Workforce Deployment v2." });
+      if (!branchRecords.length) findings.push({ severity: "ERROR", code: "DEPLOYMENT_V2_BRANCH_MASTER_UNAVAILABLE", field: "BRANCH CODE", message: "An active Branch Master is required for Workforce Deployment v2." });
+      return { context, dependencyStatus, findings };
+    }
     if (datasetType === "HIERARCHY" && hierarchyProfile && hierarchyProfile.native) {
       const employeeContext = typeof repository.getActiveEmployeeMasterContext === "function" ? await repository.getActiveEmployeeMasterContext() : null;
       const available = employeeContext && ["READY", "LEGACY_COMPATIBILITY"].includes(employeeContext.status) && employeeContext.records.length;
@@ -175,16 +194,17 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     const rawRows = source && Array.isArray(source.rows) ? source.rows : [];
     const headers = source && Array.isArray(source.headers) ? source.headers : [];
     const hierarchyProfile = datasetType === "HIERARCHY" ? getHierarchyImportProfile(headers) : null;
-    const requiredHeaders = hierarchyProfile ? hierarchyProfile.required : schema.required;
+    const deploymentProfile = datasetType === "BRANCH_ASSIGNMENT" ? getWorkforceDeploymentImportProfile(headers) : null;
+    const requiredHeaders = hierarchyProfile ? hierarchyProfile.required : deploymentProfile ? deploymentProfile.required : schema.required;
     const columnFindings = missingColumnFindings(schema, headers, requiredHeaders);
-    const profileFindings = hierarchyProfile && hierarchyProfile.mixed ? [{ severity: "ERROR", code: "HIERARCHY_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy MANAGER ID and native MANAGER EMPLOYEE ID cannot be mixed in one hierarchy dataset." }] : [];
-    const dependencies = await loadDependencyContext(datasetType, repository, hierarchyProfile);
-    const preparer = hierarchyProfile && hierarchyProfile.native ? global.BancaTrackerDirectReportingHierarchy : global[schema.preparer];
-    const prepared = hierarchyProfile && hierarchyProfile.mixed
+    const profileFindings = hierarchyProfile && hierarchyProfile.mixed ? [{ severity: "ERROR", code: "HIERARCHY_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy MANAGER ID and native MANAGER EMPLOYEE ID cannot be mixed in one hierarchy dataset." }] : deploymentProfile && deploymentProfile.mixed ? [{ severity: "ERROR", code: "WORKFORCE_DEPLOYMENT_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy RM ID and native DEPLOYMENT TYPE cannot be mixed in one assignment dataset." }] : [];
+    const dependencies = await loadDependencyContext(datasetType, repository, hierarchyProfile, deploymentProfile);
+    const preparer = hierarchyProfile && hierarchyProfile.native ? global.BancaTrackerDirectReportingHierarchy : deploymentProfile && deploymentProfile.native ? global.BancaTrackerWorkforceDeployment : global[schema.preparer];
+    const prepared = (hierarchyProfile && hierarchyProfile.mixed) || (deploymentProfile && deploymentProfile.mixed)
       ? { records: [], findings: [], valid: false }
       : hierarchyProfile && hierarchyProfile.native
         ? preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context.employeeRecords)
-        : preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context);
+        : deploymentProfile && deploymentProfile.native ? preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context.employeeRecords, dependencies.context.branchRecords) : preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context);
     const findings = [...columnFindings, ...profileFindings, ...dependencies.findings, ...prepared.findings];
     const errorCount = findings.filter((finding) => finding.severity === "ERROR").length;
     const warningCount = findings.filter((finding) => finding.severity === "WARNING").length;
@@ -205,8 +225,9 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       universeReadiness: prepared.universeReadiness || null,
       commercialSummary: prepared.commercialSummary || null,
       commercialReadiness: prepared.commercialReadiness || null,
-      contractMetadata: datasetType === "EMPLOYEE_MASTER" ? getEmployeeContractMetadata(headers) : hierarchyProfile && !hierarchyProfile.mixed ? hierarchyProfile.metadata : null,
+      contractMetadata: datasetType === "EMPLOYEE_MASTER" ? getEmployeeContractMetadata(headers) : hierarchyProfile && !hierarchyProfile.mixed ? hierarchyProfile.metadata : deploymentProfile && !deploymentProfile.mixed ? deploymentProfile.metadata : null,
       hierarchyProfile,
+      deploymentProfile,
     });
     currentPreview = preview;
     return preview;
@@ -225,13 +246,13 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       const dependencies = await loadDependencyContext(
         preview.datasetType,
         repository,
-        preview.hierarchyProfile,
+        preview.hierarchyProfile, preview.deploymentProfile,
       );
       if (dependencies.findings.length) throw new Error("Master dependency validation failed. Validate the file again.");
-      const preparer = preview.hierarchyProfile && preview.hierarchyProfile.native ? global.BancaTrackerDirectReportingHierarchy : global[schema.preparer];
+      const preparer = preview.hierarchyProfile && preview.hierarchyProfile.native ? global.BancaTrackerDirectReportingHierarchy : preview.deploymentProfile && preview.deploymentProfile.native ? global.BancaTrackerWorkforceDeployment : global[schema.preparer];
       const preflight = preview.hierarchyProfile && preview.hierarchyProfile.native
         ? preparer.prepareDataset(preview.rawRows, `PREVIEW:${preview.datasetType}`, dependencies.context.employeeRecords)
-        : preparer.prepareDataset(preview.rawRows, `PREVIEW:${preview.datasetType}`, dependencies.context);
+        : preview.deploymentProfile && preview.deploymentProfile.native ? preparer.prepareDataset(preview.rawRows, `PREVIEW:${preview.datasetType}`, dependencies.context.employeeRecords, dependencies.context.branchRecords) : preparer.prepareDataset(preview.rawRows, `PREVIEW:${preview.datasetType}`, dependencies.context);
       if (!preflight.valid) {
         throw new Error(
           "Master validation failed against the current active dependencies. Validate the file again.",
@@ -250,13 +271,13 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       });
       const prepared = preview.hierarchyProfile && preview.hierarchyProfile.native
         ? preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context.employeeRecords)
-        : preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context);
+        : preview.deploymentProfile && preview.deploymentProfile.native ? preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context.employeeRecords, dependencies.context.branchRecords) : preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context);
       if (!prepared.valid) throw new Error("Master validation changed before persistence.");
       const recordsToPersist = preview.datasetType === "EMPLOYEE_MASTER"
         ? prepared.records.map((record) => global.BancaTrackerEmployeeMaster.toPersistedRecord(record))
         : preview.hierarchyProfile && preview.hierarchyProfile.native
           ? prepared.records.map((record) => global.BancaTrackerDirectReportingHierarchy.toPersistedRecord(record))
-          : prepared.records;
+          : preview.deploymentProfile && preview.deploymentProfile.native ? prepared.records.map((record) => global.BancaTrackerWorkforceDeployment.toPersistedRecord(record)) : prepared.records;
       await repository.saveStagedMasterRecords(staged.datasetId, recordsToPersist);
       const activation = await repository.activateDataset(staged.datasetId);
       currentPreview = null;
