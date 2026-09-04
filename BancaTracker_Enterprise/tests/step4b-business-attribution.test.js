@@ -1,0 +1,38 @@
+/* Step 4B: pure signed-Actual business attribution authority. */
+"use strict";
+const assert = require("assert"); const fs = require("fs"); const path = require("path"); const vm = require("vm");
+global.window = global;
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, "..", "js/data/schema.js"), "utf8"), { filename: "schema.js" });
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, "..", "js/data/datasetRegistry.js"), "utf8"), { filename: "datasetRegistry.js" });
+vm.runInThisContext(fs.readFileSync(path.join(__dirname, "..", "js/masters/employeeMaster.js"), "utf8"), { filename: "employeeMaster.js" });
+const modulePath = path.join(__dirname, "..", "js/enrichment/businessAttribution.js"); vm.runInThisContext(fs.readFileSync(modulePath, "utf8"), { filename: "businessAttribution.js" });
+const Attribution = BancaTrackerBusinessAttribution;
+const employee = (employeeId, overrides = {}) => ({ employeeId, employeeName: employeeId, designation: "Executive", employmentStatus: "ACTIVE", active: true, dateOfJoining: "2024-01-01", exitDate: null, ...overrides });
+const employees = [employee("EMP001", { designation: "USM" }), employee("EMP002"), employee("EMP003")];
+const legacyAssignments = [{ branchId: "BANK_A:001", rmId: "EMP002", active: true, validFrom: "2025-01-01", validTo: null }];
+const fact = (overrides = {}) => ({ policyIssuedDate: "2025-08-31", premium: 100, branchId: "BANK_A:001", sourceRmId: "EMP001", sourceRmName: "Untrusted name", ...overrides });
+const context = { employeeRecords: employees, legacyAssignmentRecords: legacyAssignments };
+
+let result = Attribution.resolveAttribution(fact(), context);
+assert.deepStrictEqual([result.attributionStatus, result.employeeId, result.evidenceType, result.signedActual], ["UNATTRIBUTED", null, "NONE", 100]);
+assert.ok(result.diagnostics.includes("ATTRIBUTION_SOURCE_ASSIGNED_RM_CONFLICT"));
+result = Attribution.resolveAttribution(fact({ branchId: "BANK_A:002" }), context);
+assert.deepStrictEqual([result.attributionStatus, result.employeeId, result.evidenceType], ["ATTRIBUTED_SOURCE_RM_ID", "EMP001", "SOURCE_RM_ID"]);
+assert.strictEqual(employees[0].designation, "USM");
+result = Attribution.resolveAttribution(fact({ sourceRmId: null, sourceRmName: "EMP001", branchId: "BANK_A:404" }), context);
+assert.strictEqual(result.attributionStatus, "UNATTRIBUTED"); assert.strictEqual(result.employeeId, null);
+result = Attribution.resolveAttribution(fact({ sourceRmId: "UNKNOWN" }), context);
+assert.strictEqual(result.attributionStatus, "UNATTRIBUTED"); assert.ok(result.diagnostics.includes("ATTRIBUTION_SOURCE_RM_ID_UNMAPPED"));
+result = Attribution.resolveAttribution(fact({ sourceRmId: null }), context);
+assert.deepStrictEqual([result.attributionStatus, result.employeeId, result.evidenceType], ["ATTRIBUTED_LEGACY_BRANCH_ASSIGNMENT", "EMP002", "LEGACY_BRANCH_ASSIGNMENT"]);
+result = Attribution.resolveAttribution(fact({ sourceRmId: null, branchId: "BANK_A:404" }), context);
+assert.strictEqual(result.attributionStatus, "UNATTRIBUTED"); assert.ok(result.diagnostics.includes("ATTRIBUTION_ASSIGNMENT_UNAVAILABLE"));
+result = Attribution.resolveAttribution(fact({ sourceRmId: null }), { employeeRecords: employees, legacyAssignmentRecords: [{ employeeId: "EMP003", branchId: "BANK_A:001", deploymentType: "PRIMARY", active: true, validFrom: "2025-01-01" }] });
+assert.strictEqual(result.attributionStatus, "UNATTRIBUTED");
+assert.strictEqual(Attribution.resolveAttribution(fact({ branchId: "BANK_A:002", premium: -25 }), context).signedActual, -25);
+assert.strictEqual(Attribution.resolveAttribution(fact({ branchId: "BANK_A:002", premium: 0 }), context).signedActual, 0);
+const records = [fact({ branchId: "BANK_A:002", premium: 100 }), fact({ sourceRmId: null, premium: -25 }), fact({ sourceRmId: "UNKNOWN", premium: 0 })]; const snapshot = JSON.stringify(records);
+const batch = Attribution.resolveBatch(records, context); assert.strictEqual(JSON.stringify(records), snapshot); assert.strictEqual(batch.summary.reconciliation.complete, true); assert.deepStrictEqual([batch.summary.totalSignedActual, batch.summary.attributedSignedActual, batch.summary.unattributedSignedActual], [75, 75, 0]); assert.strictEqual(batch.summary.unmappedSourceIdentities, 1);
+assert.deepStrictEqual(Attribution.resolveAttribution(fact({ branchId: "BANK_A:002" }), context), Attribution.resolveAttribution(fact({ branchId: "BANK_A:002" }), context));
+const source = fs.readFileSync(modulePath, "utf8"); for (const forbidden of ["Repository", "IndexedDB", "WorkforceDeployment", "DirectHierarchy", "HierarchyResolver", "primary", "support"]) assert.ok(!source.includes(forbidden), forbidden);
+console.log("Step 4B Business Attribution tests passed: source precedence, compatibility fallback, signed reconciliation, purity, and isolation.");
