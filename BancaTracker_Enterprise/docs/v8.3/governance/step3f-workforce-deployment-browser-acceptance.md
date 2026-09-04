@@ -7,13 +7,14 @@
 
 ## Prerequisites and fixture order
 
-The Branch Master fixture references `IN-KA`; first ensure a compatible active Geography Master already contains that state. Then use the fixture set in `tests/fixtures/workforce-deployment-v2/` in this order:
+The acceptance package is self-contained. Use the fixture set in `tests/fixtures/workforce-deployment-v2/` in this order:
 
-1. `employee-master-v2.csv`
-2. `branch-master-v2.csv`
-3. `acceptance-valid-native-v2.csv`
-4. `acceptance-invalid-native-v2.csv` (only after the valid dataset is active)
-5. `legacy-branch-assignment.csv` (separate clean/legacy run where practical)
+1. `geography-master.csv` (activate first; contains the `IN-KA` state required by Branch Master)
+2. `employee-master-v2.csv`
+3. `branch-master-v2.csv`
+4. `acceptance-valid-native-v2.csv`
+5. `acceptance-invalid-native-v2.csv` (only after the valid dataset is active)
+6. `legacy-branch-assignment.csv` (separate clean/legacy run where practical)
 
 The fixture proves one employee across multiple branches, a primary plus two supports on Branch 001, a support-only Branch 003, a historical primary branch change, and a concurrent-primary invalid replacement.
 
