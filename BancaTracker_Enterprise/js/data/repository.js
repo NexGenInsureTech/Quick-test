@@ -454,6 +454,12 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     return authority.adaptPersistedDataset(dataset, records);
   }
 
+  async function getActiveWorkforceDeploymentResolutionContext(asOfDate) {
+    const resolver = window.BancaTrackerWorkforceDeploymentResolver;
+    if (!resolver || typeof resolver.createContext !== "function") throw new Error("BancaTrackerWorkforceDeploymentResolver is unavailable.");
+    return resolver.createContext(await getActiveWorkforceDeploymentContext(), asOfDate);
+  }
+
   async function getActiveDirectHierarchyResolutionContext(asOfDate) {
     const resolver = window.BancaTrackerDirectHierarchyResolver;
     if (!resolver || typeof resolver.createContext !== "function") throw new Error("BancaTrackerDirectHierarchyResolver is unavailable.");
@@ -513,6 +519,7 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     getActiveEmployeeMasterContext,
     getActiveHierarchyContext,
     getActiveWorkforceDeploymentContext,
+    getActiveWorkforceDeploymentResolutionContext,
     getActiveDirectHierarchyResolutionContext,
   });
 
