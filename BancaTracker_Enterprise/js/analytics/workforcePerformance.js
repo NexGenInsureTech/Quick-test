@@ -119,6 +119,64 @@ Purpose : Compose attributed business, hierarchy roll-up and deployment context
     return Object.freeze({ attribution: reconciliationResult && reconciliationResult.coverage || null, hierarchy: Object.freeze(hierarchy), deployment: Object.freeze(deployment) });
   }
 
+  const UNMAPPED = "__UNMAPPED__";
+  function reference(record, index) { return record && (record.recordId || record.canonicalRecordReference || record.sourceRecordId) ? String(record.recordId || record.canonicalRecordReference || record.sourceRecordId) : `INPUT_INDEX:${index}`; }
+  function key(value) { return value === null || value === undefined || value === "" ? UNMAPPED : String(value); }
+  function fieldFor(dimension) { return ({ BANK: "bankId", BRANCH: "branchId", ZONE: "zoneId", STATE: "stateId", MONTH: "monthKey", FY: "fy", LOB: "lob", PRODUCT: "productCode" })[dimension] || null; }
+  function dimensionValue(record, result, rollup, dimension) {
+    if (dimension === "EMPLOYEE") return key((result && result.employeeId) || (rollup && rollup.directOwnerId));
+    if (dimension === "MANAGER") return key(rollup && rollup.directManagerId);
+    const field = fieldFor(dimension); return key(field && record && record[field]);
+  }
+  function parentMatches(pair, parentSelection) {
+    if (!parentSelection || !(parentSelection.dimension || parentSelection.parentDimension)) return true;
+    const dimension = parentSelection.dimension || parentSelection.parentDimension; const parentKey = key(parentSelection.key !== undefined ? parentSelection.key : parentSelection.parentKey);
+    return dimensionValue(pair.record, pair.result, pair.rollup, dimension) === parentKey;
+  }
+  function pairInputs(canonicalRecords, detachedAttributionResults, hierarchyRollupRecords) {
+    const results = new Map((Array.isArray(detachedAttributionResults) ? detachedAttributionResults : []).map((item, index) => [reference(item, index), item]));
+    const rollups = new Map((Array.isArray(hierarchyRollupRecords) ? hierarchyRollupRecords : []).map((item, index) => [reference(item, index), item]));
+    return (Array.isArray(canonicalRecords) ? canonicalRecords : []).map((record, index) => ({ record, result: results.get(reference(record, index)) || null, rollup: rollups.get(reference(record, index)) || null, reference: reference(record, index) }));
+  }
+  function reconcileSlice({ canonicalRecords, detachedAttributionResults, hierarchyRollupRecords, parentSelection } = {}) {
+    const pairs = pairInputs(canonicalRecords, detachedAttributionResults, hierarchyRollupRecords).filter((pair) => parentMatches(pair, parentSelection)); const issue = [];
+    let underlyingSignedActual = 0, attributedSignedActual = 0, unattributedSignedActual = 0, directSignedActual = 0, attributedRecordCount = 0, unattributedRecordCount = 0;
+    pairs.forEach((pair) => {
+      const sourceActual = actual(pair.record && pair.record.premium); underlyingSignedActual += sourceActual;
+      if (!pair.result) { issue.push("WORKFORCE_SLICE_ATTRIBUTION_RESULT_MISSING"); unattributedRecordCount += 1; unattributedSignedActual += sourceActual; return; }
+      if (actual(pair.result.signedActual) !== sourceActual) issue.push("WORKFORCE_SLICE_SIGNED_ACTUAL_MISMATCH");
+      if (attributed(pair.result)) { attributedRecordCount += 1; attributedSignedActual += actual(pair.result.signedActual); directSignedActual += actual(pair.result.signedActual); }
+      else { unattributedRecordCount += 1; unattributedSignedActual += actual(pair.result.signedActual); }
+    });
+    if (underlyingSignedActual !== attributedSignedActual + unattributedSignedActual) issue.push("WORKFORCE_SLICE_ATTRIBUTION_TOTAL_MISMATCH");
+    return Object.freeze({ status: issue.length ? "UNRECONCILED" : "RECONCILED", parentSelection: parentSelection || null, underlyingRecordCount: pairs.length, attributedRecordCount, unattributedRecordCount, underlyingSignedActual, attributedSignedActual, unattributedSignedActual, directSignedActual, diagnostics: diagnostics(issue) });
+  }
+  function buildDiagnostics(input = {}) {
+    const pairs = pairInputs(input.canonicalRecords, input.detachedAttributionResults, input.hierarchyRollupRecords).filter((pair) => parentMatches(pair, input.parentSelection));
+    const reconciliation = reconcileSlice(input); const temporalStatusCounts = {}, hierarchyStatusCounts = {};
+    pairs.forEach((pair) => { const temporal = pair.result && pair.result.temporalStatus || "UNAVAILABLE"; temporalStatusCounts[temporal] = (temporalStatusCounts[temporal] || 0) + 1; const hierarchy = pair.rollup && pair.rollup.hierarchyStatus || "MISSING"; hierarchyStatusCounts[hierarchy] = (hierarchyStatusCounts[hierarchy] || 0) + 1; });
+    const alignment = buildDeploymentAlignment(pairs.map((pair) => pair.result).filter(Boolean), input.workforceDeploymentContextsByBusinessDate, input);
+    const coverage = buildCoverage({ coverage: { attributedRecordCoveragePercent: reconciliation.underlyingRecordCount ? reconciliation.attributedRecordCount / reconciliation.underlyingRecordCount * 100 : null, grossAbsoluteAttributedValueCoveragePercent: null, attributedRecordCount: reconciliation.attributedRecordCount, unattributedRecordCount: reconciliation.unattributedRecordCount, attributedSignedActual: reconciliation.attributedSignedActual, unattributedSignedActual: reconciliation.unattributedSignedActual } }, pairs.map((pair) => pair.rollup).filter(Boolean), alignment);
+    return Object.freeze({ status: reconciliation.status, reconciliation, attribution: coverage.attribution, hierarchyStatusCounts: Object.freeze(hierarchyStatusCounts), temporalStatusCounts: Object.freeze(temporalStatusCounts), deployment: coverage.deployment, diagnostics: reconciliation.diagnostics });
+  }
+  function sliceDirectPerformance(input = {}) {
+    const dimension = input.dimension || "EMPLOYEE"; const pairs = pairInputs(input.canonicalRecords, input.detachedAttributionResults, input.hierarchyRollupRecords).filter((pair) => parentMatches(pair, input.parentSelection)); const rows = new Map();
+    pairs.forEach((pair) => {
+      const groupKey = dimensionValue(pair.record, pair.result, pair.rollup, dimension); if (dimension === "EMPLOYEE" && !attributed(pair.result)) return;
+      if (!rows.has(groupKey)) rows.set(groupKey, { key: groupKey, acceptedRecordCount: 0, acceptedSignedActual: 0, directAttributedRecordCount: 0, directSignedActual: 0, unattributedRecordCount: 0, unattributedSignedActual: 0 });
+      const row = rows.get(groupKey); const value = actual(pair.record && pair.record.premium); row.acceptedRecordCount += 1; row.acceptedSignedActual += value;
+      if (attributed(pair.result)) { row.directAttributedRecordCount += 1; row.directSignedActual += actual(pair.result.signedActual); } else { row.unattributedRecordCount += 1; row.unattributedSignedActual += actual(pair.result && pair.result.signedActual); }
+    });
+    const reconciliation = reconcileSlice(input); const denominator = reconciliation.attributedSignedActual;
+    return Object.freeze({ status: reconciliation.status, dimension, parentSelection: input.parentSelection || null, rows: sortedRows([...rows.values()].map((row) => ({ ...row, directContributionPercent: denominator === 0 ? null : row.directSignedActual / denominator * 100 })), "key"), diagnostics: reconciliation.diagnostics, reconciliation });
+  }
+  function sliceTeamPerformance(input = {}) {
+    const pairs = pairInputs(input.canonicalRecords, input.detachedAttributionResults, input.hierarchyRollupRecords).filter((pair) => parentMatches(pair, input.parentSelection)); const rows = new Map();
+    pairs.forEach((pair) => { if (!pair.rollup || !pair.rollup.directOwnerId) return; [...new Set(pair.rollup.rollupNodeIds || [])].forEach((managerEmployeeId) => { if (!rows.has(managerEmployeeId)) rows.set(managerEmployeeId, { managerEmployeeId, teamAttributedRecordCount: 0, teamSignedActual: 0, ownDirectSignedActual: 0, hierarchyStatuses: [] }); const row = rows.get(managerEmployeeId); row.teamAttributedRecordCount += 1; row.teamSignedActual += actual(pair.rollup.signedActual); if (managerEmployeeId === pair.rollup.directOwnerId) row.ownDirectSignedActual += actual(pair.rollup.signedActual); row.hierarchyStatuses.push(pair.rollup.hierarchyStatus || "MISSING"); }); });
+    const reconciliation = reconcileSlice(input);
+    return Object.freeze({ status: reconciliation.status, dimension: "MANAGER", parentSelection: input.parentSelection || null, nonAdditive: true, rows: sortedRows([...rows.values()].map((row) => ({ ...row, hierarchyStatuses: diagnostics(row.hierarchyStatuses), teamMembership: "INCLUSIVE_SELF_AND_DESCENDANTS" })), "managerEmployeeId"), diagnostics: reconciliation.diagnostics, reconciliation });
+  }
+
   function summarize(input = {}) {
     const employeeRows = buildEmployeePerformance(input.detachedAttributionResults, input.reconciliationResult);
     const teamRows = buildTeamPerformance(input.hierarchyRollupRecords);
@@ -127,5 +185,5 @@ Purpose : Compose attributed business, hierarchy roll-up and deployment context
     return Object.freeze({ status: reconciliation.status, directEmployeeRows: employeeRows, teamRows, deploymentAlignmentRows, coverage: buildCoverage(input.reconciliationResult, input.hierarchyRollupRecords, deploymentAlignmentRows), reconciliation, diagnostics: reconciliation.diagnostics, slice: input.slice || null, metadata: Object.freeze({ teamMembership: "INCLUSIVE_SELF_AND_DESCENDANTS" }) });
   }
 
-  global.BancaTrackerWorkforcePerformance = Object.freeze({ buildEmployeePerformance, buildTeamPerformance, buildDeploymentAlignment, buildCoverage, summarize, validateReconciliation });
+  global.BancaTrackerWorkforcePerformance = Object.freeze({ buildEmployeePerformance, buildTeamPerformance, buildDeploymentAlignment, buildCoverage, sliceDirectPerformance, sliceTeamPerformance, buildDiagnostics, reconcileSlice, summarize, validateReconciliation });
 })(window);
