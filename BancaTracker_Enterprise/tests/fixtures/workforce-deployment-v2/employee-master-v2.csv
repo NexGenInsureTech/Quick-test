@@ -1,0 +1,6 @@
+EMPLOYEE ID,EMPLOYEE NAME,DESIGNATION,ROLE,DATE OF JOINING,EMPLOYMENT STATUS
+EMP001,Deployment Employee 1,Relationship Manager,RM,2024-01-01,ACTIVE
+EMP002,Deployment Employee 2,Executive,,2024-01-01,ACTIVE
+EMP003,Deployment Employee 3,Coordinator,,2024-01-01,ACTIVE
+EMP004,Deployment Employee 4,USM,,2024-01-01,ACTIVE
+LEGACY_RM,Legacy RM,Relationship Manager,RM,2024-01-01,ACTIVE

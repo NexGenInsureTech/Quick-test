@@ -49,6 +49,40 @@ Purpose : Canonical dataset, status, role and resolution constants
     RM: "RM",
   });
 
+  const WORKFORCE_DEPLOYMENT_DATA_CONTRACT = Object.freeze({
+    NAME: "BRANCH_ASSIGNMENT",
+    LEGACY_VERSION: 1,
+    CURRENT_VERSION: 2,
+    PROFILES: Object.freeze({
+      LEGACY_V1: "LEGACY_V1",
+      LEGACY_V1_ASSUMED: "LEGACY_V1_ASSUMED",
+      WORKFORCE_DEPLOYMENT_V2: "WORKFORCE_DEPLOYMENT_V2",
+    }),
+  });
+
+  const EMPLOYEE_DATA_CONTRACT = Object.freeze({
+    NAME: "EMPLOYEE_MASTER",
+    LEGACY_VERSION: 1,
+    CURRENT_VERSION: 2,
+    PROFILES: Object.freeze({
+      LEGACY_V1: "LEGACY_V1",
+      LEGACY_V1_ASSUMED: "LEGACY_V1_ASSUMED",
+      NATIVE_V2: "NATIVE_V2",
+      MIXED_TRANSITIONAL: "MIXED_TRANSITIONAL",
+    }),
+  });
+
+  const HIERARCHY_DATA_CONTRACT = Object.freeze({
+    NAME: "HIERARCHY_MASTER",
+    LEGACY_VERSION: 1,
+    CURRENT_VERSION: 2,
+    PROFILES: Object.freeze({
+      LEGACY_V1: "LEGACY_V1",
+      LEGACY_V1_ASSUMED: "LEGACY_V1_ASSUMED",
+      DIRECT_REPORTING_V2: "DIRECT_REPORTING_V2",
+    }),
+  });
+
   /*==============================================================
   RESOLUTION STATUS
   ==============================================================*/
@@ -191,6 +225,9 @@ Purpose : Canonical dataset, status, role and resolution constants
     DATASET_TYPES,
     DATASET_STATUS,
     EMPLOYEE_ROLES,
+    WORKFORCE_DEPLOYMENT_DATA_CONTRACT,
+    EMPLOYEE_DATA_CONTRACT,
+    HIERARCHY_DATA_CONTRACT,
     RESOLUTION_STATUS,
     RESOLUTION_CONFIDENCE,
     DATA_QUALITY_SEVERITY,

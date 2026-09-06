@@ -78,6 +78,7 @@ const csv = {
   branch: `BANK ID,BRANCH CODE,BRANCH NAME,STATE ID,ACTIVE\nIB,00123,Guwahati Main,IN-AS,TRUE`,
   badBranch: `BANK ID,BRANCH CODE,BRANCH NAME,STATE ID,ACTIVE\nIB,00124,Unknown,IN-XX,TRUE`,
   employees: `EMPLOYEE ID,EMPLOYEE NAME,ROLE,ACTIVE\nNH001,National Head,NATIONAL_HEAD,TRUE\nZSM001,ZSM One,ZSM,TRUE\nASM001,ASM One,ASM,TRUE\nCSM001,CSM One,CSM,TRUE\nRM001,RM One,RM,TRUE`,
+  employeesV2: `EMPLOYEE ID,EMPLOYEE NAME,DESIGNATION,EMPLOYMENT STATUS,DATE OF JOINING\nUSM001,USM One,USM,ACTIVE,2020-01-01`,
   hierarchy: `EMPLOYEE ID,MANAGER ID\nNH001,\nZSM001,NH001\nASM001,ZSM001\nCSM001,ASM001\nRM001,CSM001`,
   cycle: `EMPLOYEE ID,MANAGER ID\nRM001,CSM001\nCSM001,RM001`,
   assignment: `BANK ID,BRANCH CODE,RM ID,ACTIVE\nIB,00123,RM001,TRUE`,
@@ -128,6 +129,11 @@ async function preview(repository, type, text, fileName = "master.csv") {
   assert.strictEqual(employees.valid, true);
   await Importer.commitImport(employees, { repository });
   assert.strictEqual(repository.active.get("EMPLOYEE_MASTER"), "EMPLOYEE_MASTER:1");
+
+  const employeesV2 = await preview(repository, "EMPLOYEE_MASTER", csv.employeesV2, "employees-v2.csv");
+  assert.strictEqual(employeesV2.valid, true);
+  assert.strictEqual(employeesV2.records[0].designation, "USM");
+  assert.strictEqual(employeesV2.records[0].role, null);
 
   const hierarchy = await preview(repository, "HIERARCHY", csv.hierarchy, "hierarchy.csv");
   assert.strictEqual(hierarchy.valid, true);
