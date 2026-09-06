@@ -1,0 +1,3 @@
+﻿STATE ID,STATE NAME,ZONE ID,ZONE NAME,ACTIVE,STATE CODE
+TS01,Test North State,ZN,North Test Zone,TRUE,TNS
+TS02,Test South State,ZS,South Test Zone,TRUE,TSS
