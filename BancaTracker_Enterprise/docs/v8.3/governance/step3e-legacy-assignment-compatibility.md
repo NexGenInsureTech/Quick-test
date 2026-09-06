@@ -2,7 +2,7 @@
 
 ## Step 3E — Legacy Assignment Compatibility Boundary
 
-**Outcome:** A — No native-to-legacy projection required  
+**Outcome:** A — No native-to-legacy projection required
 **Scope:** Evidence-based protection of frozen v8.2 RM-centric consumers while native Workforce Deployment v2 is active.
 
 ## Consumer inventory

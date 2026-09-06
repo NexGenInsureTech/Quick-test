@@ -2,8 +2,8 @@
 
 ## Sprint 1A — Employee Master v2 Contract
 
-**Status:** Architecture contract  
-**Baseline:** BancaTracker Enterprise v8.2.0  
+**Status:** Architecture contract
+**Baseline:** BancaTracker Enterprise v8.2.0
 **Scope:** Employee identity and workforce attributes only; no production implementation
 
 ## 1. Objective

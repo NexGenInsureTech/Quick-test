@@ -2,8 +2,8 @@
 
 ## Step 3A — Workforce Deployment / Branch Assignment v2 Contract
 
-**Status:** Architecture contract  
-**Baseline:** Closed Sprint 1 Employee Workforce Foundation and Sprint 2 Direct Reporting Hierarchy  
+**Status:** Architecture contract
+**Baseline:** Closed Sprint 1 Employee Workforce Foundation and Sprint 2 Direct Reporting Hierarchy
 **Scope:** Define the governed, effective-dated relationship for where employees are deployed. No implementation.
 
 ## 1. Objective and ownership

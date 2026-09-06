@@ -2,7 +2,7 @@
 
 ## Step 3F — Workforce Deployment Browser Acceptance
 
-**Status:** Automated acceptance complete; manual browser checks pending.  
+**Status:** Automated acceptance complete; manual browser checks pending.
 **Scope:** Validate the completed native Workforce Deployment v2 lifecycle and its deliberate isolation from legacy RM assignment behavior.
 
 ## Prerequisites and fixture order

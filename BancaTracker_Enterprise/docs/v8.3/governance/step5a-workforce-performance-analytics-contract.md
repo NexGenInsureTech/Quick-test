@@ -2,7 +2,7 @@
 
 ## Step 5A — Workforce Performance Analytics Contract
 
-**Status:** Governance contract — no implementation in this step.  
+**Status:** Governance contract — no implementation in this step.
 **Purpose:** Define the smallest analytical contract that combines governed workforce context with detached, reconciled business attribution.
 
 ## 1. Authorities consumed

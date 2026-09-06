@@ -2,8 +2,8 @@
 
 ## Sprint 2A — Direct Reporting Hierarchy v2 Contract
 
-**Status:** Architecture contract  
-**Baseline:** v8.2.0 and the closed v8.3 Sprint 1 Employee Workforce Foundation  
+**Status:** Architecture contract
+**Baseline:** v8.2.0 and the closed v8.3 Sprint 1 Employee Workforce Foundation
 **Scope:** Direct employee reporting relationships and their temporal semantics only; no implementation
 
 ## 1. Objective

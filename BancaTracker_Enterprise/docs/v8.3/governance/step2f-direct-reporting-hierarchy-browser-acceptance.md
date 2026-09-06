@@ -2,7 +2,7 @@
 
 ## Sprint 2F — Direct Reporting Hierarchy Browser Acceptance
 
-**Status:** B1–B8 browser acceptance PASS; automated evidence complete.  
+**Status:** B1–B8 browser acceptance PASS; automated evidence complete.
 **Scope:** Validate the completed Sprint 2 direct-reporting journey without adding hierarchy features.
 
 ## Objective

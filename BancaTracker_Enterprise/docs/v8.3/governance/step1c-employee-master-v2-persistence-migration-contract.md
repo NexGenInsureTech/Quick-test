@@ -2,8 +2,8 @@
 
 ## Sprint 1C — Employee Master v2 Persistence & Migration Contract
 
-**Status:** Architecture contract  
-**Baseline:** v8.2.0 storage foundation and Sprint 1B Employee Master v2 authority  
+**Status:** Architecture contract
+**Baseline:** v8.2.0 storage foundation and Sprint 1B Employee Master v2 authority
 **Scope:** Persistence and migration design only; no storage or production-code implementation
 
 ## 1. Objective
@@ -331,4 +331,3 @@ Sprint 1C is complete when this document:
 4. add focused lifecycle tests for v1 open, v2 replacement, invalid replacement, staged failure, unsupported contract, and future rollback preconditions;
 5. avoid an IndexedDB version bump unless an approved index/store/key-path requirement appears; and
 6. not alter hierarchy rules, graph traversal, assignment, vintage, UI, or analytics.
-

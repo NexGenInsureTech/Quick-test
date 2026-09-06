@@ -2,7 +2,7 @@
 
 ## Step 4A — Business Attribution v1 Contract
 
-**Status:** Governance contract — no production implementation in this step.  
+**Status:** Governance contract — no production implementation in this step.
 **Purpose:** Define a deterministic, reconciled basis for attributing accepted PR Actual to an employee without changing the v8.2/v8.3 compatibility boundaries.
 
 ## 1. Objective and design principles
