@@ -431,6 +431,37 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
     return employeeMaster.adaptPersistedDataset(dataset, records);
   }
 
+  async function getActiveBusinessAttributionContext() {
+    const attribution = window.BancaTrackerBusinessAttribution;
+    if (!attribution || typeof attribution.buildEmployeeLookup !== "function" || typeof attribution.buildLegacyAssignmentLookup !== "function") {
+      return Object.freeze({ status: "UNAVAILABLE", employee: Object.freeze({ status: "UNAVAILABLE", dataset: null, contract: null, recordCount: 0 }), legacyAssignment: Object.freeze({ status: "UNAVAILABLE", dataset: null, contract: null, recordCount: 0 }), employeeLookup: null, legacyAssignmentLookup: null, diagnostics: Object.freeze(["ATTRIBUTION_AUTHORITY_UNAVAILABLE"]) });
+    }
+    const employeeContext = await getActiveEmployeeMasterContext();
+    const employeeUsable = ["READY", "LEGACY_COMPATIBILITY"].includes(employeeContext.status);
+    const employee = Object.freeze({ status: employeeContext.status, dataset: employeeContext.dataset || null, contract: employeeContext.contract || null, recordCount: employeeContext.records ? employeeContext.records.length : 0 });
+    if (!employeeUsable) {
+      return Object.freeze({ status: employeeContext.status === "ABSENT" ? "UNAVAILABLE" : "UNSUPPORTED", employee, legacyAssignment: Object.freeze({ status: "NOT_EVALUATED", dataset: null, contract: null, recordCount: 0 }), employeeLookup: null, legacyAssignmentLookup: null, diagnostics: Object.freeze([...(employeeContext.diagnostics || []), employeeContext.status === "ABSENT" ? "ATTRIBUTION_EMPLOYEE_MASTER_ABSENT" : "ATTRIBUTION_EMPLOYEE_MASTER_UNSUPPORTED"]) });
+    }
+    const employeeLookup = attribution.buildEmployeeLookup(employeeContext.records);
+    const dataset = await getActiveDataset(DATASET_TYPES.BRANCH_ASSIGNMENT);
+    if (!dataset) {
+      return Object.freeze({ status: "READY", employee, legacyAssignment: Object.freeze({ status: "ABSENT", dataset: null, contract: null, recordCount: 0 }), employeeLookup, legacyAssignmentLookup: null, diagnostics: Object.freeze(["ATTRIBUTION_LEGACY_ASSIGNMENT_ABSENT"]) });
+    }
+    const deployment = window.BancaTrackerWorkforceDeployment;
+    if (!deployment || typeof deployment.classifyDatasetContract !== "function") {
+      return Object.freeze({ status: "READY", employee, legacyAssignment: Object.freeze({ status: "UNAVAILABLE", dataset, contract: null, recordCount: 0 }), employeeLookup, legacyAssignmentLookup: null, diagnostics: Object.freeze(["ATTRIBUTION_LEGACY_ASSIGNMENT_AUTHORITY_UNAVAILABLE"]) });
+    }
+    const contract = deployment.classifyDatasetContract(dataset);
+    if (!contract.supported) {
+      return Object.freeze({ status: "READY", employee, legacyAssignment: Object.freeze({ status: "UNSUPPORTED_CONTRACT", dataset, contract, recordCount: 0 }), employeeLookup, legacyAssignmentLookup: null, diagnostics: Object.freeze([...(contract.diagnostics || []), "ATTRIBUTION_LEGACY_ASSIGNMENT_UNSUPPORTED"]) });
+    }
+    if (!contract.compatibility) {
+      return Object.freeze({ status: "READY", employee, legacyAssignment: Object.freeze({ status: "NATIVE_DEPLOYMENT_ACTIVE", dataset, contract, recordCount: 0 }), employeeLookup, legacyAssignmentLookup: null, diagnostics: Object.freeze(["ATTRIBUTION_LEGACY_FALLBACK_UNAVAILABLE_NATIVE_DEPLOYMENT"]) });
+    }
+    const records = await getActiveMasterRecords(DATASET_TYPES.BRANCH_ASSIGNMENT);
+    return Object.freeze({ status: "READY", employee, legacyAssignment: Object.freeze({ status: contract.sourceProfile === "LEGACY_V1_ASSUMED" ? "LEGACY_COMPATIBILITY" : "READY", dataset, contract, recordCount: records.length }), employeeLookup, legacyAssignmentLookup: attribution.buildLegacyAssignmentLookup(records), diagnostics: Object.freeze(contract.diagnostics || []) });
+  }
+
   async function getActiveHierarchyContext() {
     const dataset = await getActiveDataset(DATASET_TYPES.HIERARCHY);
     if (!dataset) return Object.freeze({ status: "ABSENT", dataset: null, contract: null, records: Object.freeze([]), diagnostics: Object.freeze([]) });
@@ -517,6 +548,7 @@ Purpose : Dataset lifecycle, versioning and active dataset registry
 
     getActiveMasterRecords,
     getActiveEmployeeMasterContext,
+    getActiveBusinessAttributionContext,
     getActiveHierarchyContext,
     getActiveWorkforceDeploymentContext,
     getActiveWorkforceDeploymentResolutionContext,
