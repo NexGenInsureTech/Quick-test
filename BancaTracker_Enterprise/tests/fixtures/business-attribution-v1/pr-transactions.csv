@@ -1,0 +1,13 @@
+RECORD ID,USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,SUM IMD CODE,POLICY ISSUED DATE,PRODUCT CODE
+R_DIRECT,100,Aug-2025,BANK_A,Source Identity Employee,EMP_SRC,Motor,Deployment Branch 002,002,2025-08-31,P1
+R_DESIGNATION,80,Aug-2025,BANK_A,Source Identity Employee,EMP_SRC,Motor,Deployment Branch 003,003,2025-08-31,P1
+R_NAME_ONLY,15,Aug-2025,BANK_A,EMP_SRC,,Motor,Deployment Branch 003,003,2025-08-31,P1
+R_UNMAPPED,25,Aug-2025,BANK_A,Unknown Source,UNKNOWN,Motor,Deployment Branch 001,001,2025-08-31,P1
+R_FALLBACK,-20,Aug-2025,BANK_A,,,Motor,Deployment Branch 001,001,2025-08-31,P1
+R_BEFORE_JOIN,10,Aug-2025,BANK_A,Future Join,EMP_FUT,Motor,Deployment Branch 002,002,2025-08-31,P1
+R_AFTER_EXIT,10,Aug-2025,BANK_A,Exited Employee,EMP_EXIT,Motor,Deployment Branch 002,002,2025-08-31,P1
+R_UNVERIFIED,0,Aug-2025,BANK_A,Unverified Employee,EMP_UNVERIFIED,Motor,Deployment Branch 002,002,2025-08-31,P1
+R_OLD_MANAGER,10,Aug-2025,BANK_A,Source Identity Employee,EMP_SRC,Motor,Deployment Branch 002,002,2025-08-31,P1
+R_NEW_MANAGER,5,Oct-2025,BANK_A,Source Identity Employee,EMP_SRC,Motor,Deployment Branch 002,002,2025-10-31,P1
+R_ROOT_B,50,Aug-2025,BANK_A,Second Root Employee,EMP_ROOT_B,Health,Deployment Branch 003,003,2025-08-31,P2
+R_NO_REL,10,Aug-2025,BANK_A,No Relationship Employee,EMP_NO_REL,Health,Deployment Branch 003,003,2025-08-31,P2
