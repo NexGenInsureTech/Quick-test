@@ -85,6 +85,7 @@ Purpose : Resolve one-or-zero direct employee attribution for canonical PR Actua
     const joining = parseDate(employee.dateOfJoining);
     const exit = parseDate(employee.exitDate);
     if (!joining.valid || !exit.valid) return Object.freeze({ status: "UNAVAILABLE", employee: null, diagnostics: freezeDiagnostics(["ATTRIBUTION_EMPLOYEE_EFFECTIVITY_UNVERIFIED"]) });
+    if (!joining.value) return Object.freeze({ status: "UNVERIFIED", employee: null, diagnostics: freezeDiagnostics(["ATTRIBUTION_EMPLOYEE_EFFECTIVITY_UNVERIFIED"]) });
     if (joining.value && joining.value > businessDate) return Object.freeze({ status: "NOT_EFFECTIVE", employee: null, diagnostics: freezeDiagnostics(["ATTRIBUTION_EMPLOYEE_NOT_EFFECTIVE"]) });
     if (exit.value && exit.value < businessDate) return Object.freeze({ status: "NOT_EFFECTIVE", employee: null, diagnostics: freezeDiagnostics(["ATTRIBUTION_EMPLOYEE_NOT_EFFECTIVE"]) });
     if (employee.employmentStatus === "EXITED" && !exit.value) return Object.freeze({ status: "UNAVAILABLE", employee: null, diagnostics: freezeDiagnostics(["ATTRIBUTION_EMPLOYEE_EFFECTIVITY_UNVERIFIED"]) });
@@ -97,6 +98,7 @@ Purpose : Resolve one-or-zero direct employee attribution for canonical PR Actua
     const validFrom = parseDate(record.validFrom);
     const validTo = parseDate(record.validTo);
     if (!validFrom.valid || !validTo.valid) return Object.freeze({ status: "UNAVAILABLE", diagnostics: freezeDiagnostics(["ATTRIBUTION_ASSIGNMENT_EFFECTIVITY_UNVERIFIED"]) });
+    if (!validFrom.value) return Object.freeze({ status: "UNVERIFIED", diagnostics: freezeDiagnostics(["ATTRIBUTION_ASSIGNMENT_EFFECTIVITY_UNVERIFIED"]) });
     if (validFrom.value && validFrom.value > businessDate) return Object.freeze({ status: "NOT_EFFECTIVE", diagnostics: freezeDiagnostics(["ATTRIBUTION_ASSIGNMENT_NOT_EFFECTIVE"]) });
     if (validTo.value && validTo.value < businessDate) return Object.freeze({ status: "NOT_EFFECTIVE", diagnostics: freezeDiagnostics(["ATTRIBUTION_ASSIGNMENT_NOT_EFFECTIVE"]) });
     return Object.freeze({ status: "RESOLVED", diagnostics: freezeDiagnostics([]) });

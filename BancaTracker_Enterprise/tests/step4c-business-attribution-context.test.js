@@ -18,7 +18,7 @@ const nativeEmployee = { datasetId: "E", datasetType: Types.EMPLOYEE_MASTER, met
 const legacyAssignment = { datasetId: "A", datasetType: Types.BRANCH_ASSIGNMENT, metadata: { dataContract: { name: DeploymentContract.NAME, version: DeploymentContract.LEGACY_VERSION, sourceProfile: DeploymentContract.PROFILES.LEGACY_V1 } } };
 
 (async function () {
-  reset(); activate(Types.EMPLOYEE_MASTER, nativeEmployee, [employeeRecord]); activate(Types.BRANCH_ASSIGNMENT, legacyAssignment, [{ recordId: "A:B1", datasetId: "A", branchId: "BANK_A:001", rmId: "EMP001", active: true }]);
+  reset(); activate(Types.EMPLOYEE_MASTER, nativeEmployee, [employeeRecord]); activate(Types.BRANCH_ASSIGNMENT, legacyAssignment, [{ recordId: "A:B1", datasetId: "A", branchId: "BANK_A:001", rmId: "EMP001", active: true, validFrom: "2025-01-01" }]);
   let context = await BancaTrackerRepository.getActiveBusinessAttributionContext();
   assert.strictEqual(context.status, "READY"); assert.strictEqual(context.employee.status, "READY"); assert.strictEqual(context.legacyAssignment.status, "READY"); assert.ok(context.employeeLookup.employeeById.has("EMP001")); assert.ok(context.legacyAssignmentLookup.assignmentByBranchId.has("BANK_A:001"));
   assert.strictEqual(BancaTrackerBusinessAttribution.resolveAttribution({ policyIssuedDate: "2025-08-31", premium: 10, branchId: "BANK_A:001", sourceRmId: null }, context).employeeId, "EMP001");
