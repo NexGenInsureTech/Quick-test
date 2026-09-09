@@ -173,6 +173,9 @@ th {
 .commercial-presence { font-weight: 700 }
 .commercial-positive { color: #155b3a; font-weight: 600 }
 .commercial-execution-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-maturity-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-maturity-supporting { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 }
+.commercial-maturity-supporting .commercial-status-chip { white-space: normal }
 .commercial-execution-attention-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
 .commercial-execution-status { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
 .commercial-status-chip, .commercial-attention-chip { display: inline-block; padding: 3px 8px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-size: 12px; font-weight: 600; white-space: nowrap }
