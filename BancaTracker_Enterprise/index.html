@@ -261,6 +261,26 @@
           <p id="dailySnapshotCue" class="scorecard-note"></p>
           <div id="dailyMovementTable"></div>
         </div>
+        <section class="commercial-pace-section" aria-labelledby="paceComparisonHeading">
+          <div class="panel">
+            <h2 id="paceComparisonHeading">Equivalent Day Pace Comparison</h2>
+            <div class="commercial-controls" aria-label="Equivalent day pace controls">
+              <label for="paceThroughDay">Through Day<select id="paceThroughDay"></select></label>
+              <label id="paceEntityControl" for="paceEntity" hidden>Entity<select id="paceEntity"></select></label>
+            </div>
+            <div id="paceReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+            <p id="paceObservationNote" class="scorecard-note"></p>
+          </div>
+          <section id="paceKpis" class="cards" aria-label="Equivalent day pace comparison KPIs"></section>
+          <div class="panel commercial-pace-chart-panel">
+            <h3>Cumulative Actual</h3>
+            <div id="paceChart" class="commercial-pace-chart" aria-live="polite"></div>
+          </div>
+          <div class="panel commercial-table-wrap">
+            <h3>Equivalent Day Detail</h3>
+            <div id="paceTable"></div>
+          </div>
+        </section>
       </section>
       <section class="commercial-execution-section" aria-labelledby="commercialExecutionHeading">
         <div class="panel">
@@ -460,6 +480,9 @@
     <script src="js/analytics/commercialRollups.js"></script>
     <script src="js/analytics/commercialComparison.js"></script>
     <script src="js/analytics/dailyCommercialComparison.js"></script>
+    <script src="js/analytics/equivalentElapsedDayComparison.js"></script>
+    <script src="js/analytics/branchMaturityComparison.js"></script>
+    <script src="js/export/csvExport.js"></script>
     <script src="js/analytics/commercialExecution.js"></script>
     <script src="js/analytics/commercialExecutionStatus.js"></script>
     <script src="js/analytics/commercialExecutionPriority.js"></script>

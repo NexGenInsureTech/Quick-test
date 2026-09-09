@@ -163,6 +163,13 @@ th {
 .commercial-negative { color: #b00020; font-weight: 600 }
 .commercial-comparison-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
 .commercial-comparison-readiness { margin-top: 12px; color: #334155 }
+.commercial-pace-section { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
+.commercial-pace-chart { overflow-x: auto }
+.commercial-pace-chart svg { display: block; width: 100%; min-width: 320px; height: auto }
+.commercial-pace-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; color: #334155; font-size: 13px }
+.commercial-pace-legend span::before { content: ""; display: inline-block; width: 12px; height: 3px; margin-right: 5px; vertical-align: middle; background: currentColor }
+.commercial-pace-base { color: #17375e }
+.commercial-pace-comparison { color: #795600 }
 .commercial-presence { font-weight: 700 }
 .commercial-positive { color: #155b3a; font-weight: 600 }
 .commercial-execution-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
