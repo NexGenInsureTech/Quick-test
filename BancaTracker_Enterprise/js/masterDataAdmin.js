@@ -14,8 +14,14 @@ Purpose : Render read-only master metadata and canonical readiness
     { key: "branch", type: "BRANCH_MASTER", label: "Branch Master", purpose: "Durable branch identity and bank geography" },
     { key: "employee", type: "EMPLOYEE_MASTER", label: "Employee Master", purpose: "Employee identity and role" },
     { key: "hierarchy", type: "HIERARCHY", label: "Organisation Hierarchy", purpose: "RM → CSM → ASM → ZSM → NH" },
-    { key: "assignment", type: "BRANCH_ASSIGNMENT", label: "Branch Assignment", purpose: "Branch → assigned RM" },
+    { key: "assignment", type: "BRANCH_ASSIGNMENT", label: "Branch Assignment (Legacy)", purpose: "Branch → assigned RM" },
     { key: "commercial", type: "BRANCH_BUDGET_POTENTIAL", label: "Branch Budget & Potential", purpose: "Period-specific branch Budget and Potential" },
+  ]);
+
+  const IMPORT_CHOICES = Object.freeze([
+    ...MASTER_DEFINITIONS.filter((definition) => definition.type !== "BRANCH_ASSIGNMENT"),
+    { key: "workforceDeployment", type: "WORKFORCE_DEPLOYMENT_V2", label: "Workforce Deployment v2" },
+    MASTER_DEFINITIONS.find((definition) => definition.type === "BRANCH_ASSIGNMENT"),
   ]);
 
   const COVERAGE_DEFINITIONS = Object.freeze([
@@ -95,8 +101,15 @@ Purpose : Render read-only master metadata and canonical readiness
       masters: MASTER_DEFINITIONS.map((definition) => {
         const activeDataset = metadata[definition.key] || null;
         const diagnosticMaster = readinessMasters[definition.key] || {};
+        const nativeDeployment = definition.type === "BRANCH_ASSIGNMENT"
+          && activeDataset
+          && activeDataset.metadata
+          && activeDataset.metadata.dataContract
+          && activeDataset.metadata.dataContract.sourceProfile === "WORKFORCE_DEPLOYMENT_V2";
         return {
           ...definition,
+          label: nativeDeployment ? "Workforce Deployment v2" : definition.label,
+          purpose: nativeDeployment ? "Effective-dated employee-to-branch deployment" : definition.purpose,
           status: activeDataset ? activeDataset.status || "ACTIVE" : diagnosticMaster.status || "ABSENT",
           datasetId: activeDataset ? activeDataset.datasetId : diagnosticMaster.datasetId,
           recordCount: activeDataset && Number.isFinite(activeDataset.rowCount)
@@ -201,7 +214,7 @@ Purpose : Render read-only master metadata and canonical readiness
     const universe = preview.universeReadiness;
     const commercial = preview.commercialSummary;
     document.getElementById("masterImportSummary").innerHTML = [
-      ["Master", global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label],
+      ["Master", preview.displayLabel || global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label],
       ["File", preview.fileName || "—"], ["Rows", preview.rowCount],
       ["Errors", preview.errorCount], ["Warnings", preview.warningCount],
       ["Validation", preview.valid ? "VALID" : "INVALID"],
@@ -247,8 +260,8 @@ Purpose : Render read-only master metadata and canonical readiness
     const typeSelect = document.getElementById("masterImportType");
     if (!typeSelect || !typeSelect.dataset || typeSelect.dataset.initialized) return;
     typeSelect.dataset.initialized = "true";
-    typeSelect.innerHTML = MASTER_DEFINITIONS.map((item) => `<option value="${item.type}">${escapeHtml(item.label)}</option>`).join("");
-    typeSelect.value = MASTER_DEFINITIONS[0].type;
+    typeSelect.innerHTML = IMPORT_CHOICES.map((item) => `<option value="${item.type}">${escapeHtml(item.label)}</option>`).join("");
+    typeSelect.value = IMPORT_CHOICES[0].type;
     renderSchemaHelp(typeSelect.value);
     typeSelect.addEventListener("change", () => { resetImportUi(); renderSchemaHelp(typeSelect.value); });
     document.getElementById("masterImportFile").addEventListener("change", async (event) => {
@@ -272,7 +285,7 @@ Purpose : Render read-only master metadata and canonical readiness
     document.getElementById("reviewMasterActivation").addEventListener("click", () => {
       const preview = global.BancaTrackerMasterDataImport.getCurrentPreview();
       if (!global.BancaTrackerMasterDataImport.canCommit(preview)) return;
-      document.getElementById("masterActivationPrompt").textContent = `Activate this ${global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label} and replace the currently active version, if any?`;
+      document.getElementById("masterActivationPrompt").textContent = `Activate this ${preview.displayLabel || global.BancaTrackerMasterDataImport.SCHEMAS[preview.datasetType].label} and replace the currently active version, if any?`;
       document.getElementById("masterActivationConfirmation").hidden = false;
     });
     document.getElementById("closeMasterActivation").addEventListener("click", () => { document.getElementById("masterActivationConfirmation").hidden = true; });
@@ -321,5 +334,6 @@ Purpose : Render read-only master metadata and canonical readiness
     loadMasterMetadata,
     renderImportPreview,
     initializeImportUi,
+    IMPORT_CHOICES,
   });
 })(window);

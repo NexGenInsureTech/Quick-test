@@ -15,6 +15,7 @@ const load = (file) => require(path.join(__dirname, "..", file));
   "js/masters/employeeMaster.js",
   "js/masters/hierarchyMaster.js",
   "js/masters/branchAssignmentMaster.js",
+  "js/masters/workforceDeployment.js",
   "js/masterDataImport.js",
 ].forEach(load);
 
@@ -35,6 +36,10 @@ class MemoryRepository {
   async getActiveMasterRecords(type) {
     const id = this.active.get(type);
     return id ? this.records.get(id) || [] : [];
+  }
+  async getActiveEmployeeMasterContext() {
+    const records = await this.getActiveMasterRecords("EMPLOYEE_MASTER");
+    return { status: records.length ? "READY" : "ABSENT", records, diagnostics: [] };
   }
   async getActiveDataset(type) {
     return this.datasets.get(this.active.get(type)) || null;
@@ -83,6 +88,7 @@ const csv = {
   cycle: `EMPLOYEE ID,MANAGER ID\nRM001,CSM001\nCSM001,RM001`,
   assignment: `BANK ID,BRANCH CODE,RM ID,ACTIVE\nIB,00123,RM001,TRUE`,
   badAssignment: `BANK ID,BRANCH CODE,RM ID,ACTIVE\nIB,00123,ASM001,TRUE`,
+  nativeDeployment: `EMPLOYEE ID,BANK ID,BRANCH CODE,DEPLOYMENT TYPE,VALID FROM\nASM001,IB,00123,PRIMARY,2026-01-01`,
 };
 
 async function preview(repository, type, text, fileName = "master.csv") {
@@ -150,6 +156,20 @@ async function preview(repository, type, text, fileName = "master.csv") {
   const badAssignment = await preview(repository, "BRANCH_ASSIGNMENT", csv.badAssignment);
   assert.strictEqual(badAssignment.valid, false);
   assert.ok(badAssignment.findings.some((finding) => finding.code === "ASSIGNMENT_EMPLOYEE_NOT_RM"));
+
+  const nativeDeployment = await preview(repository, "WORKFORCE_DEPLOYMENT_V2", csv.nativeDeployment, "deployment-v2.csv");
+  assert.strictEqual(nativeDeployment.datasetType, "BRANCH_ASSIGNMENT");
+  assert.strictEqual(nativeDeployment.displayLabel, "Workforce Deployment v2");
+  assert.strictEqual(nativeDeployment.valid, true);
+  assert.strictEqual(nativeDeployment.deploymentProfile.sourceProfile, "WORKFORCE_DEPLOYMENT_V2");
+  const nativeDeploymentCommit = await Importer.commitImport(nativeDeployment, { repository });
+  assert.strictEqual(nativeDeploymentCommit.dataset.datasetType, "BRANCH_ASSIGNMENT");
+  assert.strictEqual(nativeDeploymentCommit.dataset.metadata.dataContract.sourceProfile, "WORKFORCE_DEPLOYMENT_V2");
+  assert.strictEqual(nativeDeploymentCommit.records[0].employeeId, "ASM001");
+  assert.strictEqual(nativeDeploymentCommit.records[0].rmId, undefined);
+  const wrongNativeChoice = await preview(repository, "WORKFORCE_DEPLOYMENT_V2", csv.assignment);
+  assert.strictEqual(wrongNativeChoice.valid, false);
+  assert.ok(wrongNativeChoice.findings.some((finding) => finding.code === "WORKFORCE_DEPLOYMENT_V2_SCHEMA_REQUIRED"));
 
   const geoV2 = await preview(repository, "GEOGRAPHY_MASTER", csv.geography2, "geo-v2.csv");
   await Importer.commitImport(geoV2, { repository });

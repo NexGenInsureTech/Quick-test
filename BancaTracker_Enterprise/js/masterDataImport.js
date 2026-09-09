@@ -39,10 +39,18 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       dependencies: ["EMPLOYEE_MASTER"],
     }),
     BRANCH_ASSIGNMENT: Object.freeze({
-      label: "Branch Assignment",
+      label: "Branch Assignment (Legacy)",
       required: ["BANK ID", "BRANCH CODE", "RM ID", "ACTIVE"],
       optional: ["VALID FROM", "VALID TO"],
       preparer: "BancaTrackerBranchAssignmentMaster",
+      dependencies: ["BRANCH_MASTER", "EMPLOYEE_MASTER"],
+    }),
+    WORKFORCE_DEPLOYMENT_V2: Object.freeze({
+      label: "Workforce Deployment v2",
+      required: ["EMPLOYEE ID", "BANK ID", "BRANCH CODE", "DEPLOYMENT TYPE", "VALID FROM"],
+      optional: ["VALID TO"],
+      canonicalDatasetType: "BRANCH_ASSIGNMENT",
+      preparer: "BancaTrackerWorkforceDeployment",
       dependencies: ["BRANCH_MASTER", "EMPLOYEE_MASTER"],
     }),
     BRANCH_BUDGET_POTENTIAL: Object.freeze({
@@ -187,18 +195,20 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
   }
 
   async function prepareImport(datasetType, parsed, options = {}) {
-    const schema = SCHEMAS[datasetType];
-    if (!schema) throw new Error(`Unsupported master dataset type: ${datasetType}`);
+    const selectedSchema = SCHEMAS[datasetType];
+    if (!selectedSchema) throw new Error(`Unsupported master dataset type: ${datasetType}`);
+    const canonicalDatasetType = selectedSchema.canonicalDatasetType || datasetType;
+    const schema = SCHEMAS[canonicalDatasetType];
     const repository = options.repository || global.BancaTrackerRepository;
     const source = Array.isArray(parsed) ? { headers: Object.keys(parsed[0] || {}), rows: parsed } : parsed;
     const rawRows = source && Array.isArray(source.rows) ? source.rows : [];
     const headers = source && Array.isArray(source.headers) ? source.headers : [];
-    const hierarchyProfile = datasetType === "HIERARCHY" ? getHierarchyImportProfile(headers) : null;
-    const deploymentProfile = datasetType === "BRANCH_ASSIGNMENT" ? getWorkforceDeploymentImportProfile(headers) : null;
-    const requiredHeaders = hierarchyProfile ? hierarchyProfile.required : deploymentProfile ? deploymentProfile.required : schema.required;
+    const hierarchyProfile = canonicalDatasetType === "HIERARCHY" ? getHierarchyImportProfile(headers) : null;
+    const deploymentProfile = canonicalDatasetType === "BRANCH_ASSIGNMENT" ? getWorkforceDeploymentImportProfile(headers) : null;
+    const requiredHeaders = datasetType === "WORKFORCE_DEPLOYMENT_V2" ? selectedSchema.required : hierarchyProfile ? hierarchyProfile.required : deploymentProfile ? deploymentProfile.required : schema.required;
     const columnFindings = missingColumnFindings(schema, headers, requiredHeaders);
-    const profileFindings = hierarchyProfile && hierarchyProfile.mixed ? [{ severity: "ERROR", code: "HIERARCHY_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy MANAGER ID and native MANAGER EMPLOYEE ID cannot be mixed in one hierarchy dataset." }] : deploymentProfile && deploymentProfile.mixed ? [{ severity: "ERROR", code: "WORKFORCE_DEPLOYMENT_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy RM ID and native DEPLOYMENT TYPE cannot be mixed in one assignment dataset." }] : [];
-    const dependencies = await loadDependencyContext(datasetType, repository, hierarchyProfile, deploymentProfile);
+    const profileFindings = hierarchyProfile && hierarchyProfile.mixed ? [{ severity: "ERROR", code: "HIERARCHY_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy MANAGER ID and native MANAGER EMPLOYEE ID cannot be mixed in one hierarchy dataset." }] : deploymentProfile && deploymentProfile.mixed ? [{ severity: "ERROR", code: "WORKFORCE_DEPLOYMENT_MIXED_CONTRACT_PROHIBITED", field: null, message: "Legacy RM ID and native DEPLOYMENT TYPE cannot be mixed in one assignment dataset." }] : datasetType === "WORKFORCE_DEPLOYMENT_V2" && !deploymentProfile.native ? [{ severity: "ERROR", code: "WORKFORCE_DEPLOYMENT_V2_SCHEMA_REQUIRED", field: "DEPLOYMENT TYPE", message: "Workforce Deployment v2 requires the native DEPLOYMENT TYPE column." }] : [];
+    const dependencies = await loadDependencyContext(canonicalDatasetType, repository, hierarchyProfile, deploymentProfile);
     const preparer = hierarchyProfile && hierarchyProfile.native ? global.BancaTrackerDirectReportingHierarchy : deploymentProfile && deploymentProfile.native ? global.BancaTrackerWorkforceDeployment : global[schema.preparer];
     const prepared = (hierarchyProfile && hierarchyProfile.mixed) || (deploymentProfile && deploymentProfile.mixed)
       ? { records: [], findings: [], valid: false }
@@ -209,7 +219,9 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
     const errorCount = findings.filter((finding) => finding.severity === "ERROR").length;
     const warningCount = findings.filter((finding) => finding.severity === "WARNING").length;
     const preview = Object.freeze({
-      datasetType,
+      datasetType: canonicalDatasetType,
+      importChoice: datasetType,
+      displayLabel: selectedSchema.label,
       fileName: options.fileName || null,
       rowCount: rawRows.length,
       validRows: errorCount === 0 ? prepared.records.length : null,

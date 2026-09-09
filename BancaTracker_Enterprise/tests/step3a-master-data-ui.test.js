@@ -41,6 +41,19 @@ load("js/masterDataAdmin.js");
 const Admin = BancaTrackerMasterDataAdmin;
 const Diagnostics = BancaTrackerReadinessDiagnostics;
 
+assert.deepStrictEqual(
+  Admin.IMPORT_CHOICES.map((choice) => [choice.type, choice.label]),
+  [
+    ["GEOGRAPHY_MASTER", "Geography Master"],
+    ["BRANCH_MASTER", "Branch Master"],
+    ["EMPLOYEE_MASTER", "Employee Master"],
+    ["HIERARCHY", "Organisation Hierarchy"],
+    ["BRANCH_BUDGET_POTENTIAL", "Branch Budget & Potential"],
+    ["WORKFORCE_DEPLOYMENT_V2", "Workforce Deployment v2"],
+    ["BRANCH_ASSIGNMENT", "Branch Assignment (Legacy)"],
+  ],
+);
+
 function readyRow(overrides = {}) {
   const base = {
     status: "READY",
@@ -137,6 +150,19 @@ function shadowResult(rows, overrides = {}) {
     assert.match(elements.masterStatusRows.innerHTML, new RegExp(fileName));
   }
   assert.match(elements.masterStatusRows.innerHTML, /2026-08-27 10:20:30 UTC/);
+
+  const nativeDeploymentModel = Admin.buildViewModel({ masters: {} }, {
+    assignment: {
+      datasetId: "BRANCH_ASSIGNMENT:6", rowCount: 12, status: "ACTIVE",
+      metadata: { dataContract: { sourceProfile: "WORKFORCE_DEPLOYMENT_V2" } },
+    },
+  });
+  assert.strictEqual(nativeDeploymentModel.masters.find((master) => master.key === "assignment").label, "Workforce Deployment v2");
+  assert.strictEqual(nativeDeploymentModel.masters.find((master) => master.key === "assignment").purpose, "Effective-dated employee-to-branch deployment");
+  const legacyAssignmentModel = Admin.buildViewModel({ masters: {} }, {
+    assignment: { datasetId: "BRANCH_ASSIGNMENT:7", rowCount: 1, status: "ACTIVE", metadata: { dataContract: { sourceProfile: "LEGACY_V1" } } },
+  });
+  assert.strictEqual(legacyAssignmentModel.masters.find((master) => master.key === "assignment").label, "Branch Assignment (Legacy)");
 
   const ready = Diagnostics.buildReadiness(shadowResult([readyRow()]));
   Admin.renderViewModel(Admin.buildViewModel(ready));
