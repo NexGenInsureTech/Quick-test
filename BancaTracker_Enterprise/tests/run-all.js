@@ -4,6 +4,7 @@ const groups = ["step1d-employee-persistence-compatibility.test.js", "step1b-emp
 groups.unshift("step3f-workforce-deployment-browser-acceptance.test.js", "step3e-legacy-assignment-compatibility.test.js", "step3d-workforce-deployment-resolution.test.js", "step3c-workforce-deployment-persistence.test.js", "step3b-workforce-deployment.test.js", "step2f-direct-hierarchy-browser-acceptance.test.js", "step2e-legacy-hierarchy-projection.test.js", "step2d-temporal-hierarchy-resolution.test.js", "step2c-direct-hierarchy-persistence.test.js", "step2b-direct-reporting-hierarchy.test.js", "step1f-employee-browser-acceptance.test.js", "step1e-employee-vintage.test.js");
 groups.push("step5e-synthetic-production-simulation.test.js", "test-equivalent-elapsed-day-comparison.js", "test-branch-maturity-comparison.js", "test-csv-export.js", "test-equivalent-elapsed-day-ui.js", "test-branch-maturity-ui.js", "test-v84-export-ui.js");
 groups.push("step-v841-policy-date-header-alias.test.js");
+groups.push("step-v841-priority-drilldown-interactions.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
