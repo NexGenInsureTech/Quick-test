@@ -20,6 +20,13 @@
 
   const clean = (value) => String(value == null ? "" : value).trim();
   const headerIndex = (headers, name) => headers.findIndex((header) => clean(header).toUpperCase() === name.toUpperCase());
+  const headerIndexes = (headers, names) => {
+    const accepted = new Set((names || []).map((name) => clean(name).toUpperCase()));
+    return headers.reduce((indexes, header, index) => {
+      if (accepted.has(clean(header).toUpperCase())) indexes.push(index);
+      return indexes;
+    }, []);
+  };
   function normalizeBank(value, aliases) {
     const bank = clean(value).replace(/\s+/g, " ").toUpperCase();
     return bank ? (aliases[bank] || bank) : "Unknown";
@@ -34,8 +41,20 @@
     const headers = parsed[0];
     const missing = config.CSV_COLUMNS.MANDATORY.filter((name) => headerIndex(headers, name) < 0);
     if (missing.length) throw new Error(`Unable to load CSV: missing mandatory column(s): ${missing.join(", ")}.`);
+    const semanticAliases = config.CSV_COLUMNS.SEMANTIC_ALIASES || {};
+    const semanticIndexes = Object.fromEntries(Object.entries(semanticAliases).map(([name, aliases]) => {
+      const indexes = headerIndexes(headers, aliases);
+      if (indexes.length > 1) throw new Error(`Unable to load CSV: duplicate semantic column ${name}. Recognized aliases present: ${indexes.map((index) => clean(headers[index])).join(", ")}. Supply exactly one.`);
+      return [name, indexes[0] ?? -1];
+    }));
+    const missingSemantics = (config.CSV_COLUMNS.REQUIRED_SEMANTICS || []).filter((name) => (semanticIndexes[name] ?? -1) < 0);
+    if (missingSemantics.length) {
+      const name = missingSemantics[0];
+      throw new Error(`Unable to load CSV: required policy date column missing. Accepted headers: ${(semanticAliases[name] || [name]).join(" or ")}.`);
+    }
     const names = [...config.CSV_COLUMNS.MANDATORY, ...config.CSV_COLUMNS.OPTIONAL];
     const map = names.reduce((result, name) => { result[name] = headerIndex(headers, name); return result; }, {});
+    Object.entries(semanticIndexes).forEach(([name, index]) => { map[name] = index; });
     const valueAt = (row, name) => map[name] >= 0 ? clean(row[map[name]]) : "";
     const rows = []; const rejectionReasons = {}; const warningReasons = {}; let warningRows = 0; let negativePremiumRows = 0;
     const totalRows = Math.max(0, parsed.length - 1);

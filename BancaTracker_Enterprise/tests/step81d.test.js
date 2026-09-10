@@ -11,7 +11,7 @@ assert.strictEqual(priority({ premium: 1, observedBranches: 1, dataQualityError:
 assert.strictEqual(priority({ premium: 1, observedBranches: 1, dataQualityError: false, activationPercent: 30, nearActiveBranches: 0 }), "MEDIUM");
 assert.strictEqual(priority({ premium: 1, observedBranches: 1, dataQualityError: false, activationPercent: 50, nearActiveBranches: 0 }), "LOW");
 
-const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day";
+const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day,POLICY ISSUED DATE";
 const rows = [
   "20000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Near One,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1",
   "24000,Jun-26,INDIAN BANK,RM One,BA1,Health,Near Two,South,Tamil Nadu,IMD1,Fresh,Health,P2,1",
@@ -20,7 +20,7 @@ const rows = [
   "50000,May-26,INDIAN BANK,RM One,BA1,Motor,Historical,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1"
 ];
 for (let index = 0; index < 31; index += 1) rows.push(`25000,Jun-26,OTHER,Other RM ${index},O${index},Motor,Other ${index},Other Zone,Other State,OI${index},Fresh,Motor,P1,1`);
-BancaTrackerCore.loadCsvText([H, ...rows].join("\n"));
+BancaTrackerCore.loadCsvText([H, ...rows.map((item) => `${item},`)].join("\n"));
 BancaTrackerApp.showPage("scorecardPage");
 let context = BancaTrackerCore.getPerformanceContext(); let productivity = BancaTrackerCore.state.productivity; let audit = BancaTrackerCore.state.dataQuality;
 let metrics = BancaTrackerScorecard.buildPartnerMetrics(BancaTrackerCore.state.derived, productivity, audit, "ALL");

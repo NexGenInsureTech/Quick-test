@@ -37,6 +37,13 @@
       "Mar-27",
     ],
     CSV_COLUMNS: {
+      SEMANTIC_ALIASES: {
+        "POLICY ISSUED DATE": [
+          "POLICY ISSUED DATE",
+          "POLICY ISSUE DATE",
+        ],
+      },
+      REQUIRED_SEMANTICS: ["POLICY ISSUED DATE"],
       MANDATORY: [
         "USGI NET PREMIUM",
         "Month",

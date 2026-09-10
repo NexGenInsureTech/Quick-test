@@ -4,14 +4,15 @@ class Element { constructor() { this.value = ""; this.innerHTML = ""; this.textC
 const elements = {}; global.window = global; global.document = { getElementById(id) { return elements[id] || (elements[id] = new Element()); } }; global.Option = class {}; global.sessionStorage = { getItem() { return null; }, setItem() {} }; global.performance = require("perf_hooks").performance;
 const load = (file) => require(path.join(__dirname, "..", file)); ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/target.js"].forEach(load);
 
-const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE";
+const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,POLICY ISSUED DATE";
+const csv = (items) => [H, ...items.map((item) => `${item},`)].join("\n");
 const rows = ["Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26"].flatMap((month) => [
   `8000,${month},INDIAN BANK,RM A,A1,Motor,Repeat Branch,South,Tamil Nadu,I1`,
   `10000000,${month},KARNATAKA BANK,RM B,B1,Health,KB ${month},South,Karnataka,I2`
 ]);
 rows.push("-500,Aug-26,INDIAN BANK,RM A,A1,Motor,Adjustment Branch,South,Tamil Nadu,I1");
 rows.push("1000,Bad-Month,INDIAN BANK,RM A,A1,Motor,Odd Month Branch,South,Tamil Nadu,I1");
-const imported = BancaTrackerCore.loadCsvText([H, ...rows].join("\n"));
+const imported = BancaTrackerCore.loadCsvText(csv(rows));
 const cachedAudit = BancaTrackerCore.state.dataQuality;
 assert.strictEqual(imported.summary.negativePremiumRows, 1);
 assert.deepStrictEqual(imported.summary.unconfiguredMonths, ["Bad-Month"]);
@@ -51,7 +52,7 @@ const activationAllFixture = [
   "8000,May-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1",
   "8000,Jun-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1"
 ];
-BancaTrackerCore.loadCsvText([H, ...activationAllFixture].join("\n"));
+BancaTrackerCore.loadCsvText(csv(activationAllFixture));
 context = select("ALL");
 assert.strictEqual(context.currentPeriodMonth, "Jun-26");
 assert.strictEqual(BancaTrackerCore.state.derived.branches[0].premium, 8000);

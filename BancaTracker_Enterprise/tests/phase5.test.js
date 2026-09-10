@@ -28,12 +28,12 @@ load("js/activation.js");
 load("js/scorecard.js");
 load("js/target.js");
 
-const header = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME";
+const header = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,POLICY ISSUED DATE";
 const rows = ["Apr-26", "May-26", "Jun-26", "Jul-26"].flatMap((month, index) => [
   `40000000,${month},INDIAN BANK,RM A,A${index},Motor,IB ${index}`,
   `20000000,${month},KARNATAKA BANK,RM B,B${index},Health,KB ${index}`
 ]);
-BancaTrackerCore.loadCsvText([header, ...rows].join("\n"));
+BancaTrackerCore.loadCsvText([header, ...rows.map((item) => `${item},`)].join("\n"));
 
 const state = BancaTrackerTarget.targetState;
 state.fiscalYearTarget = 120;

@@ -3,7 +3,7 @@ const assert = require("assert"); const path = require("path");
 class Element { constructor() { this.value = ""; this.innerHTML = ""; this.textContent = ""; this.style = {}; this.classList = { toggle() {} }; } addEventListener() {} add() {} }
 const elements = {}; global.window = global; global.document = { getElementById(id) { return elements[id] || (elements[id] = new Element()); } }; global.Option = class {}; global.sessionStorage = { getItem() { return null; }, setItem() {} }; global.performance = require("perf_hooks").performance;
 const load = (file) => require(path.join(__dirname, "..", file)); ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/target.js"].forEach(load);
-const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day";
+const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day,POLICY ISSUED DATE";
 const rows = [
   "15000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Active A,South,Tamil Nadu,IMD-X,Fresh,Motor One,P1,1",
   "15000,Jun-26,INDIAN BANK,RM One,BA1,Health,Active A,South,Tamil Nadu,IMD-X,Renewal,Health One,P2,1",
@@ -16,7 +16,7 @@ const rows = [
   "25000,Jun-26,KARNATAKA BANK,RM Seven,KB1,Motor,KB Active,South,Karnataka,IMD-X,Renewal,Motor One,P1,1",
   "999999,May-26,INDIAN BANK,RM One,BA1,Motor,Historical Only,South,Tamil Nadu,IMD-X,Fresh,Motor One,P1,1"
 ];
-BancaTrackerCore.loadCsvText([H, ...rows].join("\n"));
+BancaTrackerCore.loadCsvText([H, ...rows.map((item) => `${item},`)].join("\n"));
 let p = BancaTrackerCore.state.productivity;
 assert.strictEqual(p.scopeMonth, "Jun-26"); assert.strictEqual(p.summary.observedBranches, 6); assert.strictEqual(p.summary.activeBranches, 2); assert.strictEqual(p.summary.nearActiveBranches, 3); assert.strictEqual(p.summary.aggregateActivationGap, 21000);
 const ba1 = p.rmMetrics.find((item) => item.bank === "INDIAN BANK" && item.code === "BA1");
