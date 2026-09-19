@@ -129,6 +129,11 @@ Purpose : Render additive canonical and master-data diagnostics
     return `<table><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
   }
 
+  function guidanceFor(code) {
+    const authority = global.BancaTrackerDataQualityGuidance;
+    return authority ? authority.render(authority.lookupCanonical(code), escapeHtml) : "";
+  }
+
   function renderModel(model) {
     const readiness = model.readiness;
     const records = readiness.records || {};
@@ -270,8 +275,8 @@ Purpose : Render additive canonical and master-data diagnostics
     );
     const visibleDetails = model.findings.details.slice(0, DETAIL_LIMIT);
     document.getElementById("canonicalFindingDetails").innerHTML = table(
-      ["Severity", "Code", "Category", "Policy / Row", "Field", "Message"],
-      visibleDetails.map((finding) => `<tr><td>${escapeHtml(finding.severity)}</td><td>${escapeHtml(finding.code)}</td><td>${escapeHtml(finding.category)}</td><td>${escapeHtml(finding.row)}</td><td>${escapeHtml(finding.field || "—")}</td><td>${escapeHtml(finding.message)}</td></tr>`),
+      ["Severity", "Code", "Category", "Policy / Row", "Field", "Message", "Guidance"],
+      visibleDetails.map((finding) => `<tr><td>${escapeHtml(finding.severity)}</td><td>${escapeHtml(finding.code)}</td><td>${escapeHtml(finding.category)}</td><td>${escapeHtml(finding.row)}</td><td>${escapeHtml(finding.field || "—")}</td><td>${escapeHtml(finding.message)}</td><td>${guidanceFor(finding.code)}</td></tr>`),
       "No canonical finding details.",
     );
     document.getElementById("canonicalFindingLimit").textContent = model.findings.totalCount > DETAIL_LIMIT
@@ -279,7 +284,7 @@ Purpose : Render additive canonical and master-data diagnostics
       : `Showing ${model.findings.totalCount} canonical finding(s).`;
 
     const unexplained = readiness.reconciliation.unexplainedDifferences;
-    document.getElementById("canonicalReconciliation").innerHTML = `<p><strong>${unexplained === 0 ? "PASS / Reconciled" : "NOT READY / Investigation required"}</strong></p><p>Unexplained Differences: ${unexplained}</p>${readiness.blockers.length ? `<p>${readiness.blockers.map((item) => escapeHtml(item.code)).join(", ")}</p>` : ""}`;
+    document.getElementById("canonicalReconciliation").innerHTML = `<p><strong>${unexplained === 0 ? "PASS / Reconciled" : "NOT READY / Investigation required"}</strong></p><p>Unexplained Differences: ${unexplained}</p>${readiness.blockers.length ? readiness.blockers.map((item) => `<div><strong>${escapeHtml(item.code)}</strong>${guidanceFor(item.code)}</div>`).join("") : ""}`;
     return model;
   }
 
