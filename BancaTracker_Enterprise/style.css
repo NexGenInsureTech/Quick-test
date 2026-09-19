@@ -188,6 +188,8 @@ th {
 .commercial-positive { color: #155b3a; font-weight: 600 }
 .commercial-execution-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
 .commercial-maturity-section { margin-top: 28px; padding-top: 4px; border-top: 2px solid #cbd5e1 }
+.commercial-movement-header { display: flex; align-items: center; justify-content: space-between; gap: 12px }
+.commercial-movement-header h3 { margin-right: auto }
 .commercial-maturity-supporting { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 }
 .commercial-maturity-supporting .commercial-status-chip { white-space: normal }
 .commercial-execution-attention-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
