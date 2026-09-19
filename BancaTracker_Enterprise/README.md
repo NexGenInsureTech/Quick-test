@@ -1,14 +1,16 @@
-# BancaTracker Enterprise v8.4.1
+# BancaTracker Enterprise v8.5.0
 
-## Comparative Execution Intelligence & Operational Export
+## Operational UX, Data Trust & In-App Guidance
 
-Status: **v8.4.1 corrective release candidate prepared; automated regression (70/70 groups) and JavaScript syntax validation (138/138 files) passed. Controlled release, post-deployment real-data acceptance, and publication remain pending.**
+Status: **v8.5.0 release preparation is in review; the audited implementation candidate passed 76/76 regression groups, 146/146 JavaScript syntax checks, release-range diff validation, and analytical-authority integrity checks. Release commit, promotion, tag, and publication remain pending.**
 
-BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Intelligence, Management Scorecard and drill-down, Target & Growth, Productivity & Opportunity, and Data Quality views. It has no backend, database, framework, CDN, telemetry, or external library.
+BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Cockpit, Management Scorecard, Target & Growth, Productivity & Opportunity, Commercial Performance, Data Quality, Master Data, and Help, Manual & Glossary views. It has no backend, database, framework, CDN, telemetry, or external library.
 
 v8.4.0 builds on the governed persistent master-data, canonical enrichment, and Commercial Performance foundation with Equivalent Day Pace Comparison, Branch Maturity Comparison, and approved browser-local CSV exports for the new comparative datasets. Existing activation, productivity, scorecard, target, master-data, and canonical data-quality architecture remains preserved.
 
 v8.4.1 is a corrective compatibility release for canonical policy-date ingestion and regression hardening. It adds no analytical capabilities and changes no Commercial analytical authority.
+
+v8.5.0 is an additive, backward-compatible operational UX release. It clarifies Equivalent Elapsed-Day terminology, standardizes absolute-rupee presentation, adds actionable Data Quality guidance and an All Channels day-wise view, provides complete governed Opportunity Ownership and Branch Movement CSV workflows, and adds an offline in-app Help, Manual & Glossary. Analytical authorities remain preserved. See `docs/releases/v8.5.0-release-notes.md` for the governed release scope and validation evidence.
 
 ## Upgrade and compatibility
 
