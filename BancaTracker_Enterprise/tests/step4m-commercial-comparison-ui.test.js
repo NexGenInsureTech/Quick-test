@@ -69,7 +69,7 @@ assert.match(elements.comparisonReadiness.innerHTML, /PARTIAL/);
 assert.match(elements.comparisonReadiness.innerHTML, /Base Budget Coverage: Complete/);
 assert.match(elements.comparisonReadiness.innerHTML, /Comparison Budget Coverage: Partial/);
 assert.strictEqual(UI.state.comparison.selectedEntityKey, "A");
-assert.match(elements.dailyMovementTable.innerHTML, /Base Cumulative Actual/);
+assert.match(elements.dailyMovementTable.innerHTML, /Base Month Cumulative Premium/);
 assert.match(elements.dailyMovementTable.innerHTML, /Not comparable/);
 assert.match(elements.dailyStatus.textContent, /READY/);
 assert.match(elements.dailyMovementTable.innerHTML, /N\/A/);
@@ -77,7 +77,7 @@ assert.strictEqual((elements.dailyMovementTable.innerHTML.match(/<tr>/g) || []).
 
 const callsBeforeLocalRender = comparisonCalls.length + dailyCalls.length;
 UI.handleDailyViewChange("DAILY");
-assert.match(elements.dailyMovementTable.innerHTML, /Base Daily Actual/);
+assert.match(elements.dailyMovementTable.innerHTML, /Base Month Daily Premium/);
 assert.strictEqual(comparisonCalls.length + dailyCalls.length, callsBeforeLocalRender);
 UI.handleDailyEntityChange("__UNASSIGNED__");
 assert.strictEqual(UI.state.comparison.selectedEntityKey, "__UNASSIGNED__");

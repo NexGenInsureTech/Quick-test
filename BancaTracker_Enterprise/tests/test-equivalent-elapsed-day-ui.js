@@ -54,6 +54,10 @@ assert.match(elements.paceKpis.innerHTML, /-₹777/);
 assert.match(elements.paceKpis.innerHTML, /₹333/);
 assert.match(elements.paceKpis.innerHTML, /N\/A/);
 assert.match(elements.paceTable.innerHTML, /-₹700/);
+assert.match(elements.paceTable.innerHTML, /Base Month Daily Premium/);
+assert.match(elements.paceTable.innerHTML, /Comparison Month Daily Premium/);
+assert.match(elements.paceTable.innerHTML, /Base Month Cumulative Premium/);
+assert.match(elements.paceTable.innerHTML, /Comparison Month Cumulative Premium/);
 assert.match(elements.paceChart.innerHTML, /<svg/);
 assert.doesNotMatch(elements.paceChart.innerHTML, /NaN|Infinity/);
 
@@ -84,6 +88,9 @@ assert.ok(html.indexOf('id="paceComparisonHeading"') < html.indexOf('id="commerc
 for (const id of ["comparisonBasePeriod", "comparisonPeriod", "comparisonDimension", "paceThroughDay", "paceEntity", "paceReadiness", "paceKpis", "paceChart", "paceTable"]) assert.match(html, new RegExp(`id="${id}"`));
 assert.ok(html.indexOf("js/analytics/dailyCommercialComparison.js") < html.indexOf("js/analytics/equivalentElapsedDayComparison.js"));
 assert.ok(html.indexOf("js/analytics/equivalentElapsedDayComparison.js") < html.indexOf("js/analytics/branchMaturityComparison.js"));
+assert.match(html, /Equivalent Elapsed-Day Comparison/);
+assert.match(html, /Equivalent Elapsed-Day Detail/);
+assert.match(html, /Compares the Base Month and Comparison Month through the same valid transaction-day horizon/);
 assert.ok(html.indexOf("js/analytics/branchMaturityComparison.js") < html.indexOf("js/export/csvExport.js"));
 assert.ok(html.indexOf("js/export/csvExport.js") < html.indexOf("js/analytics/commercialExecution.js"));
 assert.doesNotMatch(html, /paceExport|maturityComparisonHeading/);
