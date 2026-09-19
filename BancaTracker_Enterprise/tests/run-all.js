@@ -10,6 +10,7 @@ groups.push("test-data-quality-guidance.js");
 groups.push("test-all-channels-elapsed-day-ui.js");
 groups.push("test-opportunity-ownership-export.js");
 groups.push("test-branch-movement-export-ux.js");
+groups.push("test-help-glossary.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });

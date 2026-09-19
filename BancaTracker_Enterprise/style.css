@@ -230,6 +230,24 @@ th {
 .commercial-driver-reconciliation span { white-space: nowrap }
 .commercial-driver-table { overflow-x: auto }
 .commercial-driver-empty { color: #556070 }
+.help-header { margin-top: 18px }
+.help-header h2 { margin-bottom: 4px }
+.help-header p { margin-top: 0; color: #556070 }
+.help-section-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 }
+.help-section-nav a { padding: 7px 10px; border: 1px solid #94a3b8; border-radius: 6px; background: #fff; color: #17375e; text-decoration: none }
+.help-section-nav a:focus-visible, .help-section-nav a:hover { outline: 2px solid #64748b; outline-offset: 1px }
+.help-section { scroll-margin-top: 12px }
+.help-detail-grid, .help-glossary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px }
+.help-detail-grid details, .help-term { min-width: 0; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc }
+.help-detail-grid summary { cursor: pointer; font-weight: 700; color: #17375e }
+.help-glossary-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 8px }
+.help-glossary-controls label { display: grid; gap: 4px; color: #556070; font-size: 13px }
+.help-glossary-controls input, .help-glossary-controls select, .help-glossary-controls button { min-height: 34px; box-sizing: border-box }
+.help-glossary-controls input { min-width: 260px }
+.help-term h3 { margin: 0 0 6px; color: #17375e }
+.help-term p { margin: 5px 0; overflow-wrap: anywhere }
+.help-term-category { color: #556070; font-size: 12px; font-weight: 600 }
+.help-formula { padding: 6px; border-left: 3px solid #17375e; background: #fff; font-family: Consolas, monospace; overflow-wrap: anywhere }
 
 @media(max-width:900px) {
     .grid {
@@ -244,4 +262,7 @@ th {
     .commercial-driver-controls { align-items: stretch; flex-direction: column }
     .commercial-driver-header { align-items: stretch; flex-direction: column }
     .commercial-driver-reconciliation { flex-direction: column }
+    .help-section-nav, .help-glossary-controls { align-items: stretch; flex-direction: column }
+    .help-glossary-controls input, .help-glossary-controls select, .help-glossary-controls button { width: 100%; min-width: 0 }
+    .help-detail-grid, .help-glossary-grid { grid-template-columns: 1fr }
 }

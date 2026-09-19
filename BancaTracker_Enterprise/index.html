@@ -22,7 +22,8 @@
       ><button id="productivityTab">Productivity &amp; Opportunity</button
       ><button id="commercialTab">Commercial Performance</button
       ><button id="qualityTab">Data Quality</button
-      ><button id="masterDataTab">Master Data</button>
+      ><button id="masterDataTab">Master Data</button
+      ><button id="helpTab">Help, Manual &amp; Glossary</button>
     </div>
     <div id="importSummary" class="import-summary" aria-live="polite"></div>
     <div id="misPage">
@@ -476,6 +477,32 @@
         </section>
       </div>
     </div>
+    <main id="helpPage" class="help-page" style="display: none">
+      <header class="help-header">
+        <h2 id="helpPageHeading" tabindex="-1">Help, Manual &amp; Glossary</h2>
+        <p>Learn how to use BancaTracker, understand KPIs and analytical scope, prepare data, and interpret management outputs.</p>
+      </header>
+      <nav class="help-section-nav" aria-label="Help sections">
+        <a href="#helpGettingStarted">Getting Started</a><a href="#helpUserManual">User Manual</a><a href="#helpGlossary">KPI &amp; Field Glossary</a><a href="#helpInterpretation">Interpretation Guide</a><a href="#helpScope">Understanding Filters &amp; Scope</a><a href="#helpDataReference">Data &amp; Master Reference</a><a href="#helpTroubleshooting">Data Quality &amp; Troubleshooting</a>
+      </nav>
+      <section id="helpGettingStarted" class="panel help-section" aria-labelledby="helpGettingStartedHeading"><h2 id="helpGettingStartedHeading">Getting Started</h2><div id="helpGettingStartedContent"></div></section>
+      <section id="helpUserManual" class="panel help-section" aria-labelledby="helpUserManualHeading"><h2 id="helpUserManualHeading">User Manual</h2><div id="helpManualContent" class="help-detail-grid"></div></section>
+      <section id="helpGlossary" class="panel help-section" aria-labelledby="helpGlossaryHeading">
+        <h2 id="helpGlossaryHeading">KPI &amp; Field Glossary</h2>
+        <div class="help-glossary-controls">
+          <label for="helpGlossarySearch">Search glossary<input id="helpGlossarySearch" type="search" autocomplete="off" placeholder="Search terms and definitions" /></label>
+          <label for="helpGlossaryCategory">Category<select id="helpGlossaryCategory"></select></label>
+          <button id="helpGlossaryClear" type="button">Clear</button>
+        </div>
+        <p id="helpGlossaryCount" class="scorecard-note" aria-live="polite"></p>
+        <p id="helpGlossaryEmpty" class="empty-state" aria-live="polite" hidden>No glossary terms match the current search and category.</p>
+        <div id="helpGlossaryResults" class="help-glossary-grid"></div>
+      </section>
+      <section id="helpInterpretation" class="panel help-section" aria-labelledby="helpInterpretationHeading"><h2 id="helpInterpretationHeading">Interpretation Guide</h2><div id="helpInterpretationContent" class="help-detail-grid"></div></section>
+      <section id="helpScope" class="panel help-section" aria-labelledby="helpScopeHeading"><h2 id="helpScopeHeading">Understanding Filters &amp; Scope</h2><div id="helpScopeContent" class="help-detail-grid"></div></section>
+      <section id="helpDataReference" class="panel help-section" aria-labelledby="helpDataReferenceHeading"><h2 id="helpDataReferenceHeading">Data &amp; Master Reference</h2><p class="scorecard-note">Use the Master Data page's generated schema help for the current detailed import contract.</p><div id="helpDataContent" class="help-detail-grid"></div></section>
+      <section id="helpTroubleshooting" class="panel help-section" aria-labelledby="helpTroubleshootingHeading"><h2 id="helpTroubleshootingHeading">Data Quality &amp; Troubleshooting</h2><div id="helpTroubleshootingContent" class="help-detail-grid"></div></section>
+    </main>
     <script src="js/config.js"></script>
     <script src="js/csvProcessor.js"></script>
     <script src="js/utilities.js"></script>
@@ -498,6 +525,7 @@
     <script src="js/analytics/workforcePerformance.js"></script>
     <script src="js/dataQuality.js"></script>
     <script src="js/productivity.js"></script>
+    <script src="js/helpGlossary.js"></script>
     <script src="js/core.js"></script>
     <script src="js/performance.js"></script>
     <script src="js/commercialPerformanceUI.js"></script>
