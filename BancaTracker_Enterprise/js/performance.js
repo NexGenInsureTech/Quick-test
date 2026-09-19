@@ -9,7 +9,7 @@
       .filter(([name]) => !skipBlank || (Boolean(String(name).trim()) && name !== "Blank" && name !== "Unknown"))
       .sort((a, b) => b[1] - a[1]);
     const note = entries.length > TABLE_LIMIT ? `<tr><td colspan='3' class='table-limit-note'>Showing top ${TABLE_LIMIT} of ${utils.formatInr(entries.length)} results.</td></tr>` : "";
-    document.getElementById(id).innerHTML = entries.slice(0, TABLE_LIMIT).map(([name, premium]) => `<tr><td>${utils.escapeHtml(name)}</td><td>${utils.formatInr(premium)}</td><td>${utils.formatPercent(premium, totalPremium)}</td></tr>`).join("") + note;
+    document.getElementById(id).innerHTML = entries.slice(0, TABLE_LIMIT).map(([name, premium]) => `<tr><td>${utils.escapeHtml(name)}</td><td>${utils.formatRupees(premium)}</td><td>${utils.formatPercent(premium, totalPremium)}</td></tr>`).join("") + note;
   }
 
   function calculateKpis(context) {
@@ -22,7 +22,7 @@
   }
 
   function renderKpis(kpis) {
-    const cards = [["YTD Premium", utils.formatInr(kpis.ytdPremium)], ["Current Period Premium", utils.formatInr(kpis.mtdPremium)], ["Current Period Records", utils.formatInr(kpis.records)], ["Current Period Partner Institutions", utils.formatInr(kpis.partnerInstitutions)], ["Observed BA Codes (Current Period)", utils.formatInr(kpis.activeRms)], ["Active Branches (Current Period)", utils.formatInr(kpis.activeBranches)], ["Observed IMD Codes (Current Period)", utils.formatInr(kpis.activeImds)]];
+    const cards = [["YTD Premium", utils.formatRupees(kpis.ytdPremium)], ["Current Period Premium", utils.formatRupees(kpis.mtdPremium)], ["Current Period Records", utils.formatInr(kpis.records)], ["Current Period Partner Institutions", utils.formatInr(kpis.partnerInstitutions)], ["Observed BA Codes (Current Period)", utils.formatInr(kpis.activeRms)], ["Active Branches (Current Period)", utils.formatInr(kpis.activeBranches)], ["Observed IMD Codes (Current Period)", utils.formatInr(kpis.activeImds)]];
     document.getElementById("kpis").innerHTML = cards.map(([label, value]) => `<div class='card'><div>${label}</div><div class='value'>${value}</div></div>`).join("");
   }
 

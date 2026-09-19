@@ -6,6 +6,12 @@
     return Number(value || 0).toLocaleString("en-IN");
   }
 
+  function formatRupees(value) {
+    const number = Number(value);
+    const sign = number < 0 ? "-" : "";
+    return `${sign}₹${Math.abs(number).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  }
+
   function formatPercent(numerator, denominator) {
     const value = denominator > 0 ? (numerator / denominator) * 100 : 0;
     return `${value.toFixed(1)}%`;
@@ -54,6 +60,6 @@
   }
 
   global.BancaTrackerUtils = Object.freeze({
-    formatInr, formatPercent, orderMonths, premiumTotal, normalizeBank, branchKey, branchIdentityKey, getBranchBand, escapeHtml
+    formatInr, formatRupees, formatPercent, orderMonths, premiumTotal, normalizeBank, branchKey, branchIdentityKey, getBranchBand, escapeHtml
   });
 })(window);

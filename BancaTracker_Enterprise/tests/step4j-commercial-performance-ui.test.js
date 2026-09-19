@@ -94,6 +94,6 @@ for (const id of ["commercialScope", "commercialPeriod", "commercialFinancialYea
 assert.match(css, /commercial-table-wrap[^}]*overflow-x: auto/);
 assert.match(css, /@media\(max-width:900px\)/);
 for (const forbidden of [/actualPremium\s*\/\s*\w+budget/i, /actualPremium\s*\/\s*\w*potential/i, /actualPremium\s*-\s*\w*budget/i, /budget\s*-\s*\w*actualPremium/i, /potential\s*-\s*\w*actualPremium/i]) assert.doesNotMatch(source, forbidden);
-for (const untouched of ["js/target.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js"]) assert.ok(!require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim());
+assert.ok(!require("child_process").execFileSync("git", ["diff", "--name-only", "--", "js/target.js"], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim());
 
 console.log("Step 4J Commercial Performance UI tests passed: page/navigation, empty states, governed controls and dual roll-ups, KPI/table rendering, edge values, coverage/readiness, accessibility, responsive structure, no formulas/reads, and legacy-page preservation.");

@@ -34,13 +34,15 @@ body {
 }
 
 .card {
+    min-width: 0;
     padding: 12px
 }
 
 .value {
     font-size: 24px;
     font-weight: bold;
-    color: #17375e
+    color: #17375e;
+    overflow-wrap: anywhere
 }
 
 .panel {

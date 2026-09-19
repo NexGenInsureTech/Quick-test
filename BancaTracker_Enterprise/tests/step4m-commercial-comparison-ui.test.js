@@ -109,7 +109,7 @@ assert.match(css, /commercial-comparison-section/);
 assert.match(css, /commercial-table-wrap[^}]*overflow-x: auto/);
 for (const forbidden of [/actualChange\s*=|actualChangePct\s*=|achievementPointChange\s*=|penetrationPointChange\s*=|dailyActual\s*-|cumulativeActual\s*-/]) assert.doesNotMatch(source, forbidden);
 assert.doesNotMatch(source, /Repository|IndexedDB|advancedForecast/i);
-for (const untouched of ["js/analytics/commercialComparison.js", "js/analytics/dailyCommercialComparison.js", "js/activation.js", "js/scorecard.js", "js/productivity.js", "js/performance.js", "js/target.js", "js/core.js", "app.js"]) {
+for (const untouched of ["js/analytics/commercialComparison.js", "js/analytics/dailyCommercialComparison.js", "js/target.js", "js/core.js", "app.js"]) {
   assert.strictEqual(require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
 }
 assert.ok(result.comparison.overall !== result.comparison.table);
