@@ -8,6 +8,7 @@ groups.push("step-v841-priority-drilldown-interactions.test.js");
 groups.push("test-absolute-rupee-presentation.js");
 groups.push("test-data-quality-guidance.js");
 groups.push("test-all-channels-elapsed-day-ui.js");
+groups.push("test-opportunity-ownership-export.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
