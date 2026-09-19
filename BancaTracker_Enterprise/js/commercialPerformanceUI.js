@@ -9,11 +9,13 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE", paceThroughDay: null, paceEntityKey: null }, maturity: { periods: [], dimension: "OVERALL", entityKey: null, transitionIndex: 0, movementFilter: "ALL" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null }, driverAnalysis: { parentDimension: null, parentKey: null, parentLabel: null, mode: "EXECUTION_SNAPSHOT", driverDimension: "LOB" } } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE", paceThroughDay: null, paceSelectionMode: "ALL_CHANNELS", paceEntityKey: null }, maturity: { periods: [], dimension: "OVERALL", entityKey: null, transitionIndex: 0, movementFilter: "ALL" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null }, driverAnalysis: { parentDimension: null, parentKey: null, parentLabel: null, mode: "EXECUTION_SNAPSHOT", driverDimension: "LOB" } } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
   let lastPaceResult = null;
+  let lastPaceDimensionResult = null;
+  let lastPaceOverallResult = null;
   let lastMaturityResult = null;
   let lastExecutionResult = null;
   let lastExecutionStatus = null;
@@ -144,19 +146,35 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function paceStatusLabel(status) {
     return ({ READY: "Ready", PARTIAL: "Partial data — some dated records were excluded", INVALID_PERIOD: "Choose two available months", SAME_PERIOD: "Same month selected", NO_VALID_DATED_FACTS: "No valid dated transactions are available for both months", INVALID_THROUGH_DAY: "Choose a day within the shared observed horizon", NO_PERIODS: "No comparison months are available" })[status] || "Comparison unavailable";
   }
+  const PACE_ALL_CHANNELS_VALUE = "__PACE_ALL_CHANNELS__";
   function syncPaceEntity(result) {
     const entities = result && result.entities || [];
+    if (state.comparison.dimension === "BANK") {
+      if (state.comparison.paceSelectionMode !== "ENTITY" || !entities.some((item) => item.key === state.comparison.paceEntityKey)) {
+        state.comparison.paceSelectionMode = "ALL_CHANNELS";
+        state.comparison.paceEntityKey = null;
+      }
+      return;
+    }
+    state.comparison.paceSelectionMode = "ENTITY";
     if (!entities.some((item) => item.key === state.comparison.paceEntityKey)) state.comparison.paceEntityKey = (entities[0] && entities[0].key) || null;
   }
   function paceEntity(result) {
     const entities = result && result.entities || [];
     return entities.find((item) => item.key === state.comparison.paceEntityKey) || entities[0] || null;
   }
+  function selectedPaceView() {
+    if (state.comparison.dimension === "BANK" && state.comparison.paceSelectionMode === "ALL_CHANNELS") {
+      return { result: lastPaceOverallResult, entity: paceEntity(lastPaceOverallResult) };
+    }
+    return { result: lastPaceDimensionResult, entity: paceEntity(lastPaceDimensionResult) };
+  }
   function renderPaceControls(result) {
     const overall = state.comparison.dimension === "OVERALL";
     element("paceEntityControl").hidden = overall;
     const entities = result && result.entities || [];
-    element("paceEntity").innerHTML = entities.map((item) => option(item.key, item.label, item.key === state.comparison.paceEntityKey)).join("");
+    const allChannels = state.comparison.dimension === "BANK" ? option(PACE_ALL_CHANNELS_VALUE, "All Channels", state.comparison.paceSelectionMode === "ALL_CHANNELS") : "";
+    element("paceEntity").innerHTML = allChannels + entities.map((item) => option(item.key, item.label, state.comparison.paceSelectionMode === "ENTITY" && item.key === state.comparison.paceEntityKey)).join("");
     const maximum = result && result.effectiveThroughDay;
     element("paceThroughDay").innerHTML = maximum ? Array.from({ length: maximum }, (_, index) => option(String(index + 1), `Day ${index + 1}`, index + 1 === state.comparison.paceThroughDay)).join("") : "";
     element("paceThroughDay").disabled = !maximum;
@@ -192,15 +210,25 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   }
   function renderPace(periodContext, performance, authorityContext) {
     if (!global.BancaTrackerEquivalentElapsedDayComparison || !state.comparison.basePeriod || !state.comparison.comparisonPeriod) return null;
-    const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, basePeriod: state.comparison.basePeriod, comparisonPeriod: state.comparison.comparisonPeriod, dimension: state.comparison.dimension, authorityContext, throughDay: state.comparison.paceThroughDay };
-    let result = global.BancaTrackerEquivalentElapsedDayComparison.buildComparison(common);
-    if (result.status === "INVALID_THROUGH_DAY" && state.comparison.paceThroughDay !== null) { state.comparison.paceThroughDay = null; result = global.BancaTrackerEquivalentElapsedDayComparison.buildComparison({ ...common, throughDay: null }); }
+    const core = global.BancaTrackerCore;
+    const scope = core && typeof core.getPerformanceContext === "function" ? core.getPerformanceContext() : null;
+    const facts = scope && Array.isArray(scope.fullUploadData) ? scope.fullUploadData : core.state.factData || [];
+    const common = { facts, performanceResult: performance, periodContext, basePeriod: state.comparison.basePeriod, comparisonPeriod: state.comparison.comparisonPeriod, authorityContext, throughDay: state.comparison.paceThroughDay };
+    let result = global.BancaTrackerEquivalentElapsedDayComparison.buildComparison({ ...common, dimension: state.comparison.dimension });
+    let overallResult = state.comparison.dimension === "BANK" ? global.BancaTrackerEquivalentElapsedDayComparison.buildComparison({ ...common, dimension: "OVERALL" }) : null;
+    if (result.status === "INVALID_THROUGH_DAY" && state.comparison.paceThroughDay !== null) {
+      state.comparison.paceThroughDay = null;
+      result = global.BancaTrackerEquivalentElapsedDayComparison.buildComparison({ ...common, dimension: state.comparison.dimension, throughDay: null });
+      overallResult = state.comparison.dimension === "BANK" ? global.BancaTrackerEquivalentElapsedDayComparison.buildComparison({ ...common, dimension: "OVERALL", throughDay: null }) : null;
+    }
     if (result.effectiveThroughDay && state.comparison.paceThroughDay === null) state.comparison.paceThroughDay = result.effectiveThroughDay;
-    syncPaceEntity(result); renderPaceControls(result); renderPaceReadiness(result);
-    const entity = paceEntity(result); renderPaceKpis(entity); renderPaceChart(entity, result); renderPaceTable(entity);
-    ensurePaceExportButton(); if (element("paceExport")) element("paceExport").disabled = !entity || !entity.days.length || !["READY", "PARTIAL", "SAME_PERIOD"].includes(result.status);
-    lastPaceResult = result;
-    return result;
+    lastPaceDimensionResult = result; lastPaceOverallResult = overallResult;
+    syncPaceEntity(result); renderPaceControls(result);
+    const selected = selectedPaceView(); const selectedResult = selected.result || result; const entity = selected.entity;
+    renderPaceReadiness(selectedResult); renderPaceKpis(entity); renderPaceChart(entity, selectedResult); renderPaceTable(entity);
+    ensurePaceExportButton(); if (element("paceExport")) element("paceExport").disabled = !entity || !entity.days.length || !["READY", "PARTIAL", "SAME_PERIOD"].includes(selectedResult.status);
+    lastPaceResult = selectedResult;
+    return selectedResult;
   }
   const MATURITY_LIMIT = 100;
   function maturityStatusLabel(status) { return ({ READY: "Ready", PARTIAL: "Partial data", NO_PERIODS: "No comparison months are available", INVALID_PERIOD_SELECTION: "Choose two or three unique months in chronological order", INVALID_DIMENSION: "Choose a supported governed dimension" })[status] || "Comparison unavailable"; }
@@ -504,7 +532,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       if (global.BancaTrackerCommercialComparison && global.BancaTrackerDailyCommercialComparison) {
         syncComparisonState(periodContext); renderComparisonControls(periodContext); renderComparisonReadiness(null);
         element("comparisonKpis").innerHTML = ""; element("comparisonTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderDaily({ entities: [] });
-        if (global.BancaTrackerEquivalentElapsedDayComparison) { lastPaceResult = null; renderPaceControls(null); renderPaceReadiness({ status: "NO_PERIODS" }); element("paceKpis").innerHTML = ""; renderPaceChart(null, {}); renderPaceTable(null); }
+        if (global.BancaTrackerEquivalentElapsedDayComparison) { lastPaceResult = null; lastPaceDimensionResult = null; lastPaceOverallResult = null; renderPaceControls(null); renderPaceReadiness({ status: "NO_PERIODS" }); element("paceKpis").innerHTML = ""; renderPaceChart(null, {}); renderPaceTable(null); }
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
@@ -529,11 +557,11 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function handleFinancialYearChange(value) { state.selectedFinancialYear = value || element("commercialFinancialYear").value; return render(); }
   function handleDimensionChange(value) { state.dimension = value || element("commercialDimension").value; return render(); }
   function handleComparisonPeriodChange(role, value) { state.comparison[role] = value || null; return render(); }
-  function handleComparisonDimensionChange(value) { state.comparison.dimension = value || element("comparisonDimension").value; state.comparison.selectedEntityKey = null; return render(); }
+  function handleComparisonDimensionChange(value) { state.comparison.dimension = value || element("comparisonDimension").value; state.comparison.selectedEntityKey = null; state.comparison.paceSelectionMode = state.comparison.dimension === "BANK" ? "ALL_CHANNELS" : "ENTITY"; state.comparison.paceEntityKey = null; return render(); }
   function handleDailyEntityChange(value) { state.comparison.selectedEntityKey = value || element("dailyEntity").value; renderDaily(lastDailyResult); return lastDailyResult; }
   function handleDailyViewChange(value) { state.comparison.dailyViewMode = value || element("dailyViewMode").value; renderDaily(lastDailyResult); return lastDailyResult; }
   function handlePaceThroughDayChange(value) { state.comparison.paceThroughDay = Number(value === undefined ? element("paceThroughDay").value : value); const context = currentExecutionContext(); return renderPace(context.periodContext, context.performance, context.authorityContext); }
-  function handlePaceEntityChange(value) { state.comparison.paceEntityKey = value || element("paceEntity").value || null; const entity = paceEntity(lastPaceResult); renderPaceKpis(entity); renderPaceChart(entity, lastPaceResult || {}); renderPaceTable(entity); return entity; }
+  function handlePaceEntityChange(value) { const selectedValue = value || element("paceEntity").value; if (state.comparison.dimension === "BANK" && selectedValue === PACE_ALL_CHANNELS_VALUE) { state.comparison.paceSelectionMode = "ALL_CHANNELS"; state.comparison.paceEntityKey = null; } else { state.comparison.paceSelectionMode = "ENTITY"; state.comparison.paceEntityKey = selectedValue || null; } const selected = selectedPaceView(); lastPaceResult = selected.result; renderPaceReadiness(selected.result); renderPaceKpis(selected.entity); renderPaceChart(selected.entity, selected.result || {}); renderPaceTable(selected.entity); return selected.entity; }
   function handleMaturityChange() { const context = currentExecutionContext(); return renderMaturity(context.periodContext, context.performance, context.authorityContext); }
   function handleMaturityPeriodChange(index, value) { state.maturity.periods[index] = value; return handleMaturityChange(); }
   function handleMaturityAddMonth() { const available = currentExecutionContext().periodContext.availablePeriods; const next = available.find((period) => period > state.maturity.periods[1]); state.maturity.periods = next ? [...state.maturity.periods.slice(0, 2), next] : available.slice(-3); return handleMaturityChange(); }
