@@ -2,6 +2,7 @@
 "use strict";
 
 const assert = require("assert");
+const path = require("path");
 
 /*
  * Future pure boundary (no DOM, storage, Core, Target state, PR, or Commercial input):
@@ -14,6 +15,7 @@ const assert = require("assert");
  *
  * This test deliberately remains unregistered until Step 6D.4 supplies the authority.
  */
+require(path.join(__dirname, "..", "js", "targetSeasonality.js"));
 const Authority = global.BancaTrackerTargetSeasonality || {};
 const FY = "FY2026-27";
 const NEXT_FY = "FY2027-28";
@@ -32,10 +34,19 @@ function curve(fiscalYear, scopeType, weights, canonicalBank) {
 }
 
 function equalWeights() { return MONTHS.map(() => 1 / 12); }
-function resolve(records, fiscalYear = FY, bank) {
-  return Authority.resolve({ records, fiscalYear, ...(bank ? { bank } : {}), fiscalMonths: MONTHS });
+function fiscalMonthsFor(fiscalYear) {
+  const match = /^FY(\d{4})-(\d{2})$/.exec(fiscalYear);
+  if (!match) return MONTHS;
+  const startYear = Number(match[1]);
+  return [
+    `${startYear}-04`, `${startYear}-05`, `${startYear}-06`, `${startYear}-07`, `${startYear}-08`, `${startYear}-09`,
+    `${startYear}-10`, `${startYear}-11`, `${startYear}-12`, `${startYear + 1}-01`, `${startYear + 1}-02`, `${startYear + 1}-03`,
+  ];
 }
-function sum(weightsByMonth) { return MONTHS.reduce((total, month) => total + weightsByMonth[month], 0); }
+function resolve(records, fiscalYear = FY, bank) {
+  return Authority.resolve({ records, fiscalYear, ...(bank ? { bank } : {}), fiscalMonths: fiscalMonthsFor(fiscalYear) });
+}
+function sum(weightsByMonth, months) { return months.reduce((total, month) => total + weightsByMonth[month], 0); }
 function assertApprox(actual, expected, message) {
   assert.ok(Math.abs(actual - expected) <= TOLERANCE, `${message || "values differ"}: expected ${expected}, received ${actual}`);
 }
@@ -49,11 +60,12 @@ function assertDiagnostics(result, fiscalYear, scope, bank) {
   });
 }
 function assertValid(result, status, fiscalYear = FY, bank) {
+  const fiscalMonths = fiscalMonthsFor(fiscalYear);
   assert.strictEqual(result.status, status);
   assert.strictEqual(result.fiscalYear, fiscalYear);
   assert.strictEqual(result.scope, bank || "OVERALL");
-  assert.deepStrictEqual(Object.keys(result.weightsByMonth), MONTHS);
-  assertApprox(sum(result.weightsByMonth), 1, "resolved weights must reconcile to one");
+  assert.deepStrictEqual(Object.keys(result.weightsByMonth), fiscalMonths);
+  assertApprox(sum(result.weightsByMonth, fiscalMonths), 1, "resolved weights must reconcile to one");
   assertDiagnostics(result, fiscalYear, bank ? "BANK" : "OVERALL", bank);
 }
 function assertInvalid(result, fiscalYear = FY, bank) {
