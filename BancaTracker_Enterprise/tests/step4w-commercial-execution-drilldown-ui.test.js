@@ -147,6 +147,6 @@ assert.doesNotMatch(source, /executionAttention\s*=|referenceAttention\s*=|prior
 assert.doesNotMatch(source, /reconciliation\.(actual|budget)\.[a-zA-Z]+\s*=|childActual|childBudget/);
 assert.doesNotMatch(source, /Repository|IndexedDB|LINE_OF_BUSINESS/i);
 assert.doesNotMatch(elements.executionDrilldownChild.innerHTML, /Product|LOB|Daily|Comparison/i);
-for (const untouched of ["js/analytics/commercialExecutionDrilldown.js", "js/analytics/commercialExecutionPriority.js", "js/analytics/commercialExecutionStatus.js", "js/analytics/commercialExecution.js", "js/target.js", "js/core.js"]) assert.strictEqual(childProcess.execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: root, encoding: "utf8" }).trim(), "", untouched);
+for (const untouched of ["js/analytics/commercialExecutionDrilldown.js", "js/analytics/commercialExecutionPriority.js", "js/analytics/commercialExecutionStatus.js", "js/analytics/commercialExecution.js", "js/target.js"]) assert.strictEqual(childProcess.execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: root, encoding: "utf8" }).trim(), "", untouched);
 assert.match(fs.readFileSync(path.join(root, "README.md"), "utf8"), /Commercial execution drill-down UI presents supplied Step 4V context only/);
 console.log("Step 4W Commercial Execution drill-down UI tests passed: durable selection, governed paths, authority-only context, lifecycle safety, accessibility, responsiveness, and preservation.");

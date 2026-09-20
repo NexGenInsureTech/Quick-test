@@ -12,6 +12,7 @@ groups.push("test-opportunity-ownership-export.js");
 groups.push("test-branch-movement-export-ux.js");
 groups.push("test-help-glossary.js");
 groups.push("step6b2-effective-dated-branch-eligibility-contract.test.js");
+groups.push("step6b5-activation-effective-dated-denominator.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });

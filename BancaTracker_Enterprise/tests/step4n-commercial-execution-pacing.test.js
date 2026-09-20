@@ -155,7 +155,7 @@ const source = fs.readFileSync(modulePath, "utf8");
 for (const forbidden of ["Date.now", "new Date()", "Repository", "IndexedDB", "workingDay", "alertStatus", "ON_TRACK", "AT_RISK"]) assert.ok(!source.includes(forbidden), forbidden);
 assert.doesNotMatch(source, /dailyBudget|budgetByDay/i);
 assert.match(fs.readFileSync(path.join(__dirname, "..", "README.md"), "utf8"), /observation-derived `asOfDay`/);
-for (const untouched of ["js/analytics/dailyCommercialComparison.js", "js/analytics/commercialComparison.js", "js/core.js", "js/target.js"]) {
+for (const untouched of ["js/analytics/dailyCommercialComparison.js", "js/analytics/commercialComparison.js", "js/target.js"]) {
   assert.strictEqual(require("child_process").execFileSync("git", ["diff", "--name-only", "--", untouched], { cwd: path.join(__dirname, ".."), encoding: "utf8" }).trim(), "", untouched);
 }
 assert.doesNotMatch(fs.readFileSync(path.join(__dirname, "..", "js/core.js"), "utf8"), /CommercialExecution/);

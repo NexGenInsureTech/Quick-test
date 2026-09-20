@@ -30,12 +30,16 @@
     const latestFiscalMonth = availableFiscalMonths[availableFiscalMonths.length - 1] || "";
     const currentPeriodMonth = selectedMonth === "ALL" ? latestFiscalMonth : selectedMonth;
     const currentPeriodData = currentPeriodMonth ? (rowsByMonth[currentPeriodMonth] || []) : [];
+    const currentPeriodKeys = new Set(currentPeriodData.map((row) => row.monthKey).filter((key) => typeof key === "string" && /^\d{4}-\d{2}$/.test(key)));
+    const currentPeriodKey = currentPeriodData.length && currentPeriodKeys.size === 1 && currentPeriodData.every((row) => currentPeriodKeys.has(row.monthKey))
+      ? [...currentPeriodKeys][0]
+      : null;
     const progressionMonth = selectedMonth === "ALL" ? latestFiscalMonth : (config.FISCAL_MONTHS.includes(selectedMonth) ? selectedMonth : "");
     const progressionIndex = config.FISCAL_MONTHS.indexOf(progressionMonth);
     const ytdData = []; const ytdPremiumByBank = {}; let ytdPremium = 0;
     if (progressionIndex >= 0) config.FISCAL_MONTHS.slice(0, progressionIndex + 1).forEach((month) => { (rowsByMonth[month] || []).forEach((row) => { ytdData.push(row); ytdPremium += row.premium; ytdPremiumByBank[row.bank] = (ytdPremiumByBank[row.bank] || 0) + row.premium; }); });
     const mtdPremium = utils.premiumTotal(currentPeriodData); state.filteredData = currentPeriodData;
-    return Object.freeze({ viewData: currentPeriodData, currentPeriodData, ytdData, fullUploadData, selectedMonth, currentPeriodMonth, currentPeriodIsUnconfigured: Boolean(currentPeriodMonth && !config.FISCAL_MONTHS.includes(currentPeriodMonth)), latestMonth: latestFiscalMonth, latestFiscalMonth, availableMonths, availableFiscalMonths, progressionMonth, elapsedMonths: progressionIndex < 0 ? null : progressionIndex + 1, ytdPremium, ytdPremiumByBank, mtdPremium, bankMonthlyPremium });
+    return Object.freeze({ viewData: currentPeriodData, currentPeriodData, ytdData, fullUploadData, selectedMonth, currentPeriodMonth, currentPeriodKey, currentPeriodIsUnconfigured: Boolean(currentPeriodMonth && !config.FISCAL_MONTHS.includes(currentPeriodMonth)), latestMonth: latestFiscalMonth, latestFiscalMonth, availableMonths, availableFiscalMonths, progressionMonth, elapsedMonths: progressionIndex < 0 ? null : progressionIndex + 1, ytdPremium, ytdPremiumByBank, mtdPremium, bankMonthlyPremium });
   }
 
   function safeRender(name, renderer, argument) { if (typeof renderer !== "function") return; try { renderer(argument); } catch (error) { console.error(`${name} render failed`, error); setStatus(`${name} could not render. Other pages remain available.`, true); } }
