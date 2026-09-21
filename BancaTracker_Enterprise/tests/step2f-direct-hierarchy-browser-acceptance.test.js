@@ -21,7 +21,7 @@ class MemoryRepository {
 const preview = (repository, text, fileName) => Importer.prepareImport("HIERARCHY", Importer.parseText(text), { repository, fileName });
 
 (async function () {
-  assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 2, "Sprint 2 must not change IndexedDB version.");
+  assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 3, "Sprint 2 must preserve the governed IndexedDB schema version.");
   const repository = new MemoryRepository();
   const nativePreview = await preview(repository, fixture("valid-native-v2.csv"), "valid-native-v2.csv");
   assert.strictEqual(nativePreview.valid, true); assert.strictEqual(nativePreview.hierarchyProfile.sourceProfile, Contract.PROFILES.DIRECT_REPORTING_V2);

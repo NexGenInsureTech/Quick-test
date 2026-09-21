@@ -20,6 +20,7 @@ Purpose : Canonical dataset, status, role and resolution constants
     HIERARCHY: "HIERARCHY",
     BRANCH_ASSIGNMENT: "BRANCH_ASSIGNMENT",
     BRANCH_BUDGET_POTENTIAL: "BRANCH_BUDGET_POTENTIAL",
+    TARGET_SEASONALITY: "TARGET_SEASONALITY",
     BUDGET: "BUDGET",
     POTENTIAL: "POTENTIAL",
     PRODUCT_MASTER: "PRODUCT_MASTER",
@@ -192,6 +193,9 @@ Purpose : Canonical dataset, status, role and resolution constants
 
     [DATASET_TYPES.BRANCH_BUDGET_POTENTIAL]:
       window.BancaTrackerSchema.STORES.BRANCH_BUDGET_POTENTIAL,
+
+    [DATASET_TYPES.TARGET_SEASONALITY]:
+      window.BancaTrackerSchema.STORES.TARGET_SEASONALITY,
 
     [DATASET_TYPES.BUDGET]: window.BancaTrackerSchema.STORES.BUDGETS,
 

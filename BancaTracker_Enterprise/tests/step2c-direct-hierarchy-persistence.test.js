@@ -16,7 +16,7 @@ global.BancaTrackerIndexedDb = {
 };
 load("js/data/repository.js"); load("js/masterDataImport.js");
 const Importer = BancaTrackerMasterDataImport; const Authority = BancaTrackerDirectReportingHierarchy; const Contract = BancaTrackerDatasetRegistry.HIERARCHY_DATA_CONTRACT;
-assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 2, "Hierarchy v2 must not change IndexedDB version.");
+assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 3, "Hierarchy v2 must preserve the governed IndexedDB schema version.");
 
 const employees = [
   { employeeId: "E1", employeeName: "Employee One", designation: "Coordinator", employmentStatus: "ACTIVE", dateOfJoining: "2020-01-01", exitDate: null, active: true },

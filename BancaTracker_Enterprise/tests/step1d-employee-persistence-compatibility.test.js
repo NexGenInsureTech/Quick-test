@@ -11,7 +11,7 @@ const load = (file) => require(path.join(__dirname, "..", file));
 const Importer = BancaTrackerMasterDataImport;
 const Master = BancaTrackerEmployeeMaster;
 const Contract = BancaTrackerDatasetRegistry.EMPLOYEE_DATA_CONTRACT;
-assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 2, "Employee v2 compatibility must not change IndexedDB version.");
+assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 3, "Employee v2 compatibility must preserve the governed IndexedDB schema version.");
 
 class MemoryRepository {
   constructor() { this.datasets = new Map(); this.records = new Map(); this.active = new Map(); this.versions = new Map(); this.stageCalls = 0; }

@@ -16,7 +16,7 @@ class MemoryRepository {
 }
 const prepare = (repository, fileName) => Importer.prepareImport("EMPLOYEE_MASTER", Importer.parseText(fixture(fileName)), { repository, fileName });
 (async function () {
-  assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 2, "Employee acceptance requires no IndexedDB migration.");
+  assert.strictEqual(BancaTrackerSchema.DATABASE.VERSION, 3, "Employee acceptance requires the governed IndexedDB schema version.");
   const repository = new MemoryRepository();
   const nativePreview = await prepare(repository, "valid-native-v2.csv");
   assert.strictEqual(nativePreview.valid, true); assert.strictEqual(nativePreview.rowCount, 10); assert.strictEqual(nativePreview.errorCount, 0); assert.strictEqual(nativePreview.warningCount, 0);

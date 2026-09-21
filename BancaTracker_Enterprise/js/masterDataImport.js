@@ -60,6 +60,13 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       preparer: "BancaTrackerBranchBudgetPotentialMaster",
       dependencies: ["BRANCH_MASTER"],
     }),
+    TARGET_SEASONALITY: Object.freeze({
+      label: "Target Seasonality",
+      required: ["FISCAL YEAR", "SCOPE", "BANK", "MONTH", "WEIGHT"],
+      optional: [],
+      preparer: "BancaTrackerTargetSeasonalityMaster",
+      dependencies: [],
+    }),
   });
 
   let currentPreview = null;
@@ -215,6 +222,14 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       : hierarchyProfile && hierarchyProfile.native
         ? preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context.employeeRecords)
         : deploymentProfile && deploymentProfile.native ? preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context.employeeRecords, dependencies.context.branchRecords) : preparer.prepareDataset(rawRows, `PREVIEW:${datasetType}`, dependencies.context);
+    const successorRecords = canonicalDatasetType === "TARGET_SEASONALITY" && prepared.valid
+      ? global.BancaTrackerTargetSeasonalityMaster.buildSuccessorSnapshot(
+        await repository.getActiveMasterRecords("TARGET_SEASONALITY"),
+        prepared.records,
+        prepared.submittedFiscalYear,
+        `PREVIEW:${datasetType}`,
+      )
+      : null;
     const findings = [...columnFindings, ...profileFindings, ...dependencies.findings, ...prepared.findings];
     const errorCount = findings.filter((finding) => finding.severity === "ERROR").length;
     const warningCount = findings.filter((finding) => finding.severity === "WARNING").length;
@@ -229,6 +244,7 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       warningCount,
       valid: errorCount === 0 && prepared.valid,
       records: prepared.records,
+      successorRecords,
       findings,
       dependencyStatus: dependencies.dependencyStatus,
       createdAt: new Date().toISOString(),
@@ -237,6 +253,7 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
       universeReadiness: prepared.universeReadiness || null,
       commercialSummary: prepared.commercialSummary || null,
       commercialReadiness: prepared.commercialReadiness || null,
+      submittedFiscalYear: prepared.submittedFiscalYear || null,
       contractMetadata: datasetType === "EMPLOYEE_MASTER" ? getEmployeeContractMetadata(headers) : hierarchyProfile && !hierarchyProfile.mixed ? hierarchyProfile.metadata : deploymentProfile && !deploymentProfile.mixed ? deploymentProfile.metadata : null,
       hierarchyProfile,
       deploymentProfile,
@@ -285,11 +302,20 @@ Purpose : Parse, validate, stage, persist and activate master CSV datasets
         ? preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context.employeeRecords)
         : preview.deploymentProfile && preview.deploymentProfile.native ? preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context.employeeRecords, dependencies.context.branchRecords) : preparer.prepareDataset(preview.rawRows, staged.datasetId, dependencies.context);
       if (!prepared.valid) throw new Error("Master validation changed before persistence.");
-      const recordsToPersist = preview.datasetType === "EMPLOYEE_MASTER"
+      let recordsToPersist = preview.datasetType === "EMPLOYEE_MASTER"
         ? prepared.records.map((record) => global.BancaTrackerEmployeeMaster.toPersistedRecord(record))
         : preview.hierarchyProfile && preview.hierarchyProfile.native
           ? prepared.records.map((record) => global.BancaTrackerDirectReportingHierarchy.toPersistedRecord(record))
           : preview.deploymentProfile && preview.deploymentProfile.native ? prepared.records.map((record) => global.BancaTrackerWorkforceDeployment.toPersistedRecord(record)) : prepared.records;
+      if (preview.datasetType === "TARGET_SEASONALITY") {
+        const activeRecords = await repository.getActiveMasterRecords("TARGET_SEASONALITY");
+        recordsToPersist = global.BancaTrackerTargetSeasonalityMaster.buildSuccessorSnapshot(
+          activeRecords,
+          prepared.records,
+          prepared.submittedFiscalYear,
+          staged.datasetId,
+        );
+      }
       await repository.saveStagedMasterRecords(staged.datasetId, recordsToPersist);
       const activation = await repository.activateDataset(staged.datasetId);
       currentPreview = null;

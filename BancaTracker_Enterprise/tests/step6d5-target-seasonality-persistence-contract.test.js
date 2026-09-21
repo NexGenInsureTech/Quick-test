@@ -8,9 +8,11 @@ global.window = global;
 const load = (file) => require(path.join(__dirname, "..", file));
 [
   "js/config.js",
+  "js/utilities.js",
   "js/data/schema.js",
   "js/data/datasetRegistry.js",
   "js/targetSeasonality.js",
+  "js/masters/targetSeasonalityMaster.js",
   "js/masterDataImport.js",
 ].forEach(load);
 
@@ -22,6 +24,10 @@ const TOLERANCE = 1e-9;
 
 function monthsFor(fiscalYear) {
   const match = /^FY(\d{4})-(\d{2})$/.exec(fiscalYear);
+  if (!match) return [
+    "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09",
+    "2026-10", "2026-11", "2026-12", "2027-01", "2027-02", "2027-03",
+  ];
   const start = Number(match[1]);
   return [
     `${start}-04`, `${start}-05`, `${start}-06`, `${start}-07`, `${start}-08`, `${start}-09`,

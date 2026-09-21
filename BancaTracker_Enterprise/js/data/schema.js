@@ -15,7 +15,7 @@ Purpose : IndexedDB schema and persistent data structure constants
 
   const DATABASE = Object.freeze({
     NAME: "bancatracker-enterprise",
-    VERSION: 2,
+    VERSION: 3,
   });
 
   /*==============================================================
@@ -30,6 +30,7 @@ Purpose : IndexedDB schema and persistent data structure constants
     HIERARCHY_RELATIONSHIPS: "hierarchyRelationships",
     BRANCH_ASSIGNMENTS: "branchAssignments",
     BRANCH_BUDGET_POTENTIAL: "branchBudgetPotential",
+    TARGET_SEASONALITY: "targetSeasonality",
     BUDGETS: "budgets",
     POTENTIALS: "potentials",
     PRODUCT_MASTER: "productMaster",
@@ -204,6 +205,17 @@ Purpose : IndexedDB schema and persistent data structure constants
         Object.freeze({ name: "branchId", keyPath: "branchId", options: Object.freeze({ unique: false }) }),
         Object.freeze({ name: "periodKey", keyPath: "periodKey", options: Object.freeze({ unique: false }) }),
         Object.freeze({ name: "branchPeriodKey", keyPath: ["branchId", "periodKey"], options: Object.freeze({ unique: false }) }),
+      ]),
+    }),
+
+    [STORES.TARGET_SEASONALITY]: Object.freeze({
+      keyPath: "recordId",
+      indexes: Object.freeze([
+        Object.freeze({ name: "datasetId", keyPath: "datasetId", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "fiscalYear", keyPath: "fiscalYear", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "scopeType", keyPath: "scopeType", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "canonicalBank", keyPath: "canonicalBank", options: Object.freeze({ unique: false }) }),
+        Object.freeze({ name: "monthKey", keyPath: "monthKey", options: Object.freeze({ unique: false }) }),
       ]),
     }),
 
