@@ -49,7 +49,7 @@ sourceBankIdentity
           ▼
 management relationship
   ├─ managementBankId
-  ├─ subChannelId? 
+  ├─ subChannelId?
   ├─ validFrom?
   └─ validTo?
 ```
