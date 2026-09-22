@@ -2,7 +2,7 @@
 const assert = require("assert"); const path = require("path");
 class Element { constructor() { this.value = ""; this.innerHTML = ""; this.textContent = ""; this.style = {}; this.classList = { toggle() {} }; } addEventListener() {} add() {} }
 const elements = {}; global.window = global; global.document = { getElementById(id) { return elements[id] || (elements[id] = new Element()); } }; global.Option = class {}; global.sessionStorage = { getItem() { return null; }, setItem() {} }; global.performance = require("perf_hooks").performance;
-const load = (file) => require(path.join(__dirname, "..", file)); ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/target.js"].forEach(load);
+const load = (file) => require(path.join(__dirname, "..", file)); (async function run() { ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/enrichment/dateResolver.js", "js/targetSeasonality.js", "js/enrichment/liveTargetSeasonalityAuthority.js", "js/target.js"].forEach(load); await BancaTrackerLiveTargetSeasonalityAuthority.loadContext({ async getActiveDataset() { return null; } });
 const priority = BancaTrackerScorecard.classifyPriority;
 assert.strictEqual(priority({ premium: 0, observedBranches: 0, dataQualityError: false, activationPercent: 0, nearActiveBranches: 0 }), "NO DATA");
 assert.strictEqual(priority({ premium: 1, observedBranches: 1, dataQualityError: true, activationPercent: 80, nearActiveBranches: 0 }), "CRITICAL");
@@ -13,14 +13,14 @@ assert.strictEqual(priority({ premium: 1, observedBranches: 1, dataQualityError:
 
 const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,Business Type,PRODUCT NAME,PRODUCT CODE,Day,POLICY ISSUED DATE";
 const rows = [
-  "20000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Near One,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1",
-  "24000,Jun-26,INDIAN BANK,RM One,BA1,Health,Near Two,South,Tamil Nadu,IMD1,Fresh,Health,P2,1",
-  "1000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Near One,West,Tamil Nadu,IMD1,Fresh,Motor,P1,1",
-  "25000,Jun-26,INDIAN BANK,RM Two,BA2,Motor,Active One,South,Tamil Nadu,IMD2,Renewal,Motor,P1,1",
-  "50000,May-26,INDIAN BANK,RM One,BA1,Motor,Historical,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1"
+  "20000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Near One,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1,2026-06-01",
+  "24000,Jun-26,INDIAN BANK,RM One,BA1,Health,Near Two,South,Tamil Nadu,IMD1,Fresh,Health,P2,1,2026-06-01",
+  "1000,Jun-26,INDIAN BANK,RM One,BA1,Motor,Near One,West,Tamil Nadu,IMD1,Fresh,Motor,P1,1,2026-06-01",
+  "25000,Jun-26,INDIAN BANK,RM Two,BA2,Motor,Active One,South,Tamil Nadu,IMD2,Renewal,Motor,P1,1,2026-06-01",
+  "50000,May-26,INDIAN BANK,RM One,BA1,Motor,Historical,South,Tamil Nadu,IMD1,Fresh,Motor,P1,1,2026-05-01"
 ];
-for (let index = 0; index < 31; index += 1) rows.push(`25000,Jun-26,OTHER,Other RM ${index},O${index},Motor,Other ${index},Other Zone,Other State,OI${index},Fresh,Motor,P1,1`);
-BancaTrackerCore.loadCsvText([H, ...rows.map((item) => `${item},`)].join("\n"));
+for (let index = 0; index < 31; index += 1) rows.push(`25000,Jun-26,OTHER,Other RM ${index},O${index},Motor,Other ${index},Other Zone,Other State,OI${index},Fresh,Motor,P1,1,2026-06-01`);
+BancaTrackerCore.loadCsvText([H, ...rows].join("\n"));
 BancaTrackerApp.showPage("scorecardPage");
 let context = BancaTrackerCore.getPerformanceContext(); let productivity = BancaTrackerCore.state.productivity; let audit = BancaTrackerCore.state.dataQuality;
 let metrics = BancaTrackerScorecard.buildPartnerMetrics(BancaTrackerCore.state.derived, productivity, audit, "ALL");
@@ -50,3 +50,4 @@ BancaTrackerCore.state.filters.bank = "INDIAN BANK"; BancaTrackerCore.refresh();
 BancaTrackerCore.state.filters.month = "May-26"; BancaTrackerCore.refresh(); assert.strictEqual(BancaTrackerCore.state.productivity.scopeMonth, "May-26"); assert.ok(!elements.managementDetail.innerHTML.includes("Near Two"));
 BancaTrackerApp.showPage("misPage"); assert.ok(elements.kpis.innerHTML.includes("YTD Premium")); BancaTrackerApp.showPage("activationPage"); assert.ok(elements.activationKpis.innerHTML.includes("Active Branches")); BancaTrackerApp.showPage("targetPage"); assert.ok(elements.targetKpis.innerHTML.includes("FY Target")); BancaTrackerApp.showPage("qualityPage"); assert.ok(elements.qualitySummary.innerHTML.includes("Accepted Rows"));
 console.log("v8.1 Step 8.1D tests passed: priorities, shared gaps, ordering, bank/RM/IMD drill-down, targets, quality, exceptions, filters, and current-period semantics.");
+})().catch((error) => { console.error(error); process.exitCode = 1; });

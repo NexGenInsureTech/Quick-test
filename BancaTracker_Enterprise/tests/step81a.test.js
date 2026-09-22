@@ -2,16 +2,16 @@
 const assert = require("assert"); const path = require("path");
 class Element { constructor() { this.value = ""; this.innerHTML = ""; this.textContent = ""; this.style = {}; this.classList = { toggle() {} }; } addEventListener() {} add() {} }
 const elements = {}; global.window = global; global.document = { getElementById(id) { return elements[id] || (elements[id] = new Element()); } }; global.Option = class {}; global.sessionStorage = { getItem() { return null; }, setItem() {} }; global.performance = require("perf_hooks").performance;
-const load = (file) => require(path.join(__dirname, "..", file)); ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/target.js"].forEach(load);
+const load = (file) => require(path.join(__dirname, "..", file)); (async function run() { ["js/config.js", "js/csvProcessor.js", "js/utilities.js", "js/analytics.js", "js/dataQuality.js", "js/productivity.js", "js/core.js", "js/performance.js", "app.js", "js/activation.js", "js/scorecard.js", "js/enrichment/dateResolver.js", "js/targetSeasonality.js", "js/enrichment/liveTargetSeasonalityAuthority.js", "js/target.js"].forEach(load); await BancaTrackerLiveTargetSeasonalityAuthority.loadContext({ async getActiveDataset() { return null; } });
 
 const H = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,Zone,STATE,SUM IMD CODE,POLICY ISSUED DATE";
-const csv = (items) => [H, ...items.map((item) => `${item},`)].join("\n");
-const rows = ["Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26"].flatMap((month) => [
-  `8000,${month},INDIAN BANK,RM A,A1,Motor,Repeat Branch,South,Tamil Nadu,I1`,
-  `10000000,${month},KARNATAKA BANK,RM B,B1,Health,KB ${month},South,Karnataka,I2`
+const csv = (items) => [H, ...items].join("\n");
+const rows = ["Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26"].flatMap((month, index) => [
+  `8000,${month},INDIAN BANK,RM A,A1,Motor,Repeat Branch,South,Tamil Nadu,I1,2026-${String(index + 4).padStart(2, "0")}-01`,
+  `10000000,${month},KARNATAKA BANK,RM B,B1,Health,KB ${month},South,Karnataka,I2,2026-${String(index + 4).padStart(2, "0")}-01`
 ]);
-rows.push("-500,Aug-26,INDIAN BANK,RM A,A1,Motor,Adjustment Branch,South,Tamil Nadu,I1");
-rows.push("1000,Bad-Month,INDIAN BANK,RM A,A1,Motor,Odd Month Branch,South,Tamil Nadu,I1");
+rows.push("-500,Aug-26,INDIAN BANK,RM A,A1,Motor,Adjustment Branch,South,Tamil Nadu,I1,2026-08-01");
+rows.push("1000,Bad-Month,INDIAN BANK,RM A,A1,Motor,Odd Month Branch,South,Tamil Nadu,I1,");
 const imported = BancaTrackerCore.loadCsvText(csv(rows));
 const cachedAudit = BancaTrackerCore.state.dataQuality;
 assert.strictEqual(imported.summary.negativePremiumRows, 1);
@@ -37,7 +37,7 @@ BancaTrackerApp.showPage("scorecardPage"); assert.ok(elements.scorecardScope.tex
 
 const target = BancaTrackerTarget.targetState; target.fiscalYearTarget = 120; target.monthlyTarget = 10;
 const result = BancaTrackerTarget.calculateTarget(context);
-assert.strictEqual(result.elapsed, 5); assert.strictEqual(result.ytdTarget, 50); assert.strictEqual(result.remainingMonths, 7);
+assert.strictEqual(result.elapsed, 5); assert.ok(Math.abs(result.ytdTarget - 50) <= 1e-12); assert.strictEqual(result.remainingMonths, 7);
 assert.ok(Math.abs(result.rrr - ((120 - context.ytdPremium / 10000000) / 7)) < 1e-12);
 assert.notStrictEqual(result.rrrLabel, "FY Complete");
 
@@ -48,9 +48,9 @@ context = select("Bad-Month", "INDIAN BANK");
 assert.strictEqual(context.currentPeriodMonth, "Bad-Month"); assert.strictEqual(context.elapsedMonths, null); assert.strictEqual(context.ytdData.length, 0);
 
 const activationAllFixture = [
-  "8000,Apr-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1",
-  "8000,May-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1",
-  "8000,Jun-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1"
+  "8000,Apr-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1,2026-04-01",
+  "8000,May-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1,2026-05-01",
+  "8000,Jun-26,INDIAN BANK,RM A,A1,Motor,Three Month Branch,South,Tamil Nadu,I1,2026-06-01"
 ];
 BancaTrackerCore.loadCsvText(csv(activationAllFixture));
 context = select("ALL");
@@ -59,3 +59,4 @@ assert.strictEqual(BancaTrackerCore.state.derived.branches[0].premium, 8000);
 assert.strictEqual(BancaTrackerCore.state.derived.nearActiveBranches.length, 0, "Apr+May+Jun must not aggregate to a near-active ₹24K branch under ALL");
 
 console.log("v8.1 Step 8.1A tests passed: central scopes, partial-FY target, current-period activation, bank scope, and data-quality warnings.");
+})().catch((error) => { console.error(error); process.exitCode = 1; });

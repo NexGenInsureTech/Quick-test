@@ -15,6 +15,7 @@ global.Option = class Option { constructor(text, value) { this.text = text; this
 global.sessionStorage = { getItem() { return null; }, setItem() {} };
 
 const load = (file) => require(path.join(__dirname, "..", file));
+(async function run() {
 load("js/config.js");
 load("js/csvProcessor.js");
 load("js/utilities.js");
@@ -26,14 +27,18 @@ load("js/performance.js");
 load("app.js");
 load("js/activation.js");
 load("js/scorecard.js");
+load("js/enrichment/dateResolver.js");
+load("js/targetSeasonality.js");
+load("js/enrichment/liveTargetSeasonalityAuthority.js");
 load("js/target.js");
+await BancaTrackerLiveTargetSeasonalityAuthority.loadContext({ async getActiveDataset() { return null; } });
 
 const header = "USGI NET PREMIUM,Month,INTERMEDIARY,BA NAME,Ba Code,LINE OF BUSINESS,BRANCH NAME,POLICY ISSUED DATE";
 const rows = ["Apr-26", "May-26", "Jun-26", "Jul-26"].flatMap((month, index) => [
-  `40000000,${month},INDIAN BANK,RM A,A${index},Motor,IB ${index}`,
-  `20000000,${month},KARNATAKA BANK,RM B,B${index},Health,KB ${index}`
+  `40000000,${month},INDIAN BANK,RM A,A${index},Motor,IB ${index},2026-${String(index + 4).padStart(2, "0")}-01`,
+  `20000000,${month},KARNATAKA BANK,RM B,B${index},Health,KB ${index},2026-${String(index + 4).padStart(2, "0")}-01`
 ]);
-BancaTrackerCore.loadCsvText([header, ...rows.map((item) => `${item},`)].join("\n"));
+BancaTrackerCore.loadCsvText([header, ...rows].join("\n"));
 
 const state = BancaTrackerTarget.targetState;
 state.fiscalYearTarget = 120;
@@ -86,3 +91,4 @@ assert.ok(elements.scorecardSummary.innerHTML.includes("Total Partner Banks"));
  BancaTrackerApp.showPage("targetPage");
 assert.ok(elements.targetKpis.innerHTML.includes("FY Target"));
 console.log("Phase 5 tests passed: target calculations, filters, edge cases, and renderer regressions.");
+})().catch((error) => { console.error(error); process.exitCode = 1; });
