@@ -11,6 +11,7 @@ Purpose : Deterministic browser-local CSV serialization and download
 
   const MIME_TYPE = "text/csv;charset=utf-8";
   const DEFAULT_FILENAME = "bancatracker-export.csv";
+  const NUMERIC_SCALAR = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
   function assertRows(rows) {
     if (!Array.isArray(rows)) throw new TypeError("CSV rows must be an array.");
@@ -23,11 +24,16 @@ Purpose : Deterministic browser-local CSV serialization and download
     });
   }
 
+  function hardenSpreadsheetText(value) {
+    if (typeof value !== "string" || NUMERIC_SCALAR.test(value) || value.startsWith("'")) return value;
+    return /^\s*[=+\-@]/.test(value) ? `'${value}` : value;
+  }
+
   function cellValue(value) {
     if (value === null || value === undefined) return "";
     if (typeof value === "boolean") return value ? "TRUE" : "FALSE";
     if (value instanceof Date) return Number.isNaN(value.getTime()) ? "" : value.toISOString();
-    return String(value);
+    return typeof value === "string" ? hardenSpreadsheetText(value) : String(value);
   }
 
   function escapeCell(value) {
