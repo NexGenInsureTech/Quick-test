@@ -1,8 +1,8 @@
-# BancaTracker Enterprise v8.5.0
+# BancaTracker Enterprise v8.6.0
 
-## Operational UX, Data Trust & In-App Guidance
+## Governance, Target Seasonality & Data Trust
 
-Status: **v8.5.0 release preparation is in review; the audited implementation candidate passed 76/76 regression groups, 146/146 JavaScript syntax checks, release-range diff validation, and analytical-authority integrity checks. Release commit, promotion, tag, and publication remain pending.**
+Status: **v8.6.0 release preparation is complete. The audited candidate passed 85/85 regression groups, 158/158 JavaScript syntax checks, release-range diff validation, and the applicable authority-integrity checks. Final release commit, promotion, tag, and publication remain pending.**
 
 BancaTracker is a fully client-side Bancassurance management application built with HTML, CSS, and vanilla JavaScript. It accepts PR-data CSV files and provides Performance MIS, Activation Cockpit, Management Scorecard, Target & Growth, Productivity & Opportunity, Commercial Performance, Data Quality, Master Data, and Help, Manual & Glossary views. It has no backend, database, framework, CDN, telemetry, or external library.
 
@@ -12,9 +12,11 @@ v8.4.1 is a corrective compatibility release for canonical policy-date ingestion
 
 v8.5.0 is an additive, backward-compatible operational UX release. It clarifies Equivalent Elapsed-Day terminology, standardizes absolute-rupee presentation, adds actionable Data Quality guidance and an All Channels day-wise view, provides complete governed Opportunity Ownership and Branch Movement CSV workflows, and adds an offline in-app Help, Manual & Glossary. Analytical authorities remain preserved. See `docs/releases/v8.5.0-release-notes.md` for the governed release scope and validation evidence.
 
+v8.6.0 adds period-aware Eligible Branch Universe governance for Activation, governed Target Seasonality with Bank and Overall resolution, centralized CSV formula-prefix hardening, a clearer Commercial Priority drill-down affordance, and aligned help/manual/glossary guidance. It remains backward-compatible and preserves separate analytical authorities. See `docs/releases/v8.6.0-release-notes.md` for the release scope, validation evidence, and deferrals.
+
 ## Upgrade and compatibility
 
-The browser database upgrades to schema version 2 additively; existing stores are not intentionally cleared and active-dataset metadata persists. Upload and activate the new governed masters where required. Readiness may remain partial until required masters exist. Legacy analytics remain available, and branch Budget/Potential remains separate from legacy `target.js` session targets. No migration behavior beyond these implemented guarantees is promised.
+The browser database upgrades from schema version 2 to version 3 additively; the new `targetSeasonality` store is added without intentionally clearing existing stores, and active-dataset metadata persists. Existing PR CSV, Branch Master, other masters, and session Target settings remain usable. Target Seasonality is additive: when no applicable governed curve exists, resolution safely uses equal monthly weights. Upload and activate governed masters where required; readiness may remain partial until required masters exist. Branch Budget/Potential remains separate from legacy `target.js` session targets. No migration behavior beyond these implemented guarantees is promised.
 
 ## Architecture
 
@@ -52,7 +54,7 @@ Invalid premium, missing Month/Bank/Branch, and structurally unusable rows are r
 - `config.TOTAL_BRANCHES` is the legacy externally maintained activation-universe population. It remains authoritative when the Branch Master universe is absent, `INCOMPLETE`, or `NOT_READY`.
 - Branch Master `active` means operationally available for master-data resolution; it does not mean activation-universe eligibility.
 - Branch Master `ACTIVATION ELIGIBLE` normalizes separately to `activationEligible: true | false | null`. Missing eligibility keeps an older Branch Master usable for resolution but makes its governed-universe contract incomplete.
-- A `READY` Branch Master makes the governed denominator authoritative, counting distinct `branchId` values where `active === true` and `activationEligible === true`. Eligible branches remain in the denominator even with no transactions. Authority is all-or-nothing; governed-versus-legacy differences are reported, not silently reconciled.
+- For a resolved current period, a valid effective-dated Branch Master makes the governed Activation denominator authoritative, counting eligible branch identities for that period. Explicitly dated records use inclusive monthly validity; undated legacy records remain backward-compatible assumptions when active and activation-eligible. Eligible branches remain in the denominator even with no transactions. When governed period evidence is unavailable, configured totals remain the safe non-blended fallback. Activation's business-derived numerator is unchanged.
 - Unknown transaction banks remain visible in premium, contribution, and Data Quality, but receive no fabricated activation denominator.
 - Branch Budget means expected or committed premium assigned to a durable branch for an explicit monthly `periodKey` (`YYYY-MM`). Branch Potential means estimated addressable premium opportunity for that branch and period; it is distinct from Budget, actual premium, forecast, and achievement.
 - Branch Budget & Potential is governed reference data keyed by `branchId + periodKey`, not a transaction measure. Future aggregation must sum distinct commercial master rows and must never multiply a value by transaction-row count. Blank means `null`, not zero; explicit zero is valid, while negative or invalid numeric values are rejected.
@@ -92,7 +94,7 @@ Configured-bank priorities are deterministic: NO DATA; CRITICAL for bank Data Qu
 
 ## Targets
 
-Overall and bank-specific targets are retained in browser session storage. Target monthly phasing may use governed seasonality; equal 1/12 allocation is the fallback when no applicable governed curve exists. For partial-year uploads, YTD Target uses resolved monthly weights through the selected period, while RRR uses only configured elapsed months. `FY Complete` applies only at March. Drill-down displays bank target context when a bank target exists.
+Overall and bank-specific annual targets are retained in browser session storage. Governed seasonality resolves Bank-specific curves, Overall inheritance, or equal 1/12 fallback when no applicable curve exists. Current-month Target uses the full resolved monthly allocation; YTD Target cumulates resolved fiscal-month weights through the selected period. RRR remains the remaining annual gap averaged across remaining months, not a seasonal or daily-prorated Target. Commercial Budget/Potential remains independent. `FY Complete` applies only at March. Drill-down displays bank target context when a bank target exists.
 
 ## Performance and privacy
 
@@ -112,4 +114,4 @@ node tests/run-all.js
 node --max-old-space-size=4096 tests/benchmark.js
 ```
 
-The master runner excludes benchmarks and runs 38 regression groups covering the v8.1 compatibility baseline and v8.2 authorities/UI. Approved R2B real-browser acceptance passed persistence/reopen, master replacement safety, six-master activation/persistence, valid PR canonical enrichment, commercial performance/roll-up, invalid/edge-case handling, recovery, and console-clean checks. R2B-B3-01 (the readinessDiagnostics browser-runtime defect caused by an undeclared Node-style `global` reference) was resolved by aligning the module wrapper with the browser convention; post-fix regression passed 38/38. Final R3 release closure, tag, and publication remain pending.
+The master runner excludes benchmarks and runs 85 regression groups covering the existing compatibility baseline, governed authorities, operational UX, and v8.6 contracts. JavaScript syntax validation passes across 158 tracked files. Approved R2B real-browser acceptance passed persistence/reopen, master replacement safety, six-master activation/persistence, valid PR canonical enrichment, commercial performance/roll-up, invalid/edge-case handling, recovery, and console-clean checks. Final v8.6.0 release closure, tag, and publication remain pending.
