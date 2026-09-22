@@ -205,6 +205,10 @@ th {
 .commercial-priority-controls select { min-height: 32px; box-sizing: border-box }
 .commercial-priority-rank { display: inline-block; min-width: 28px; padding: 3px 7px; border: 1px solid #94a3b8; border-radius: 12px; background: #f8fafc; color: #334155; font-weight: 700; text-align: center }
 .commercial-priority-empty { color: #556070 }
+.commercial-priority-drilldown-select { display: inline-flex; align-items: center; gap: 4px; padding: 3px 5px; border-color: #94a3b8; border-radius: 4px; background: #f8fafc; cursor: pointer }
+.commercial-priority-drilldown-select:hover { border-color: #17375e; background: #eef2f6 }
+.commercial-priority-drilldown-select:focus-visible { border-color: #17375e; outline-color: #64748b; outline-offset: 1px }
+.commercial-priority-drilldown-cue { display: inline; font-weight: 700; line-height: 1 }
 .commercial-drilldown-panel { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1 }
 .commercial-drilldown-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px }
 .commercial-drilldown-parent { margin: 0; color: #334155 }

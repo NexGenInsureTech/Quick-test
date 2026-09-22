@@ -101,7 +101,7 @@ function clickPriority(view) {
   const button = elements.executionPriorityTable.querySelector(".commercial-drilldown-select");
   assert.ok(button, `${view} entity button rendered`);
   assert.strictEqual(button.kind, "BUTTON");
-  assert.strictEqual(button.className, "commercial-drilldown-select");
+  assert.deepStrictEqual(button.className.split(/\s+/).sort(), ["commercial-drilldown-select", "commercial-priority-drilldown-select"]);
   assert.deepStrictEqual(button.dataset, { parentKey: "A", parentLabel: "Bank A" });
   const before = drilldownCalls;
   button.dispatchEvent({ type: "click", bubbles: true });
@@ -114,6 +114,11 @@ function clickPriority(view) {
   assert.match(elements.executionDrilldownStatus.textContent, /READY/);
   assert.match(elements.executionDrilldownTable.innerHTML, /Zone One/);
   assert.match(elements.executionDrilldownTable.innerHTML, /Zone Two/);
+  const cue = new ClickTarget(elements.executionPriorityTable, "CUE");
+  cue.closest = (selector) => selector === ".commercial-drilldown-select" ? button : null;
+  const beforeCue = drilldownCalls;
+  cue.dispatchEvent({ type: "click", bubbles: true });
+  assert.strictEqual(drilldownCalls, beforeCue + 1, `${view} nested cue reaches the same delegated entity button`);
 }
 
 clickPriority("REFERENCE_PRIORITY");
