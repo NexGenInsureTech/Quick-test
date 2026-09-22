@@ -13,6 +13,7 @@ groups.push("test-branch-movement-export-ux.js");
 groups.push("test-help-glossary.js");
 groups.push("step6b2-effective-dated-branch-eligibility-contract.test.js");
 groups.push("step6b5-activation-effective-dated-denominator.test.js");
+groups.push("step6e2-csv-formula-prefix-hardening-contract.test.js");
 groups.push("step6d5-target-seasonality-persistence-contract.test.js");
 groups.push("step6d5d2-target-seasonality-admin-live-cache-contract.test.js");
 groups.push("step6d3-target-seasonality-contract.test.js");
