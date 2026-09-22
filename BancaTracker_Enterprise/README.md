@@ -92,7 +92,7 @@ Configured-bank priorities are deterministic: NO DATA; CRITICAL for bank Data Qu
 
 ## Targets
 
-Overall and bank-specific targets are retained in browser session storage. Monthly phasing is equal 1/12. For partial-year uploads, YTD Target and RRR use only configured elapsed months. `FY Complete` applies only at March. Drill-down displays bank target context when a bank target exists.
+Overall and bank-specific targets are retained in browser session storage. Target monthly phasing may use governed seasonality; equal 1/12 allocation is the fallback when no applicable governed curve exists. For partial-year uploads, YTD Target uses resolved monthly weights through the selected period, while RRR uses only configured elapsed months. `FY Complete` applies only at March. Drill-down displays bank target context when a bank target exists.
 
 ## Performance and privacy
 

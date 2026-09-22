@@ -161,6 +161,22 @@
     return "Recovery required";
   }
 
+  function allocationInterpretation(result) {
+    if (result.annualTarget === null) return "Set a positive target to calculate achievement.";
+    const seasonality = result.seasonality || {};
+    const resolutionPath = seasonality.diagnostics && seasonality.diagnostics.resolutionPath;
+    if (seasonality.status === "GOVERNED_BANK") return "Monthly Target allocation uses this Bank's governed seasonality.";
+    if (seasonality.status === "GOVERNED_OVERALL") {
+      return resolutionPath === "OVERALL_INHERITED"
+        ? "This Bank's Target uses the governed Overall seasonality."
+        : "Monthly Target allocation uses the governed Overall seasonality.";
+    }
+    if (seasonality.status === "EQUAL_MONTH_FALLBACK") return "No applicable governed seasonality is configured; Target is allocated equally across 12 months.";
+    if (seasonality.status === "INVALID") return "Target allocation is unavailable because the applicable seasonality configuration is invalid.";
+    if (seasonality.status === "UNAVAILABLE") return "Target allocation is unavailable for the selected period.";
+    return "Target allocation is currently unavailable.";
+  }
+
   function populateTargetBanks() {
     const select = document.getElementById("targetBank");
     const current = select.value;
@@ -173,12 +189,14 @@
   function monthlyRows(context, result) {
     const totals = context.bankMonthlyPremium;
     const fiscalMonths = result.seasonality.fiscalMonths || [];
+    const allocationUnavailable = result.annualTarget !== null && result.monthlyTargetsByMonth === null;
     return config.FISCAL_MONTHS.map((month, index) => {
       const actual = (totals[month] || 0) / CRORE;
       const monthTarget = result.monthlyTargetsByMonth === null ? null : result.monthlyTargetsByMonth[fiscalMonths[index]];
       const achieved = monthTarget > 0 ? (actual / monthTarget) * 100 : null;
       const selected = context.selectedMonth === month ? " class='target-selected-month'" : "";
-      return `<tr${selected}><td>${utils.escapeHtml(month)}</td><td>${monthTarget === null ? "Not set" : formatCrore(monthTarget)}</td><td>${formatCrore(actual)}</td><td>${monthTarget === null ? "Not set" : achievementLabel(achieved)}</td></tr>`;
+      const unavailableText = allocationUnavailable ? "Not available" : "Not set";
+      return `<tr${selected}><td>${utils.escapeHtml(month)}</td><td>${monthTarget === null ? unavailableText : formatCrore(monthTarget)}</td><td>${formatCrore(actual)}</td><td>${monthTarget === null ? unavailableText : achievementLabel(achieved)}</td></tr>`;
     }).join("");
   }
 
@@ -192,14 +210,17 @@
       ["FY Target", targetText],
       ["YTD Target", result.ytdTarget === null ? "Not available" : formatCrore(result.ytdTarget)],
       ["YTD Actual", formatCrore(result.actual)],
-      ["Achievement %", noTarget ? "Not available" : achievementLabel(result.achievement)],
+      ["Achievement %", noTarget || result.ytdTarget === null ? "Not available" : achievementLabel(result.achievement)],
       ["Gap", gapText],
       ["RRR", result.rrrLabel]
     ];
     document.getElementById("targetKpis").innerHTML = cards.map(([label, value]) => `<div class='card'><div>${label}</div><div class='value'>${value}</div></div>`).join("");
     document.getElementById("targetProgress").innerHTML = `<table><thead><tr><th>Month</th><th>Target</th><th>Actual</th><th>Achievement %</th></tr></thead><tbody>${monthlyRows(context, result)}</tbody></table>`;
-    document.getElementById("targetProgressNote").textContent = result.elapsed === null ? `${context.selectedMonth} is not a configured fiscal progression point and is excluded from YTD target progression.` : (result.annualTarget === 0 ? "A zero target is valid, but achievement is undefined." : `YTD uses ${result.elapsed} configured fiscal month${result.elapsed === 1 ? "" : "s"} through ${context.progressionMonth}; ${result.remainingMonths} month${result.remainingMonths === 1 ? "" : "s"} remain. Monthly targets use an equal 1/12 allocation.`);
-    document.getElementById("targetInterpretation").innerHTML = `<div class='target-interpretation'>${utils.escapeHtml(interpretation(result.achievement))}</div><p class='target-note'>Descriptive indicator based on YTD achievement; it is not predictive.</p>`;
+    const progressionNote = result.elapsed === null ? `${context.selectedMonth} is not a configured fiscal progression point and is excluded from YTD target progression.` : `YTD uses ${result.elapsed} configured fiscal month${result.elapsed === 1 ? "" : "s"} through ${context.progressionMonth}; ${result.remainingMonths} month${result.remainingMonths === 1 ? "" : "s"} remain.`;
+    const allocationNote = result.annualTarget === 0 && result.ytdTarget !== null ? "A zero target is valid, but achievement is undefined." : allocationInterpretation(result);
+    document.getElementById("targetProgressNote").textContent = `${progressionNote} ${allocationNote}`;
+    const interpretationText = result.annualTarget !== null && result.ytdTarget === null ? allocationInterpretation(result) : interpretation(result.achievement);
+    document.getElementById("targetInterpretation").innerHTML = `<div class='target-interpretation'>${utils.escapeHtml(interpretationText)}</div><p class='target-note'>Descriptive indicator based on YTD achievement; it is not predictive.</p>`;
   }
 
   function showConfigStatus(message, isError) {
