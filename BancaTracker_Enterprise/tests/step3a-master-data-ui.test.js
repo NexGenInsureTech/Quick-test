@@ -49,6 +49,7 @@ assert.deepStrictEqual(
     ["EMPLOYEE_MASTER", "Employee Master"],
     ["HIERARCHY", "Organisation Hierarchy"],
     ["BRANCH_BUDGET_POTENTIAL", "Branch Budget & Potential"],
+    ["TARGET_SEASONALITY", "Target Seasonality"],
     ["WORKFORCE_DEPLOYMENT_V2", "Workforce Deployment v2"],
     ["BRANCH_ASSIGNMENT", "Branch Assignment (Legacy)"],
   ],
@@ -108,8 +109,8 @@ function shadowResult(rows, overrides = {}) {
   Admin.renderViewModel(Admin.buildViewModel(notRun));
   assert.match(elements.masterReadinessSummary.innerHTML, /NOT RUN/);
   assert.match(elements.masterWarnings.innerHTML, /Canonical readiness will be available/);
-  assert.strictEqual((elements.masterStatusRows.innerHTML.match(/<tr>/g) || []).length, 6);
-  assert.strictEqual((elements.masterStatusRows.innerHTML.match(/ABSENT/g) || []).length, 6);
+  assert.strictEqual((elements.masterStatusRows.innerHTML.match(/<tr>/g) || []).length, 7);
+  assert.strictEqual((elements.masterStatusRows.innerHTML.match(/ABSENT/g) || []).length, 7);
   assert.match(elements.masterStatusRows.innerHTML, />—</);
 
   let readCalls = 0;
@@ -121,6 +122,7 @@ function shadowResult(rows, overrides = {}) {
     HIERARCHY: ["HIERARCHY:4", 49, "hierarchy.csv"],
     BRANCH_ASSIGNMENT: ["BRANCH_ASSIGNMENT:5", 900, "assignments.csv"],
     BRANCH_BUDGET_POTENTIAL: ["BRANCH_BUDGET_POTENTIAL:1", 1200, "commercial.csv"],
+    TARGET_SEASONALITY: ["TARGET_SEASONALITY:1", 24, "target-seasonality.csv"],
   };
   const repository = {
     async getActiveDataset(type) {
@@ -142,7 +144,7 @@ function shadowResult(rows, overrides = {}) {
     shadow: { getLastResult: () => ({ status: "NOT_RUN" }) },
     diagnostics: Diagnostics,
   });
-  assert.strictEqual(readCalls, 6);
+  assert.strictEqual(readCalls, 7);
   assert.strictEqual(writeCalls, 0);
   for (const [datasetId, rowCount, fileName] of Object.values(activeByType)) {
     assert.match(elements.masterStatusRows.innerHTML, new RegExp(datasetId));

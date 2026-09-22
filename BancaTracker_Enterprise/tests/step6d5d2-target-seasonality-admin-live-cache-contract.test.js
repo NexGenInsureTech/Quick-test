@@ -68,9 +68,14 @@ function assertOnlySeasonalityReads(repository) {
 assert.ok(fs.existsSync(LIVE_MODULE), CACHE_GAP);
 
 global.window = global;
+const elements = {};
 global.document = {
-  getElementById() {
-    return { dataset: {}, addEventListener() {}, innerHTML: "", textContent: "", hidden: false };
+  getElementById(id) {
+    if (!elements[id]) elements[id] = {
+      dataset: {}, listeners: {}, innerHTML: "", textContent: "", hidden: false,
+      addEventListener(type, listener) { this.listeners[type] = listener; },
+    };
+    return elements[id];
   },
 };
 const load = (file) => require(path.join(root, file));
@@ -160,6 +165,25 @@ assert.strictEqual(beforeHydration.dataset, null);
   const readySnapshot = Reloaded.getCachedContext();
   try { Reloaded.setFromDataset({ ...activeDataset(), status: "STAGED" }, [{ fallback: "EQUAL_MONTH_FALLBACK" }]); } catch (_) { /* rejection is valid */ }
   assert.deepStrictEqual(Reloaded.getCachedContext(), readySnapshot);
+
+  // Admin activation refreshes only after commit succeeds; no page reload or Target calculation is involved.
+  global.BancaTrackerRepository = new MemoryRepository(activeDataset(), records());
+  global.BancaTrackerReadinessDiagnostics = { buildReadiness: () => ({ masters: {} }) };
+  global.BancaTrackerMasterDataImport = {
+    ...Importer,
+    async commitImport() { return { success: true, dataset: activeDataset(), records: records() }; },
+  };
+  elements.masterImportType.value = DATASET_TYPE;
+  await elements.confirmMasterActivation.listeners.click({ target: { disabled: false } });
+  assert.strictEqual(Reloaded.getCachedContext().status, "READY");
+  assert.strictEqual(Reloaded.getCachedContext().dataset.datasetId, "TARGET_SEASONALITY:7");
+  const beforeFailedActivation = Reloaded.getCachedContext();
+  global.BancaTrackerMasterDataImport = {
+    ...Importer,
+    async commitImport() { throw new Error("synthetic activation failure"); },
+  };
+  await elements.confirmMasterActivation.listeners.click({ target: { disabled: false } });
+  assert.deepStrictEqual(Reloaded.getCachedContext(), beforeFailedActivation);
 
   // D/E/firewalls — cache is persistence/provenance only, never Target or Commercial calculation authority.
   const liveSource = fs.readFileSync(LIVE_MODULE, "utf8");

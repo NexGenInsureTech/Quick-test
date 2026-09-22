@@ -16,6 +16,7 @@ Purpose : Render read-only master metadata and canonical readiness
     { key: "hierarchy", type: "HIERARCHY", label: "Organisation Hierarchy", purpose: "RM → CSM → ASM → ZSM → NH" },
     { key: "assignment", type: "BRANCH_ASSIGNMENT", label: "Branch Assignment (Legacy)", purpose: "Branch → assigned RM" },
     { key: "commercial", type: "BRANCH_BUDGET_POTENTIAL", label: "Branch Budget & Potential", purpose: "Period-specific branch Budget and Potential" },
+    { key: "seasonality", type: "TARGET_SEASONALITY", label: "Target Seasonality", purpose: "Governed FY and Bank monthly Target weights" },
   ]);
 
   const IMPORT_CHOICES = Object.freeze([
@@ -201,12 +202,19 @@ Purpose : Render read-only master metadata and canonical readiness
   }
 
   const FINDING_LIMIT = 100;
+  const TARGET_SEASONALITY_HELP = "Target Seasonality governed CSV columns are FISCAL YEAR, SCOPE, BANK, MONTH, WEIGHT. Import exactly one FY at a time. SCOPE is OVERALL or BANK. OVERALL rows require BANK blank; BANK rows require a Bank identity. WEIGHT is a decimal fraction. Each explicitly submitted curve requires exactly 12 canonical FY months and must reconcile to total 1 within governed validation tolerance. Importing an FY fully replaces that FY; omitted curves for that FY are intentionally removed; other FYs remain unchanged. An invalid import leaves the current active snapshot unchanged.";
 
   function renderSchemaHelp(datasetType) {
     const schema = global.BancaTrackerMasterDataImport.SCHEMAS[datasetType];
     document.getElementById("masterSchemaHelp").textContent = schema
-      ? `Required: ${schema.required.join(", ")}. Optional: ${schema.optional.join(", ") || "None"}.`
+      ? `Required: ${schema.required.join(", ")}. Optional: ${schema.optional.join(", ") || "None"}.${datasetType === "TARGET_SEASONALITY" ? ` ${TARGET_SEASONALITY_HELP}` : ""}`
       : "";
+  }
+
+  function hydrateTargetSeasonalityCache() {
+    const authority = global.BancaTrackerLiveTargetSeasonalityAuthority;
+    if (!authority || typeof authority.loadContext !== "function" || !global.BancaTrackerRepository) return Promise.resolve(null);
+    return authority.loadContext().catch(() => null);
   }
 
   function renderImportPreview(preview) {
@@ -303,6 +311,9 @@ Purpose : Render read-only master metadata and canonical readiness
           await global.BancaTrackerLiveBranchCommercialAuthority.loadContext();
           if (global.BancaTrackerCore) global.BancaTrackerCore.refresh();
         }
+        if (global.BancaTrackerLiveTargetSeasonalityAuthority && typeSelect.value === "TARGET_SEASONALITY") {
+          await global.BancaTrackerLiveTargetSeasonalityAuthority.loadContext();
+        }
         status.textContent = "Master activated successfully.";
         document.getElementById("masterImportPreview").hidden = true;
         await render();
@@ -326,6 +337,7 @@ Purpose : Render read-only master metadata and canonical readiness
   }
 
   initializeImportUi();
+  hydrateTargetSeasonalityCache();
 
   global.BancaTrackerMasterDataAdmin = Object.freeze({
     render,
