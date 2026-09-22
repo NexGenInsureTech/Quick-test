@@ -16,6 +16,8 @@ groups.push("step6b5-activation-effective-dated-denominator.test.js");
 groups.push("step6d5-target-seasonality-persistence-contract.test.js");
 groups.push("step6d5d2-target-seasonality-admin-live-cache-contract.test.js");
 groups.push("step6d3-target-seasonality-contract.test.js");
+groups.push("step6d6-target-seasonality-integration-contract.test.js");
+groups.push("step6d7-target-seasonality-ui-contract.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
