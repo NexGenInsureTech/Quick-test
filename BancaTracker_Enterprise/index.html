@@ -107,12 +107,8 @@
     <div id="scorecardPage" style="display: none">
       <section id="scorecardSummary" class="cards"></section>
       <p id="scorecardScope" class="scorecard-note"></p>
-      <label class="scorecard-note" for="managementBankFilter"
-        >Management Bank</label
-      >
-      <select id="managementBankFilter">
-        <option value="ALL">All Management Banks</option>
-      </select>
+      <label class="scorecard-note" for="managementBankFilter">Management Bank</label>
+      <select id="managementBankFilter"><option value="ALL">All Management Banks</option></select>
       <p class="scorecard-note">
         Use the scorecard to move from Partner Bank to RM/IMD productivity and
         then to branch opportunities.
@@ -219,8 +215,7 @@
       <div class="panel productivity-table">
         <div class="opportunity-ownership-header">
           <h2>Branch Strategy</h2>
-          <label for="branchStrategyFilter"
-            >Strategy Objective
+          <label for="branchStrategyFilter">Strategy Objective
             <select id="branchStrategyFilter">
               <option value="ALL">All</option>
               <option value="Diagnose">Diagnose</option>
@@ -232,23 +227,15 @@
               <option value="Maintain / Learn">Maintain / Learn</option>
             </select>
           </label>
-          <button id="branchStrategyExport" type="button" disabled>
-            Export Full CSV
-          </button>
+          <button id="branchStrategyExport" type="button" disabled>Export Full CSV</button>
         </div>
-        <p class="scorecard-note">
-          Management/execution presentation guidance over all identifiable
-          current-period fact-observed branches. Strategy does not imply Budget,
-          Potential, movement, penetration, or workforce conclusions.
-        </p>
+        <p class="scorecard-note">Management/execution presentation guidance over all identifiable current-period fact-observed branches. Strategy does not imply Budget, Potential, movement, penetration, or workforce conclusions.</p>
         <div id="branchStrategy"></div>
       </div>
       <div class="panel productivity-table">
         <div class="opportunity-ownership-header">
           <h2>Opportunity Ownership</h2>
-          <button id="opportunityOwnershipExport" type="button" disabled>
-            Export CSV
-          </button>
+          <button id="opportunityOwnershipExport" type="button" disabled>Export CSV</button>
         </div>
         <div id="opportunityOwnership"></div>
       </div>
@@ -263,72 +250,29 @@
       </div>
     </div>
     <div id="commercialPage" style="display: none">
-      <div
-        class="panel commercial-controls"
-        aria-label="Commercial performance controls"
-      >
-        <label for="commercialScope"
-          >Scope<select id="commercialScope">
-            <option value="MONTH">Month</option>
-            <option value="YTD">YTD</option>
-            <option value="FY">Financial Year</option>
-          </select></label
-        >
-        <label for="commercialPeriod"
-          >Period<select id="commercialPeriod"></select
-        ></label>
-        <label for="commercialFinancialYear"
-          >Financial Year<select id="commercialFinancialYear"></select
-        ></label>
-        <label for="commercialDimension"
-          >Roll-up<select id="commercialDimension"></select
-        ></label>
+      <div class="panel commercial-controls" aria-label="Commercial performance controls">
+        <label for="commercialScope">Scope<select id="commercialScope"><option value="MONTH">Month</option><option value="YTD">YTD</option><option value="FY">Financial Year</option></select></label>
+        <label for="commercialPeriod">Period<select id="commercialPeriod"></select></label>
+        <label for="commercialFinancialYear">Financial Year<select id="commercialFinancialYear"></select></label>
+        <label for="commercialDimension">Roll-up<select id="commercialDimension"></select></label>
       </div>
-      <div
-        id="commercialReadiness"
-        class="panel commercial-readiness"
-        aria-live="polite"
-      ></div>
-      <section
-        id="commercialKpis"
-        class="cards"
-        aria-label="Commercial performance KPIs"
-      ></section>
+      <div id="commercialReadiness" class="panel commercial-readiness" aria-live="polite"></div>
+      <section id="commercialKpis" class="cards" aria-label="Commercial performance KPIs"></section>
       <div class="panel commercial-table-wrap">
         <h2>Governed Commercial Roll-up</h2>
         <div id="commercialTable"></div>
       </div>
-      <section
-        class="commercial-comparison-section"
-        aria-labelledby="commercialComparisonHeading"
-      >
+      <section class="commercial-comparison-section" aria-labelledby="commercialComparisonHeading">
         <div class="panel">
           <h2 id="commercialComparisonHeading">Commercial Comparison</h2>
-          <div
-            class="commercial-controls"
-            aria-label="Commercial comparison controls"
-          >
-            <label for="comparisonBasePeriod"
-              >Base Month<select id="comparisonBasePeriod"></select
-            ></label>
-            <label for="comparisonPeriod"
-              >Comparison Month<select id="comparisonPeriod"></select
-            ></label>
-            <label for="comparisonDimension"
-              >Dimension<select id="comparisonDimension"></select
-            ></label>
+          <div class="commercial-controls" aria-label="Commercial comparison controls">
+            <label for="comparisonBasePeriod">Base Month<select id="comparisonBasePeriod"></select></label>
+            <label for="comparisonPeriod">Comparison Month<select id="comparisonPeriod"></select></label>
+            <label for="comparisonDimension">Dimension<select id="comparisonDimension"></select></label>
           </div>
-          <div
-            id="comparisonReadiness"
-            class="commercial-comparison-readiness"
-            aria-live="polite"
-          ></div>
+          <div id="comparisonReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
         </div>
-        <section
-          id="comparisonKpis"
-          class="cards"
-          aria-label="Commercial comparison KPIs"
-        ></section>
+        <section id="comparisonKpis" class="cards" aria-label="Commercial comparison KPIs"></section>
         <div class="panel commercial-table-wrap">
           <h2>Month Comparison</h2>
           <div id="comparisonTable"></div>
@@ -336,62 +280,28 @@
         <div class="panel commercial-table-wrap">
           <h2>Day-wise Premium Movement</h2>
           <div class="commercial-controls" aria-label="Daily movement controls">
-            <label id="dailyEntityControl" for="dailyEntity"
-              >Entity<select id="dailyEntity"></select
-            ></label>
-            <label l̥ōfor="dailyViewMode"
-              >View<select id="dailyViewMode">
-                <option value="DAILY">Daily</option>
-                <option value="CUMULATIVE">Cumulative</option>
-              </select></label
-            >
+            <label id="dailyEntityControl" for="dailyEntity">Entity<select id="dailyEntity"></select></label>
+            <label for="dailyViewMode">View<select id="dailyViewMode"><option value="DAILY">Daily</option><option value="CUMULATIVE">Cumulative</option></select></label>
           </div>
           <p id="dailyStatus" class="scorecard-note" aria-live="polite"></p>
           <p id="dailySnapshotCue" class="scorecard-note"></p>
           <div id="dailyMovementTable"></div>
         </div>
-        <section
-          class="commercial-pace-section"
-          aria-labelledby="paceComparisonHeading"
-        >
+        <section class="commercial-pace-section" aria-labelledby="paceComparisonHeading">
           <div class="panel">
-            <h2 id="paceComparisonHeading">
-              Equivalent Elapsed-Day Comparison
-            </h2>
-            <p class="scorecard-note">
-              Compares the Base Month and Comparison Month through the same
-              valid transaction-day horizon.
-            </p>
-            <div
-              class="commercial-controls"
-              aria-label="Equivalent elapsed-day comparison controls"
-            >
-              <label for="paceThroughDay"
-                >Through Day<select id="paceThroughDay"></select
-              ></label>
-              <label id="paceEntityControl" for="paceEntity" hidden
-                >Entity<select id="paceEntity"></select
-              ></label>
+            <h2 id="paceComparisonHeading">Equivalent Elapsed-Day Comparison</h2>
+            <p class="scorecard-note">Compares the Base Month and Comparison Month through the same valid transaction-day horizon.</p>
+            <div class="commercial-controls" aria-label="Equivalent elapsed-day comparison controls">
+              <label for="paceThroughDay">Through Day<select id="paceThroughDay"></select></label>
+              <label id="paceEntityControl" for="paceEntity" hidden>Entity<select id="paceEntity"></select></label>
             </div>
-            <div
-              id="paceReadiness"
-              class="commercial-comparison-readiness"
-              aria-live="polite"
-            ></div>
+            <div id="paceReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
             <p id="paceObservationNote" class="scorecard-note"></p>
           </div>
-          <section
-            id="paceKpis"
-            class="cards"
-            aria-label="Equivalent elapsed-day comparison KPIs"
-          ></section>
+          <section id="paceKpis" class="cards" aria-label="Equivalent elapsed-day comparison KPIs"></section>
           <div class="panel commercial-pace-chart-panel">
             <h3>Cumulative Premium</h3>
-            <div
-              id="paceChart"
-              class="commercial-pace-chart"
-              aria-live="polite"
-            ></div>
+            <div id="paceChart" class="commercial-pace-chart" aria-live="polite"></div>
           </div>
           <div class="panel commercial-table-wrap">
             <h3>Equivalent Elapsed-Day Detail</h3>
@@ -399,153 +309,56 @@
           </div>
         </section>
       </section>
-      <section
-        class="commercial-execution-section"
-        aria-labelledby="commercialExecutionHeading"
-      >
+      <section class="commercial-execution-section" aria-labelledby="commercialExecutionHeading">
         <div class="panel">
           <h2 id="commercialExecutionHeading">Commercial Execution</h2>
-          <div
-            class="commercial-controls"
-            aria-label="Commercial execution controls"
-          >
-            <label for="executionPeriod"
-              >Execution Month<select id="executionPeriod"></select
-            ></label>
-            <label for="executionAsOfDay"
-              >As-of Day<select id="executionAsOfDay"></select
-            ></label>
-            <label for="executionDimension"
-              >Dimension<select id="executionDimension"></select
-            ></label>
-            <label
-              class="commercial-execution-attention-filter"
-              for="executionAttentionFilter"
-              >Attention Filter<select id="executionAttentionFilter">
-                <option value="ALL">All</option>
-                <option value="EXECUTION_ATTENTION">Execution attention</option>
-                <option value="REFERENCE_ATTENTION">Reference attention</option>
-                <option value="NO_ATTENTION">No attention</option>
-              </select></label
-            >
+          <div class="commercial-controls" aria-label="Commercial execution controls">
+            <label for="executionPeriod">Execution Month<select id="executionPeriod"></select></label>
+            <label for="executionAsOfDay">As-of Day<select id="executionAsOfDay"></select></label>
+            <label for="executionDimension">Dimension<select id="executionDimension"></select></label>
+            <label class="commercial-execution-attention-filter" for="executionAttentionFilter">Attention Filter<select id="executionAttentionFilter"><option value="ALL">All</option><option value="EXECUTION_ATTENTION">Execution attention</option><option value="REFERENCE_ATTENTION">Reference attention</option><option value="NO_ATTENTION">No attention</option></select></label>
           </div>
-          <div
-            id="executionReadiness"
-            class="commercial-comparison-readiness"
-            aria-live="polite"
-          ></div>
+          <div id="executionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
           <p id="executionObservationNote" class="scorecard-note"></p>
           <p id="executionSnapshotCue" class="scorecard-note"></p>
-          <div
-            id="executionAttentionSummary"
-            class="commercial-execution-attention-summary"
-            aria-live="polite"
-          ></div>
+          <div id="executionAttentionSummary" class="commercial-execution-attention-summary" aria-live="polite"></div>
         </div>
-        <section
-          id="executionKpis"
-          class="cards"
-          aria-label="Commercial execution KPIs"
-        ></section>
+        <section id="executionKpis" class="cards" aria-label="Commercial execution KPIs"></section>
         <div class="panel commercial-table-wrap">
           <h2>Execution Pacing &amp; Run-rate</h2>
-          <p class="scorecard-note">
-            Projected Month-end Actual is a simple linear projection based on
-            observed average daily Actual.
-          </p>
+          <p class="scorecard-note">Projected Month-end Actual is a simple linear projection based on observed average daily Actual.</p>
           <div id="executionTable"></div>
-          <div
-            class="commercial-priority-table"
-            aria-labelledby="executionPriorityHeading"
-          >
+          <div class="commercial-priority-table" aria-labelledby="executionPriorityHeading">
             <h3 id="executionPriorityHeading">Governed Prioritisation</h3>
             <div class="commercial-priority-controls">
-              <label for="executionPriorityView"
-                >Priority View<select id="executionPriorityView">
-                  <option value="NONE">None</option>
-                  <option value="EXECUTION_PRIORITY">Execution priority</option>
-                  <option value="REFERENCE_PRIORITY">Reference priority</option>
-                </select></label
-              >
+              <label for="executionPriorityView">Priority View<select id="executionPriorityView"><option value="NONE">None</option><option value="EXECUTION_PRIORITY">Execution priority</option><option value="REFERENCE_PRIORITY">Reference priority</option></select></label>
             </div>
             <div id="executionPriorityTable" aria-live="polite"></div>
           </div>
-          <section
-            class="commercial-drilldown-panel"
-            aria-labelledby="executionDrilldownHeading"
-          >
+          <section class="commercial-drilldown-panel" aria-labelledby="executionDrilldownHeading">
             <div class="commercial-drilldown-header">
               <h3 id="executionDrilldownHeading">Governed Child Context</h3>
-              <p
-                id="executionDrilldownParent"
-                class="commercial-drilldown-parent"
-              >
-                Select an execution entity to view governed child context.
-              </p>
+              <p id="executionDrilldownParent" class="commercial-drilldown-parent">Select an execution entity to view governed child context.</p>
             </div>
-            <div
-              id="executionDrilldownControls"
-              class="commercial-drilldown-controls"
-              hidden
-            >
-              <label for="executionDrilldownChild"
-                >Child Breakdown<select id="executionDrilldownChild"></select
-              ></label>
+            <div id="executionDrilldownControls" class="commercial-drilldown-controls" hidden>
+              <label for="executionDrilldownChild">Child Breakdown<select id="executionDrilldownChild"></select></label>
             </div>
-            <p
-              id="executionDrilldownStatus"
-              class="commercial-drilldown-empty"
-              aria-live="polite"
-            ></p>
-            <div
-              id="executionDrilldownReconciliation"
-              class="commercial-drilldown-reconciliation"
-              aria-label="Drill-down reconciliation"
-            ></div>
-            <div
-              id="executionDrilldownTable"
-              class="commercial-drilldown-table"
-            ></div>
+            <p id="executionDrilldownStatus" class="commercial-drilldown-empty" aria-live="polite"></p>
+            <div id="executionDrilldownReconciliation" class="commercial-drilldown-reconciliation" aria-label="Drill-down reconciliation"></div>
+            <div id="executionDrilldownTable" class="commercial-drilldown-table"></div>
           </section>
-          <section
-            class="commercial-driver-panel"
-            aria-labelledby="executionDriverHeading"
-          >
+          <section class="commercial-driver-panel" aria-labelledby="executionDriverHeading">
             <div class="commercial-driver-header">
               <h3 id="executionDriverHeading">Driver Analysis</h3>
-              <p id="executionDriverParent" class="commercial-driver-parent">
-                Select an execution entity to analyse its LOB or Product
-                drivers.
-              </p>
+              <p id="executionDriverParent" class="commercial-driver-parent">Select an execution entity to analyse its LOB or Product drivers.</p>
             </div>
-            <div
-              class="commercial-driver-controls"
-              aria-label="Driver analysis controls"
-            >
-              <label for="executionDriverMode"
-                >Analysis Mode<select id="executionDriverMode">
-                  <option value="EXECUTION_SNAPSHOT">Execution Snapshot</option>
-                  <option value="MONTH_COMPARISON">Month Comparison</option>
-                </select></label
-              >
-              <label for="executionDriverDimension"
-                >Driver Dimension<select id="executionDriverDimension"></select
-              ></label>
+            <div class="commercial-driver-controls" aria-label="Driver analysis controls">
+              <label for="executionDriverMode">Analysis Mode<select id="executionDriverMode"><option value="EXECUTION_SNAPSHOT">Execution Snapshot</option><option value="MONTH_COMPARISON">Month Comparison</option></select></label>
+              <label for="executionDriverDimension">Driver Dimension<select id="executionDriverDimension"></select></label>
             </div>
-            <p
-              id="executionDriverStatus"
-              class="commercial-driver-empty"
-              aria-live="polite"
-            ></p>
-            <div
-              id="executionDriverReconciliation"
-              class="commercial-driver-reconciliation"
-              aria-label="Driver analysis reconciliation"
-            ></div>
-            <div
-              id="executionDriverTable"
-              class="commercial-driver-table"
-            ></div>
+            <p id="executionDriverStatus" class="commercial-driver-empty" aria-live="polite"></p>
+            <div id="executionDriverReconciliation" class="commercial-driver-reconciliation" aria-label="Driver analysis reconciliation"></div>
+            <div id="executionDriverTable" class="commercial-driver-table"></div>
           </section>
         </div>
       </section>
@@ -583,19 +396,10 @@
         <h2>Branch Universe Sanity</h2>
         <div id="branchUniverseSanity"></div>
       </div>
-      <section
-        class="canonical-quality-section"
-        aria-labelledby="canonicalQualityHeading"
-      >
-        <h2 id="canonicalQualityHeading">
-          Canonical &amp; Master Data Quality
-        </h2>
+      <section class="canonical-quality-section" aria-labelledby="canonicalQualityHeading">
+        <h2 id="canonicalQualityHeading">Canonical &amp; Master Data Quality</h2>
         <p id="canonicalQualityScope" class="scorecard-note"></p>
-        <section
-          id="canonicalQualitySummary"
-          class="cards"
-          aria-live="polite"
-        ></section>
+        <section id="canonicalQualitySummary" class="cards" aria-live="polite"></section>
         <div class="grid">
           <div class="panel master-data-table">
             <h2>Master Coverage</h2>
@@ -630,60 +434,31 @@
     <div id="masterDataPage" style="display: none">
       <header class="master-data-header">
         <h2>Master Data</h2>
-        <p class="scorecard-note">
-          Reference data and canonical-readiness status
-        </p>
+        <p class="scorecard-note">Reference data and canonical-readiness status</p>
       </header>
-      <section
-        id="masterReadinessSummary"
-        class="cards"
-        aria-live="polite"
-      ></section>
+      <section id="masterReadinessSummary" class="cards" aria-live="polite"></section>
       <section class="panel" aria-labelledby="masterImportHeading">
         <h2 id="masterImportHeading">Import Structural Master</h2>
         <div class="master-import-controls">
           <label>Master type<select id="masterImportType"></select></label>
-          <label
-            >CSV file<input
-              id="masterImportFile"
-              type="file"
-              accept=".csv,text/csv"
-          /></label>
+          <label>CSV file<input id="masterImportFile" type="file" accept=".csv,text/csv" /></label>
           <button id="cancelMasterImport" type="button">Cancel</button>
         </div>
         <p id="masterSchemaHelp" class="scorecard-note"></p>
-        <p id="masterImportStatus" class="scorecard-note" aria-live="polite">
-          Select a master type and CSV file to validate.
-        </p>
+        <p id="masterImportStatus" class="scorecard-note" aria-live="polite">Select a master type and CSV file to validate.</p>
         <div id="masterImportPreview" hidden>
           <section id="masterImportSummary" class="cards"></section>
           <div class="master-data-table">
             <table>
-              <thead>
-                <tr>
-                  <th>Severity</th>
-                  <th>Code</th>
-                  <th>Row</th>
-                  <th>Field</th>
-                  <th>Message</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Severity</th><th>Code</th><th>Row</th><th>Field</th><th>Message</th></tr></thead>
               <tbody id="masterImportFindings"></tbody>
             </table>
           </div>
           <p id="masterFindingLimit" class="table-limit-note"></p>
-          <button id="reviewMasterActivation" type="button" disabled>
-            Review Activation
-          </button>
-          <div
-            id="masterActivationConfirmation"
-            class="master-confirmation"
-            hidden
-          >
+          <button id="reviewMasterActivation" type="button" disabled>Review Activation</button>
+          <div id="masterActivationConfirmation" class="master-confirmation" hidden>
             <p id="masterActivationPrompt"></p>
-            <button id="confirmMasterActivation" type="button">
-              Confirm and Activate
-            </button>
+            <button id="confirmMasterActivation" type="button">Confirm and Activate</button>
             <button id="closeMasterActivation" type="button">Go Back</button>
           </div>
         </div>
@@ -708,11 +483,7 @@
         <h2>Resolution Coverage</h2>
         <table>
           <thead>
-            <tr>
-              <th>Measure</th>
-              <th>Coverage</th>
-              <th>Resolved / Eligible</th>
-            </tr>
+            <tr><th>Measure</th><th>Coverage</th><th>Resolved / Eligible</th></tr>
           </thead>
           <tbody id="masterCoverageRows"></tbody>
         </table>
@@ -731,99 +502,28 @@
     <main id="helpPage" class="help-page" style="display: none">
       <header class="help-header">
         <h2 id="helpPageHeading" tabindex="-1">Help, Manual &amp; Glossary</h2>
-        <p>
-          Learn how to use BancaTracker, understand KPIs and analytical scope,
-          prepare data, and interpret management outputs.
-        </p>
+        <p>Learn how to use BancaTracker, understand KPIs and analytical scope, prepare data, and interpret management outputs.</p>
       </header>
       <nav class="help-section-nav" aria-label="Help sections">
-        <a href="#helpGettingStarted">Getting Started</a
-        ><a href="#helpUserManual">User Manual</a
-        ><a href="#helpGlossary">KPI &amp; Field Glossary</a
-        ><a href="#helpInterpretation">Interpretation Guide</a
-        ><a href="#helpScope">Understanding Filters &amp; Scope</a
-        ><a href="#helpDataReference">Data &amp; Master Reference</a
-        ><a href="#helpTroubleshooting">Data Quality &amp; Troubleshooting</a>
+        <a href="#helpGettingStarted">Getting Started</a><a href="#helpUserManual">User Manual</a><a href="#helpGlossary">KPI &amp; Field Glossary</a><a href="#helpInterpretation">Interpretation Guide</a><a href="#helpScope">Understanding Filters &amp; Scope</a><a href="#helpDataReference">Data &amp; Master Reference</a><a href="#helpTroubleshooting">Data Quality &amp; Troubleshooting</a>
       </nav>
-      <section
-        id="helpGettingStarted"
-        class="panel help-section"
-        aria-labelledby="helpGettingStartedHeading"
-      >
-        <h2 id="helpGettingStartedHeading">Getting Started</h2>
-        <div id="helpGettingStartedContent"></div>
-      </section>
-      <section
-        id="helpUserManual"
-        class="panel help-section"
-        aria-labelledby="helpUserManualHeading"
-      >
-        <h2 id="helpUserManualHeading">User Manual</h2>
-        <div id="helpManualContent" class="help-detail-grid"></div>
-      </section>
-      <section
-        id="helpGlossary"
-        class="panel help-section"
-        aria-labelledby="helpGlossaryHeading"
-      >
+      <section id="helpGettingStarted" class="panel help-section" aria-labelledby="helpGettingStartedHeading"><h2 id="helpGettingStartedHeading">Getting Started</h2><div id="helpGettingStartedContent"></div></section>
+      <section id="helpUserManual" class="panel help-section" aria-labelledby="helpUserManualHeading"><h2 id="helpUserManualHeading">User Manual</h2><div id="helpManualContent" class="help-detail-grid"></div></section>
+      <section id="helpGlossary" class="panel help-section" aria-labelledby="helpGlossaryHeading">
         <h2 id="helpGlossaryHeading">KPI &amp; Field Glossary</h2>
         <div class="help-glossary-controls">
-          <label for="helpGlossarySearch"
-            >Search glossary<input
-              id="helpGlossarySearch"
-              type="search"
-              autocomplete="off"
-              placeholder="Search terms and definitions"
-          /></label>
-          <label for="helpGlossaryCategory"
-            >Category<select id="helpGlossaryCategory"></select
-          ></label>
+          <label for="helpGlossarySearch">Search glossary<input id="helpGlossarySearch" type="search" autocomplete="off" placeholder="Search terms and definitions" /></label>
+          <label for="helpGlossaryCategory">Category<select id="helpGlossaryCategory"></select></label>
           <button id="helpGlossaryClear" type="button">Clear</button>
         </div>
         <p id="helpGlossaryCount" class="scorecard-note" aria-live="polite"></p>
-        <p id="helpGlossaryEmpty" class="empty-state" aria-live="polite" hidden>
-          No glossary terms match the current search and category.
-        </p>
+        <p id="helpGlossaryEmpty" class="empty-state" aria-live="polite" hidden>No glossary terms match the current search and category.</p>
         <div id="helpGlossaryResults" class="help-glossary-grid"></div>
       </section>
-      <section
-        id="helpInterpretation"
-        class="panel help-section"
-        aria-labelledby="helpInterpretationHeading"
-      >
-        <h2 id="helpInterpretationHeading">Interpretation Guide</h2>
-        <div id="helpInterpretationContent" class="help-detail-grid"></div>
-      </section>
-      <section
-        id="helpScope"
-        class="panel help-section"
-        aria-labelledby="helpScopeHeading"
-      >
-        <h2 id="helpScopeHeading">Understanding Filters &amp; Scope</h2>
-        <div id="helpScopeContent" class="help-detail-grid"></div>
-      </section>
-      <section
-        id="helpDataReference"
-        class="panel help-section"
-        aria-labelledby="helpDataReferenceHeading"
-      >
-        <h2 id="helpDataReferenceHeading">Data &amp; Master Reference</h2>
-        <p class="scorecard-note">
-          Use the Master Data page's generated schema help for the current
-          detailed import contract.
-        </p>
-        <div id="helpDataContent" class="help-detail-grid"></div>
-      </section>
-      <section
-        id="helpTroubleshooting"
-        class="panel help-section"
-        aria-labelledby="helpTroubleshootingHeading"
-      >
-        <h2 id="helpTroubleshootingHeading">
-          Data Quality &amp; Troubleshooting
-        </h2>
-        <div id="helpTroubleshootingContent" class="help-detail-grid"></div>
-      </section>
+      <section id="helpInterpretation" class="panel help-section" aria-labelledby="helpInterpretationHeading"><h2 id="helpInterpretationHeading">Interpretation Guide</h2><div id="helpInterpretationContent" class="help-detail-grid"></div></section>
+      <section id="helpScope" class="panel help-section" aria-labelledby="helpScopeHeading"><h2 id="helpScopeHeading">Understanding Filters &amp; Scope</h2><div id="helpScopeContent" class="help-detail-grid"></div></section>
+      <section id="helpDataReference" class="panel help-section" aria-labelledby="helpDataReferenceHeading"><h2 id="helpDataReferenceHeading">Data &amp; Master Reference</h2><p class="scorecard-note">Use the Master Data page's generated schema help for the current detailed import contract.</p><div id="helpDataContent" class="help-detail-grid"></div></section>
+      <section id="helpTroubleshooting" class="panel help-section" aria-labelledby="helpTroubleshootingHeading"><h2 id="helpTroubleshootingHeading">Data Quality &amp; Troubleshooting</h2><div id="helpTroubleshootingContent" class="help-detail-grid"></div></section>
     </main>
     <script src="js/config.js"></script>
     <script src="js/csvProcessor.js"></script>
