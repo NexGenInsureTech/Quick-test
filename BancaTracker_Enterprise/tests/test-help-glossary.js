@@ -35,7 +35,7 @@ const visible = () => elements.helpGlossaryResults.children.filter((node) => !no
 const filter = (query, category = "") => { elements.helpGlossarySearch.value = query; elements.helpGlossaryCategory.value = category; return help.applyFilters(); };
 
 assert(help && Object.isFrozen(help.CATALOG), "catalogue should be frozen and available offline");
-assert(help.CATALOG.length >= 55 && help.CATALOG.length <= 75, `expected approximately 55-70 terms, got ${help.CATALOG.length}`);
+assert(help.CATALOG.length >= 55 && help.CATALOG.length <= 80, `expected approximately 55-80 terms, got ${help.CATALOG.length}`);
 assert.strictEqual(new Set(help.CATALOG.map((item) => item.id)).size, help.CATALOG.length, "term IDs must be unique");
 assert.deepStrictEqual(Array.from(help.CATEGORIES), ["Core & Premium", "Activation & Opportunity", "Commercial Performance", "Comparison & Movement", "Execution & Priority", "Data Quality & Governance", "Data & Master", "Target & Growth"]);
 help.CATALOG.forEach((item) => { assert(item.source && item.confidence); assert(elements.helpGlossaryResults.children.some((node) => node.id === `help-term-${item.id}`)); });
@@ -58,6 +58,9 @@ assert.deepStrictEqual(Object.assign({}, help.modes), Object.assign({}, window.B
 const definition = (id) => help.CATALOG.find((item) => item.id === id).definition;
 assert.notStrictEqual(definition("target"), definition("budget")); assert(definition("budget").includes("distinct from Target"));
 assert(definition("potential").includes("neither Target") && definition("potential").includes("missing Budget"));
+assert(definition("branch-strategy").includes("fact-observed") && definition("strategy-objective").includes("not an independent analytical classification"));
+assert(definition("next-maturity-threshold").includes("not a business target"));
+assert(definition("activation-gap").includes("₹25,000") && definition("zero-branch-maturity").includes("zero or negative"));
 
 const source = read("js/helpGlossary.js"); const html = read("index.html"); const appSource = read("app.js"); const css = read("style.css");
 ["Equivalent Elapsed-Day Comparison", "Equivalent Elapsed-Day Detail", "Base Month Daily Premium", "Comparison Month Daily Premium", "Cumulative Premium"].forEach((term) => assert(source.includes(term)));

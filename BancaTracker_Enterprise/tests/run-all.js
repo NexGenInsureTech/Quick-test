@@ -9,6 +9,7 @@ groups.push("test-absolute-rupee-presentation.js");
 groups.push("test-data-quality-guidance.js");
 groups.push("test-all-channels-elapsed-day-ui.js");
 groups.push("test-opportunity-ownership-export.js");
+groups.push("test-branch-strategy.js");
 groups.push("test-branch-movement-export-ux.js");
 groups.push("test-help-glossary.js");
 groups.push("step6b2-effective-dated-branch-eligibility-contract.test.js");

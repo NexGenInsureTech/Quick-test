@@ -1,7 +1,18 @@
 /* Current-period productivity and opportunity intelligence using central context and canonical branches. */
 (function (global) {
   const config = global.BancaTrackerConfig; const utils = global.BancaTrackerUtils;
-  const LIMITS = { rm: 50, imd: 50, branch: 100, opportunity: 100 };
+  const LIMITS = { rm: 50, imd: 50, branch: 100, strategy: 100, opportunity: 100 };
+  const STRATEGY_BY_BAND = Object.freeze({
+    "Zero": Object.freeze({ objective: "Diagnose", nextThreshold: 15000, cue: "Review current-period production and available mapping context before action." }),
+    "1 - 14.9K": Object.freeze({ objective: "Build", nextThreshold: 15000, cue: "Build production toward the next maturity level." }),
+    "15K - 24.9K": Object.freeze({ objective: "Convert", nextThreshold: 25000, cue: "Close the remaining activation gap." }),
+    "25K - 49.9K": Object.freeze({ objective: "Grow", nextThreshold: 50000, cue: "Grow beyond initial activation into the next maturity level." }),
+    "50K - 99.9K": Object.freeze({ objective: "Deepen", nextThreshold: 100000, cue: "Strengthen current production depth." }),
+    "1L - 1.99L": Object.freeze({ objective: "Deepen / Maintain", nextThreshold: 200000, cue: "Sustain current production while identifying further growth opportunities." }),
+    "2L+": Object.freeze({ objective: "Maintain / Learn", nextThreshold: null, cue: "Maintain performance and review execution patterns for useful learnings." }),
+  });
+  const BAND_ORDER = Object.freeze(Object.keys(STRATEGY_BY_BAND));
+  let strategyFilter = "ALL";
   let latestResult = null;
   const clean = (value) => String(value == null ? "" : value).trim();
   const addSet = (set, value) => { if (clean(value)) set.add(clean(value)); };
@@ -29,6 +40,20 @@
     });
     return [...map.values()].sort((a, b) => b.nearActiveBranches - a.nearActiveBranches || b.aggregateGap - a.aggregateGap || a.name.localeCompare(b.name));
   }
+  function buildStrategyRows(branchMetrics) {
+    return branchMetrics.map((branch) => {
+      const presentation = STRATEGY_BY_BAND[branch.maturityBand];
+      const nextMaturityThreshold = presentation.nextThreshold;
+      return {
+        ...branch,
+        strategyObjective: presentation.objective,
+        nextMaturityThreshold,
+        maturityGap: nextMaturityThreshold === null ? null : nextMaturityThreshold - branch.premium,
+        activationGap: branch.active ? null : Math.max(0, config.THRESHOLDS.ACTIVE_BRANCH - branch.premium),
+        executionCue: [branch.hierarchyConflict ? "Hierarchy conflict requires review." : "", branch.productMappingConflict ? "Product mapping conflict requires review." : "", presentation.cue].filter(Boolean).join(" "),
+      };
+    }).sort((a, b) => BAND_ORDER.indexOf(a.maturityBand) - BAND_ORDER.indexOf(b.maturityBand) || b.premium - a.premium || a.branch.localeCompare(b.branch));
+  }
   function build(context, derived, audit) {
     const quality = audit || { baCodeConflicts: [], hierarchyConflicts: [], productConflicts: [], bankQuality: { unknownBanks: [] } };
     const rms = new Map(); const imds = new Map(); const businessTypes = new Map();
@@ -48,6 +73,7 @@
       return { ...branch, zoneLabel: singleOr(branch.zones, "Not mapped"), stateLabel: singleOr(branch.states, "Not mapped"), baCodeLabel: singleOr(branch.baCodes, "Not mapped"), rmLabel: singleOr(branch.rmNames, "Not mapped"), imdLabel: singleOr(branch.imds, "Not mapped"), maturityBand: utils.getBranchBand(branch.premium), active: status.active, nearActive: status.near, gap, lobBreadth: branch.lobs.size, productBreadth: branch.productCodes.size, hierarchyConflict: hierarchyConflictKeys.has(branch.key), productMappingConflict: [...branch.productCodes].some((code) => productConflictCodes.has(code)), unknownBank: unknownBanks.has(branch.bank), cue: status.near && gap <= 5000 ? "Immediate activation opportunity." : status.near ? "Near-active conversion opportunity." : "" };
     }).sort((a, b) => b.premium - a.premium || a.branch.localeCompare(b.branch));
     const opportunities = branchMetrics.filter((branch) => branch.nearActive).sort((a, b) => a.gap - b.gap || b.premium - a.premium);
+    const branchStrategies = buildStrategyRows(branchMetrics);
     const ownerRm = (branch) => branch.baCodes.size === 1 ? `${[...branch.baCodes][0]} / ${branch.rmNames.size === 1 ? [...branch.rmNames][0] : branch.rmNames.size > 1 ? "Mapping conflict" : "Not mapped"}` : branch.baCodes.size > 1 ? "Multiple mappings" : "Not mapped";
     const ownerImd = (branch) => branch.imds.size === 1 ? `${branch.bank} / ${[...branch.imds][0]}` : branch.imds.size > 1 ? "Multiple mappings" : "Not mapped";
     const concentrations = {
@@ -58,13 +84,18 @@
     const bankIndexes = {};
     const ensureBank = (bank) => bankIndexes[bank] || (bankIndexes[bank] = { rms: [], imds: [], branches: [], opportunities: [] });
     rmMetrics.forEach((item) => ensureBank(item.bank).rms.push(item)); imdMetrics.forEach((item) => ensureBank(item.bank).imds.push(item)); branchMetrics.forEach((item) => ensureBank(item.bank).branches.push(item)); opportunities.forEach((item) => ensureBank(item.bank).opportunities.push(item));
-    return { scopeMonth: context.currentPeriodMonth, scopeIsUnconfigured: context.currentPeriodIsUnconfigured, rmMetrics, imdMetrics, branchMetrics, opportunities, concentrations, bankIndexes, ytdPremiumByBank, businessTypes: [...businessTypes.entries()].map(([name, premium]) => ({ name, premium })).sort((a, b) => b.premium - a.premium), productCodeCompleteness: productCompleteness ? productCompleteness.completenessPercent : null, summary: { observedBaCodes: rmMetrics.length, observedImds: imdMetrics.length, observedBranches: branchMetrics.length, activeBranches: derived.activeBranches.length, nearActiveBranches: opportunities.length, aggregateActivationGap: opportunities.reduce((sum, branch) => sum + branch.gap, 0) } };
+    return { scopeMonth: context.currentPeriodMonth, scopeIsUnconfigured: context.currentPeriodIsUnconfigured, rmMetrics, imdMetrics, branchMetrics, branchStrategies, opportunities, concentrations, bankIndexes, ytdPremiumByBank, businessTypes: [...businessTypes.entries()].map(([name, premium]) => ({ name, premium })).sort((a, b) => b.premium - a.premium), productCodeCompleteness: productCompleteness ? productCompleteness.completenessPercent : null, summary: { observedBaCodes: rmMetrics.length, observedImds: imdMetrics.length, observedBranches: branchMetrics.length, activeBranches: derived.activeBranches.length, nearActiveBranches: opportunities.length, aggregateActivationGap: opportunities.reduce((sum, branch) => sum + branch.gap, 0) } };
   }
 
   const html = (value) => utils.escapeHtml(value); const amount = (value) => value == null ? "—" : utils.formatRupees(value);
   const limitNote = (count, limit) => count > limit ? `<p class='table-limit-note'>Showing top ${limit} of ${utils.formatInr(count)} results.</p>` : "";
   function renderEntityTable(items, kind) { const limit = LIMITS[kind]; if (!items.length) return "<p class='empty-state'>No mapped entities in the current period.</p>"; const isRm = kind === "rm"; return `${limitNote(items.length, limit)}<table><thead><tr><th>${isRm ? "BA Code" : "IMD Code"}</th>${isRm ? "<th>RM Name</th>" : ""}<th>Bank</th><th>Premium</th><th>Observed Branches</th><th>Active</th><th>Near Active</th><th>${isRm ? "Records" : "Observed BA Codes"}</th>${!isRm ? "<th>Records</th>" : ""}<th>Premium / Observed Branch</th>${isRm ? "<th>Premium / Active Branch</th>" : ""}<th>LOB Breadth</th><th>Product Breadth</th><th>Management Cue</th></tr></thead><tbody>${items.slice(0, limit).map((item) => `<tr><td>${html(item.code)}</td>${isRm ? `<td>${html(item.name)}${item.mappingConflict ? " <span class='quality-severity quality-warning'>WARNING</span>" : ""}</td>` : ""}<td>${html(item.bank)}</td><td>${amount(item.premium)}</td><td>${item.observedBranches}</td><td>${item.activeBranches}</td><td>${item.nearActiveBranches}</td><td>${isRm ? item.records : item.observedBaCodes}</td>${!isRm ? `<td>${item.records}</td>` : ""}<td>${amount(item.premiumPerObservedBranch)}</td>${isRm ? `<td>${amount(item.premiumPerActiveBranch)}</td>` : ""}<td>${item.lobBreadth}</td><td>${item.productBreadth}</td><td>${html(item.cue || "—")}</td></tr>`).join("")}</tbody></table>`; }
   function renderBranches(items) { if (!items.length) return "<p class='empty-state'>No observed branches in the current period.</p>"; return `${limitNote(items.length, LIMITS.branch)}<table><thead><tr><th>Branch</th><th>Bank</th><th>Zone</th><th>State</th><th>RM / BA Code</th><th>IMD</th><th>Premium</th><th>Maturity</th><th>Gap to ₹25K</th><th>LOB Breadth</th><th>Product Breadth</th><th>Quality</th></tr></thead><tbody>${items.slice(0, LIMITS.branch).map((branch) => `<tr><td>${html(branch.branch)}</td><td>${html(branch.bank)}</td><td>${html(branch.zoneLabel)}</td><td>${html(branch.stateLabel)}</td><td>${html(`${branch.rmLabel} / ${branch.baCodeLabel}`)}</td><td>${html(branch.imdLabel)}</td><td>${amount(branch.premium)}</td><td>${html(branch.maturityBand)}</td><td>${branch.active ? "Active" : amount(branch.gap)}</td><td>${branch.lobBreadth}</td><td>${branch.productBreadth}</td><td>${html([branch.hierarchyConflict ? "Hierarchy conflict" : "", branch.productMappingConflict ? "Product mapping conflict" : "", branch.unknownBank ? "Unknown bank" : ""].filter(Boolean).join("; ") || "—")}</td></tr>`).join("")}</tbody></table>`; }
+  function renderStrategies(items) {
+    const filtered = strategyFilter === "ALL" ? items : items.filter((branch) => branch.strategyObjective === strategyFilter);
+    if (!filtered.length) return "<p class='empty-state'>No branches match the selected Strategy Objective in the current period.</p>";
+    return `${limitNote(filtered.length, LIMITS.strategy)}<table><thead><tr><th>Branch</th><th>Bank</th><th>Zone</th><th>State</th><th>BA Code</th><th>RM</th><th>IMD</th><th>Current Premium</th><th>Maturity Band</th><th>Strategy Objective</th><th>Next Maturity Threshold</th><th>Gap to Next Maturity Threshold</th><th>Activation Gap</th><th>Execution Cue</th></tr></thead><tbody>${filtered.slice(0, LIMITS.strategy).map((branch) => `<tr><td>${html(branch.branch)}</td><td>${html(branch.bank)}</td><td>${html(branch.zoneLabel)}</td><td>${html(branch.stateLabel)}</td><td>${html(branch.baCodeLabel)}</td><td>${html(branch.rmLabel)}</td><td>${html(branch.imdLabel)}</td><td>${amount(branch.premium)}</td><td>${html(branch.maturityBand)}</td><td>${html(branch.strategyObjective)}</td><td>${amount(branch.nextMaturityThreshold)}</td><td>${amount(branch.maturityGap)}</td><td>${amount(branch.activationGap)}</td><td>${html(branch.executionCue)}</td></tr>`).join("")}</tbody></table>`;
+  }
   function renderOpportunities(items) { if (!items.length) return "<p class='empty-state'>No near-active opportunities in the current period.</p>"; return `${limitNote(items.length, LIMITS.opportunity)}<table><thead><tr><th>Branch</th><th>Bank</th><th>Zone</th><th>State</th><th>BA Code</th><th>RM Name</th><th>IMD</th><th>Current Premium</th><th>Gap to ₹25K</th><th>Cue</th></tr></thead><tbody>${items.slice(0, LIMITS.opportunity).map((branch) => `<tr><td>${html(branch.branch)}</td><td>${html(branch.bank)}</td><td>${html(branch.zoneLabel)}</td><td>${html(branch.stateLabel)}</td><td>${html(branch.baCodeLabel)}</td><td>${html(branch.rmLabel)}</td><td>${html(branch.imdLabel)}</td><td>${amount(branch.premium)}</td><td>${amount(branch.gap)}</td><td>${html(branch.cue)}</td></tr>`).join("")}</tbody></table>`; }
   function renderConcentration(groups) { return Object.entries(groups).map(([key, items]) => `<div class='panel'><h3>${html(items[0] ? items[0].dimension : key)}</h3>${items.length ? `${limitNote(items.length, 50)}<table><thead><tr><th>Group</th><th>Near Active Branches</th><th>Aggregate Activation Gap</th></tr></thead><tbody>${items.slice(0, 50).map((item) => `<tr><td>${html(item.name)}</td><td>${item.nearActiveBranches}</td><td>${amount(item.aggregateGap)}</td></tr>`).join("")}</tbody></table>` : "<p class='empty-state'>No near-active opportunities.</p>"}</div>`).join(""); }
   function exportOpportunities() {
@@ -78,7 +109,27 @@
     const filename = exporter.buildFilename({ datasetId: "opportunity-ownership", periods: [latestResult.scopeMonth], scopeLabel });
     return exporter.downloadCsv({ csv, filename });
   }
+  function exportStrategies() {
+    const rows = latestResult && latestResult.branchStrategies;
+    const exporter = global.BancaTrackerCsvExport;
+    if (!rows || !rows.length || !exporter) return null;
+    const columns = [{ key: "branch", label: "Branch" }, { key: "bank", label: "Bank" }, { key: "zoneLabel", label: "Zone" }, { key: "stateLabel", label: "State" }, { key: "baCodeLabel", label: "BA Code" }, { key: "rmLabel", label: "RM" }, { key: "imdLabel", label: "IMD" }, { key: "premium", label: "Current Premium" }, { key: "maturityBand", label: "Maturity Band" }, { key: "strategyObjective", label: "Strategy Objective" }, { key: "nextMaturityThreshold", label: "Next Maturity Threshold" }, { key: "maturityGap", label: "Gap to Next Maturity Threshold" }, { key: "activationGap", label: "Activation Gap" }, { key: "executionCue", label: "Execution Cue" }];
+    const csv = exporter.serializeCsv({ rows, columns });
+    const selectedBank = global.BancaTrackerCore && global.BancaTrackerCore.state && global.BancaTrackerCore.state.filters ? global.BancaTrackerCore.state.filters.bank : "ALL";
+    const scopeLabel = selectedBank === "ALL" ? "all-banks" : `bank-${selectedBank}`;
+    const filename = exporter.buildFilename({ datasetId: "branch-strategy", periods: [latestResult.scopeMonth], scopeLabel });
+    return exporter.downloadCsv({ csv, filename });
+  }
   function render(result) { latestResult = result || null; const exportButton = document.getElementById("opportunityOwnershipExport"); if (exportButton) exportButton.disabled = !result || !result.opportunities.length; if (!result) return; const s = result.summary; const productNote = result.productCodeCompleteness == null ? " Product Code completeness is unavailable." : ` Full-upload Product Code completeness is ${result.productCodeCompleteness.toFixed(1)}%; breadth counts only populated codes.`; const unconfiguredNote = result.scopeIsUnconfigured ? " This selected month is unconfigured and is excluded from fiscal YTD and target elapsed months." : ""; document.getElementById("productivityScope").textContent = `Productivity and opportunity scope: ${result.scopeMonth || "No configured fiscal month available"} (CURRENT PERIOD). Month and Bank filters apply. Activation and premium shown together use the same period.${productNote}${unconfiguredNote}`; document.getElementById("productivitySummary").innerHTML = [["Observed BA Codes", s.observedBaCodes], ["Observed IMDs", s.observedImds], ["Observed Branches", s.observedBranches], ["Active Branches", s.activeBranches], ["Near Active Branches", s.nearActiveBranches], ["Aggregate Activation Gap", utils.formatRupees(s.aggregateActivationGap)]].map(([label, value]) => `<div class='card'><div>${label}</div><div class='value'>${value}</div></div>`).join(""); document.getElementById("rmProductivity").innerHTML = renderEntityTable(result.rmMetrics, "rm"); document.getElementById("imdProductivity").innerHTML = renderEntityTable(result.imdMetrics, "imd"); document.getElementById("branchProductivity").innerHTML = renderBranches(result.branchMetrics); document.getElementById("opportunityOwnership").innerHTML = renderOpportunities(result.opportunities); document.getElementById("opportunityConcentration").innerHTML = renderConcentration(result.concentrations); document.getElementById("businessTypeSplit").innerHTML = result.businessTypes.length ? `<table><thead><tr><th>Source Business Type</th><th>Current Period Premium</th></tr></thead><tbody>${result.businessTypes.map((item) => `<tr><td>${html(item.name)}</td><td>${amount(item.premium)}</td></tr>`).join("")}</tbody></table>` : "<p class='empty-state'>No Business Type values in the current period.</p>"; }
   const exportButton = global.document && global.document.getElementById("opportunityOwnershipExport"); if (exportButton) exportButton.addEventListener("click", exportOpportunities);
-  global.BancaTrackerProductivity = Object.freeze({ build, render, concentration, exportOpportunities, LIMITS }); global.renderProductivity = render;
+  function renderWithStrategy(result) {
+    render(result);
+    const strategyExport = document.getElementById("branchStrategyExport");
+    if (strategyExport) strategyExport.disabled = !result || !result.branchStrategies.length;
+    const strategyContainer = document.getElementById("branchStrategy");
+    if (strategyContainer && result) strategyContainer.innerHTML = renderStrategies(result.branchStrategies);
+  }
+  const strategyExportButton = global.document && global.document.getElementById("branchStrategyExport"); if (strategyExportButton) strategyExportButton.addEventListener("click", exportStrategies);
+  const strategyFilterElement = global.document && global.document.getElementById("branchStrategyFilter"); if (strategyFilterElement) strategyFilterElement.addEventListener("change", function () { strategyFilter = this.value || "ALL"; if (latestResult) document.getElementById("branchStrategy").innerHTML = renderStrategies(latestResult.branchStrategies); });
+  global.BancaTrackerProductivity = Object.freeze({ build, render: renderWithStrategy, concentration, buildStrategyRows, renderStrategies, exportOpportunities, exportStrategies, STRATEGY_BY_BAND, BAND_ORDER, LIMITS }); global.renderProductivity = renderWithStrategy;
 })(window);
