@@ -118,6 +118,23 @@ assert.ok(!assigned.entities.some((item) => item.key === "SOURCE"));
 assert.strictEqual(JSON.stringify(facts), snapshot);
 assert.deepStrictEqual(Daily.resolveDefaultPeriods({ availablePeriods: ["2026-07", "2026-08", "2026-09"], latestAvailablePeriod: "2026-09", latestActualPeriod: "2026-08" }), { basePeriod: "2026-07", comparisonPeriod: "2026-08" });
 
+const operationalBankFacts = [
+  { monthKey: "2026-04", day: 1, premium: 100, bank: "INDIAN BANK" },
+  { monthKey: "2026-05", day: 1, premium: 200, bank: "INDIAN BANK" },
+  { monthKey: "2026-04", day: 1, premium: 300, bank: "INDIAN BANK (PMSBY)" },
+  { monthKey: "2026-05", day: 1, premium: 0, bank: "INDIAN BANK (PMSBY)" },
+];
+const bankResult = Daily.buildComparison({ facts: operationalBankFacts, performanceResult: {}, periodContext, basePeriod: "2026-04", comparisonPeriod: "2026-05", dimension: "BANK" });
+const allResult = Daily.buildComparison({ facts: operationalBankFacts, performanceResult: {}, periodContext, basePeriod: "2026-04", comparisonPeriod: "2026-05", dimension: "OVERALL" });
+assert.deepStrictEqual(bankResult.entities.map((item) => item.key), ["INDIAN BANK", "INDIAN BANK (PMSBY)"]);
+const allDay = allResult.entities[0].days[0];
+assert.strictEqual(allDay.base.dailyActual, bankResult.entities.reduce((sum, item) => sum + item.days[0].base.dailyActual, 0));
+assert.strictEqual(allDay.comparison.dailyActual, bankResult.entities.reduce((sum, item) => sum + item.days[0].comparison.dailyActual, 0));
+assert.strictEqual(allDay.base.cumulativeActual, bankResult.entities.reduce((sum, item) => sum + item.days[0].base.cumulativeActual, 0));
+assert.strictEqual(allDay.comparison.cumulativeActual, bankResult.entities.reduce((sum, item) => sum + item.days[0].comparison.cumulativeActual, 0));
+assert.strictEqual(allDay.daily.changePct, -50);
+assert.notStrictEqual(allDay.daily.changePct, bankResult.entities.reduce((sum, item) => sum + item.days[0].daily.changePct, 0) / bankResult.entities.length);
+
 const outputSource = fs.readFileSync(modulePath, "utf8");
 for (const forbidden of ["budget", "potential", "runRate", "forecast", "Date.now", "new Date()", "Repository"]) assert.ok(!outputSource.includes(forbidden), forbidden);
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");

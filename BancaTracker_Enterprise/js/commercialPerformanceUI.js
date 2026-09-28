@@ -13,6 +13,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
+  let lastDailyOverallResult = null;
   let lastPaceResult = null;
   let lastPaceDimensionResult = null;
   let lastPaceOverallResult = null;
@@ -111,26 +112,34 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const rows = result.rows.map((row) => `<tr data-dimension-key="${escape(row.key)}"><td>${escape(row.label)}${row.labelChanged ? `<span class="scorecard-note"> · Name changed</span>` : ""}</td><td>${escape(money(row.base.actualPremium))}</td><td>${escape(money(row.comparison.actualPremium))}</td><td class="${semanticClass(row.changes.actualChange)}">${escape(signedMoney(row.changes.actualChange))}</td><td>${escape(growth(row.changes.actualChangePct))}</td><td>${escape(money(row.base.budget))}</td><td>${escape(money(row.comparison.budget))}</td><td>${escape(points(row.changes.achievementPointChange))}</td><td>${escape(points(row.changes.penetrationPointChange))}</td><td class="commercial-presence">${escape(presenceLabel(row.presenceStatus))}</td></tr>`).join("");
     element("comparisonTable").innerHTML = `<table><thead><tr><th>${escape(dimensionLabels[state.comparison.dimension])}</th><th>Base Actual</th><th>Comparison Actual</th><th>Change</th><th>Growth / Degrowth</th><th>Base Budget</th><th>Comparison Budget</th><th>Achievement Δ</th><th>Penetration Δ</th><th>Presence</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
-  function syncDailyEntity(result) {
+  const DAILY_ALL_VALUE = "__DAILY_ALL__";
+  function syncDailyEntity(result, overallResult) {
     const entities = result && result.entities || [];
+    const allAvailable = state.comparison.dimension !== "OVERALL" && Boolean(overallResult && overallResult.entities && overallResult.entities.length);
+    if (state.comparison.selectedEntityKey === DAILY_ALL_VALUE && allAvailable) return;
     if (!entities.some((item) => item.key === state.comparison.selectedEntityKey)) {
       const preferred = entities.find((item) => item.presenceStatus === "BOTH") || entities[0] || null;
       state.comparison.selectedEntityKey = preferred && preferred.key || null;
     }
   }
-  function renderDaily(result) {
+  function renderDaily(result, overallResult) {
     lastDailyResult = result || lastDailyResult;
+    lastDailyOverallResult = overallResult || lastDailyOverallResult;
     const active = lastDailyResult;
     const entities = active && active.entities || [];
-    syncDailyEntity(active);
+    syncDailyEntity(active, lastDailyOverallResult);
     const isOverall = state.comparison.dimension === "OVERALL";
     element("dailyEntityControl").hidden = isOverall;
-    element("dailyEntity").innerHTML = entities.map((item) => option(item.key, `${item.label} (${presenceLabel(item.presenceStatus)})`, item.key === state.comparison.selectedEntityKey)).join("");
+    const allOption = isOverall ? "" : option(DAILY_ALL_VALUE, "All", state.comparison.selectedEntityKey === DAILY_ALL_VALUE);
+    element("dailyEntity").innerHTML = allOption + entities.map((item) => option(item.key, `${item.label} (${presenceLabel(item.presenceStatus)})`, item.key === state.comparison.selectedEntityKey)).join("");
     element("dailyViewMode").value = state.comparison.dailyViewMode;
     const organisationDimensions = ["ASSIGNED_RM", "CSM", "ASM", "ZSM", "NATIONAL_HEAD"];
-    element("dailyStatus").textContent = `Daily status: ${String(active && active.status || "NO DATA").replace(/_/g, " ")}`;
+    const allSelected = state.comparison.selectedEntityKey === DAILY_ALL_VALUE;
+    const selectedResult = allSelected ? lastDailyOverallResult : active;
+    element("dailyStatus").textContent = `Daily status: ${String(selectedResult && selectedResult.status || "NO DATA").replace(/_/g, " ")}`;
     element("dailySnapshotCue").textContent = organisationDimensions.includes(state.comparison.dimension) ? "Organisation comparison uses the current active assignment and hierarchy snapshot." : "";
-    const entity = entities.find((item) => item.key === state.comparison.selectedEntityKey) || entities[0];
+    const overallEntity = lastDailyOverallResult && lastDailyOverallResult.entities && lastDailyOverallResult.entities[0];
+    const entity = allSelected ? overallEntity : entities.find((item) => item.key === state.comparison.selectedEntityKey) || entities[0];
     if (!entity) { element("dailyMovementTable").innerHTML = `<p class="empty-state">No daily movement entities are available.</p>`; return; }
     const cumulative = state.comparison.dailyViewMode === "CUMULATIVE";
     const rows = entity.days.map((item) => {
@@ -266,9 +275,11 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const common = { performanceResult: performance, periodContext, basePeriod: state.comparison.basePeriod, comparisonPeriod: state.comparison.comparisonPeriod, authorityContext };
     const overall = global.BancaTrackerCommercialComparison.buildComparison({ ...common, dimension: "OVERALL" });
     const table = global.BancaTrackerCommercialComparison.buildComparison({ ...common, dimension: state.comparison.dimension });
-    const daily = global.BancaTrackerDailyCommercialComparison.buildComparison({ ...common, facts: global.BancaTrackerCore.state.factData || [], dimension: state.comparison.dimension });
-    renderComparisonReadiness(table); renderComparisonKpis(overall); renderComparisonTable(table); renderDaily(daily);
-    return { overall, table, daily };
+    const facts = global.BancaTrackerCore.state.factData || [];
+    const daily = global.BancaTrackerDailyCommercialComparison.buildComparison({ ...common, facts, dimension: state.comparison.dimension });
+    const dailyOverall = state.comparison.dimension === "OVERALL" ? daily : global.BancaTrackerDailyCommercialComparison.buildComparison({ ...common, facts, dimension: "OVERALL" });
+    renderComparisonReadiness(table); renderComparisonKpis(overall); renderComparisonTable(table); renderDaily(daily, dailyOverall);
+    return { overall, table, daily, dailyOverall };
   }
 
   function defaultExecutionPeriod(periodContext) { return periodContext.latestActualPeriod || periodContext.latestAvailablePeriod || null; }
@@ -534,7 +545,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       empty(performance && performance.status === "NO_COMMERCIAL_MASTER" ? "Branch Budget & Potential data has not been activated." : "No commercial periods are available.", periodContext);
       if (global.BancaTrackerCommercialComparison && global.BancaTrackerDailyCommercialComparison) {
         syncComparisonState(periodContext); renderComparisonControls(periodContext); renderComparisonReadiness(null);
-        element("comparisonKpis").innerHTML = ""; element("comparisonTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderDaily({ entities: [] });
+        element("comparisonKpis").innerHTML = ""; element("comparisonTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderDaily({ entities: [] }, { entities: [] });
         if (global.BancaTrackerEquivalentElapsedDayComparison) { lastPaceResult = null; lastPaceDimensionResult = null; lastPaceOverallResult = null; renderPaceControls(null); renderPaceReadiness({ status: "NO_PERIODS" }); element("paceKpis").innerHTML = ""; renderPaceChart(null, {}); renderPaceTable(null); }
       }
       if (global.BancaTrackerCommercialExecution) {
