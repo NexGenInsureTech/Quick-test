@@ -20,11 +20,11 @@
     element.textContent = `Import summary — Total: ${utils.formatInr(summary.totalRows)}; Accepted: ${utils.formatInr(summary.acceptedRows)}; Rejected: ${utils.formatInr(summary.rejectedRows)}; Data-quality warnings: ${utils.formatInr(qualityWarnings)}${reasons.length ? `. ${reasons.join("; ")}` : ""}`;
   }
 
-  function buildContext() {
-    const selectedMonth = state.filters.month; const selectedBank = state.filters.bank;
-    const fullUploadData = selectedBank === "ALL" ? state.factData : [];
+  function buildContext(factData = state.factData, filters = state.filters) {
+    const selectedMonth = filters.month; const selectedBank = filters.bank;
+    const fullUploadData = selectedBank === "ALL" ? factData : [];
     const available = new Set(); const availableFiscal = new Set(); const bankMonthlyPremium = {}; const rowsByMonth = {};
-    state.factData.forEach((row) => { if (selectedBank !== "ALL" && row.bank !== selectedBank) return; if (selectedBank !== "ALL") fullUploadData.push(row); available.add(row.month); if (config.FISCAL_MONTHS.includes(row.month)) availableFiscal.add(row.month); bankMonthlyPremium[row.month] = (bankMonthlyPremium[row.month] || 0) + row.premium; if (!rowsByMonth[row.month]) rowsByMonth[row.month] = []; rowsByMonth[row.month].push(row); });
+    factData.forEach((row) => { if (selectedBank !== "ALL" && row.bank !== selectedBank) return; if (selectedBank !== "ALL") fullUploadData.push(row); available.add(row.month); if (config.FISCAL_MONTHS.includes(row.month)) availableFiscal.add(row.month); bankMonthlyPremium[row.month] = (bankMonthlyPremium[row.month] || 0) + row.premium; if (!rowsByMonth[row.month]) rowsByMonth[row.month] = []; rowsByMonth[row.month].push(row); });
     const availableMonths = utils.orderMonths([...available]);
     const availableFiscalMonths = config.FISCAL_MONTHS.filter((month) => availableFiscal.has(month));
     const latestFiscalMonth = availableFiscalMonths[availableFiscalMonths.length - 1] || "";
@@ -38,14 +38,36 @@
     const progressionIndex = config.FISCAL_MONTHS.indexOf(progressionMonth);
     const ytdData = []; const ytdPremiumByBank = {}; let ytdPremium = 0;
     if (progressionIndex >= 0) config.FISCAL_MONTHS.slice(0, progressionIndex + 1).forEach((month) => { (rowsByMonth[month] || []).forEach((row) => { ytdData.push(row); ytdPremium += row.premium; ytdPremiumByBank[row.bank] = (ytdPremiumByBank[row.bank] || 0) + row.premium; }); });
-    const mtdPremium = utils.premiumTotal(currentPeriodData); state.filteredData = currentPeriodData;
+    const mtdPremium = utils.premiumTotal(currentPeriodData);
     return Object.freeze({ viewData: currentPeriodData, currentPeriodData, ytdData, fullUploadData, selectedMonth, currentPeriodMonth, currentPeriodKey, currentPeriodIsUnconfigured: Boolean(currentPeriodMonth && !config.FISCAL_MONTHS.includes(currentPeriodMonth)), latestMonth: latestFiscalMonth, latestFiscalMonth, availableMonths, availableFiscalMonths, progressionMonth, elapsedMonths: progressionIndex < 0 ? null : progressionIndex + 1, ytdPremium, ytdPremiumByBank, mtdPremium, bankMonthlyPremium });
   }
 
-  function safeRender(name, renderer, argument) { if (typeof renderer !== "function") return; try { renderer(argument); } catch (error) { console.error(`${name} render failed`, error); setStatus(`${name} could not render. Other pages remain available.`, true); } }
-  function renderPage(pageId) { const context = state.context; if (pageId === "commercialPage") { safeRender("Commercial Performance", global.BancaTrackerCommercialPerformanceUI && global.BancaTrackerCommercialPerformanceUI.render); return; } if (!context) return; const renderers = { misPage: ["Performance MIS", global.renderPerformance, { ...context, derived: state.derived }], activationPage: ["Activation Cockpit", global.refreshActivation, state.derived], scorecardPage: ["Management Scorecard", global.refreshScorecard, state.derived], targetPage: ["Target & Growth", global.refreshTarget, { ...context, derived: state.derived }], productivityPage: ["Productivity & Opportunity", global.renderProductivity, state.productivity], qualityPage: ["Data Quality", global.renderDataQuality, state.dataQuality] }; const entry = renderers[pageId]; if (entry) safeRender(entry[0], entry[1], entry[2]); }
+  function safeRender(name, renderer, argument) { if (typeof renderer !== "function") return true; try { renderer(argument); return true; } catch (error) { console.error(`${name} render failed`, error); setStatus(`${name} could not render. Other pages remain available.`, true); return false; } }
+  function renderPage(pageId) { const context = state.context; if (pageId === "commercialPage") return safeRender("Commercial Performance", global.BancaTrackerCommercialPerformanceUI && global.BancaTrackerCommercialPerformanceUI.render); if (!context) return true; const renderers = { misPage: ["Performance MIS", global.renderPerformance, { ...context, derived: state.derived }], activationPage: ["Activation Cockpit", global.refreshActivation, state.derived], scorecardPage: ["Management Scorecard", global.refreshScorecard, state.derived], targetPage: ["Target & Growth", global.refreshTarget, { ...context, derived: state.derived }], productivityPage: ["Productivity & Opportunity", global.renderProductivity, state.productivity], qualityPage: ["Data Quality", global.renderDataQuality, state.dataQuality] }; const entry = renderers[pageId]; return entry ? safeRender(entry[0], entry[1], entry[2]) : true; }
   function setActivePage(pageId) { state.activePage = pageId; renderPage(pageId); }
-  function refresh() { const started = performance.now(); const context = buildContext(); const derived = global.BancaTrackerAnalytics.build(context.currentPeriodData); const productivity = global.BancaTrackerProductivity.build(context, derived, state.dataQuality); const commercialAuthority = global.BancaTrackerLiveBranchCommercialAuthority; const governedContext = global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext(); state.context = context; state.derived = derived; state.productivity = productivity; state.commercialPerformance = global.BancaTrackerCommercialPerformance ? global.BancaTrackerCommercialPerformance.buildPerformance(state.factData, commercialAuthority && commercialAuthority.getCachedContext()) : null; const periodContext = global.BancaTrackerCommercialRollups && state.commercialPerformance ? global.BancaTrackerCommercialRollups.buildPeriodContext(state.commercialPerformance) : null; state.commercialRollup = periodContext && periodContext.defaultSelectedPeriod ? global.BancaTrackerCommercialRollups.buildRollup(state.commercialPerformance, { type: "MONTH", periodKey: periodContext.defaultSelectedPeriod }, "OVERALL", governedContext) : null; renderPage(state.activePage); return performance.now() - started; }
+  function calculateRuntime(factData, filters, dataQuality) {
+    const context = buildContext(factData, filters);
+    const derived = global.BancaTrackerAnalytics.build(context.currentPeriodData);
+    const productivity = global.BancaTrackerProductivity.build(context, derived, dataQuality);
+    const commercialAuthority = global.BancaTrackerLiveBranchCommercialAuthority;
+    const governedContext = global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext();
+    const commercialPerformance = global.BancaTrackerCommercialPerformance ? global.BancaTrackerCommercialPerformance.buildPerformance(factData, commercialAuthority && commercialAuthority.getCachedContext()) : null;
+    const periodContext = global.BancaTrackerCommercialRollups && commercialPerformance ? global.BancaTrackerCommercialRollups.buildPeriodContext(commercialPerformance) : null;
+    const commercialRollup = periodContext && periodContext.defaultSelectedPeriod ? global.BancaTrackerCommercialRollups.buildRollup(commercialPerformance, { type: "MONTH", periodKey: periodContext.defaultSelectedPeriod }, "OVERALL", governedContext) : null;
+    return { filteredData: context.currentPeriodData, context, derived, productivity, commercialPerformance, commercialRollup };
+  }
+
+  function activateRuntime(runtime) {
+    Object.assign(state, runtime);
+  }
+
+  function refresh() {
+    const started = performance.now();
+    const runtime = calculateRuntime(state.factData, state.filters, state.dataQuality);
+    activateRuntime(runtime);
+    renderPage(state.activePage);
+    return performance.now() - started;
+  }
 
   function runShadowEnrichment(records) {
     Promise.resolve().then(() => {
@@ -77,7 +99,7 @@
     };
   }
 
-  function commitImport(result, authorityContext) {
+  function prepareImport(result, authorityContext) {
     const dateRows = result.rows.map(applyDateAuthority);
     const branchAuthority = global.BancaTrackerLiveBranchAuthority;
     const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority;
@@ -85,22 +107,50 @@
     const geographyAuthority = global.BancaTrackerLiveGeographyAuthority;
     const context = authorityContext || (geographyAuthority && geographyAuthority.getCachedContext()) || (hierarchyAuthority && hierarchyAuthority.getCachedContext()) || (assignmentAuthority && assignmentAuthority.getCachedContext()) || (branchAuthority && branchAuthority.getCachedContext());
     const universeAuthority = global.BancaTrackerLiveBranchUniverseAuthority;
-    state.branchUniverseAuthority = context && context.branchUniverse ||
+    const branchUniverseAuthority = context && context.branchUniverse ||
       (universeAuthority && universeAuthority.getUniverse()) || null;
     const branchRows = branchAuthority ? branchAuthority.applyRecords(dateRows, context) : dateRows;
     const assignmentRows = assignmentAuthority ? assignmentAuthority.applyRecords(branchRows, context) : branchRows;
     const hierarchyRows = hierarchyAuthority ? hierarchyAuthority.applyRecords(assignmentRows, context) : assignmentRows;
-    setStatus("Building analytics...", false); state.factData = geographyAuthority
+    const factData = geographyAuthority
       ? geographyAuthority.applyRecords(hierarchyRows, context)
-      : hierarchyRows; result.rows = state.factData; state.headerMap = result.headerMap; state.filters.month = "ALL"; state.filters.bank = "ALL";
-    const months = new Set(); const banks = new Set(); state.factData.forEach((row) => { months.add(row.month); if (row.bank) banks.add(row.bank); });
-    state.months = utils.orderMonths([...months]); state.banks = [...banks].sort(); result.summary.unconfiguredMonths = state.months.filter((month) => !config.FISCAL_MONTHS.includes(month)); state.importSummary = result.summary;
-    state.dataQuality = global.BancaTrackerDataQuality.build(state.factData, config, result.summary);
-    populateFilters(); renderImportSummary(result.summary); refresh(); setStatus(`Loaded ${utils.formatInr(state.factData.length)} records`, false); runShadowEnrichment(state.factData);
+      : hierarchyRows;
+    const monthSet = new Set(); const bankSet = new Set(); factData.forEach((row) => { monthSet.add(row.month); if (row.bank) bankSet.add(row.bank); });
+    const months = utils.orderMonths([...monthSet]); const banks = [...bankSet].sort();
+    const importSummary = { ...result.summary, rejectionReasons: { ...(result.summary.rejectionReasons || {}) }, warningReasons: { ...(result.summary.warningReasons || {}) }, unconfiguredMonths: months.filter((month) => !config.FISCAL_MONTHS.includes(month)) };
+    const dataQuality = global.BancaTrackerDataQuality.build(factData, config, importSummary);
+    const filters = { month: "ALL", bank: "ALL" };
+    const runtime = calculateRuntime(factData, filters, dataQuality);
+    return { factData, branchUniverseAuthority, headerMap: { ...(result.headerMap || {}) }, filters, months, banks, importSummary, dataQuality, ...runtime };
+  }
+
+  function activateImport(candidate) {
+    activateRuntime(candidate);
+  }
+
+  function projectImport(candidate) {
+    let projectionError = null;
+    try {
+      populateFilters(); renderImportSummary(candidate.importSummary); if (!renderPage(state.activePage)) throw new Error("The active page could not render."); setStatus(`Loaded ${utils.formatInr(candidate.factData.length)} records`, false);
+    } catch (error) {
+      projectionError = error;
+      console.error("Import projection failed", error);
+      try { setStatus("Import activated, but the screen could not fully refresh. Change a filter or reload the page to retry the view.", true); } catch (statusError) { console.error("Import projection status failed", statusError); }
+    }
+    runShadowEnrichment(candidate.factData);
+    return { projectionError };
+  }
+
+  function commitImport(result, authorityContext) {
+    setStatus("Building analytics...", false);
+    const candidate = prepareImport(result, authorityContext);
+    activateImport(candidate);
+    projectImport(candidate);
+    return { ...result, rows: candidate.factData, headerMap: candidate.headerMap, summary: candidate.importSummary };
   }
 
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
-  function loadCsvText(text) { try { const result = processSynchronously(text); commitImport(result); return result; } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
+  function loadCsvText(text) { try { const result = processSynchronously(text); return commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text) { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(event.data.stage, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
   function handleFileChange(event) { const file = event.target.files[0]; if (!file) return; if (!/\.csv$/i.test(file.name || "")) { setStatus("Unsupported file. Select a .csv file.", true); return; } const reader = new FileReader(); setStatus("Reading file...", false); reader.onload = async (loadEvent) => { const text = loadEvent.target.result; try { let result; try { result = await processWithWorker(text); } catch (workerError) { setStatus("Worker unavailable; using safe fallback...", false); result = processSynchronously(text); } const branchAuthority = global.BancaTrackerLiveBranchAuthority; const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority; const hierarchyAuthority = global.BancaTrackerLiveHierarchyAuthority; const geographyAuthority = global.BancaTrackerLiveGeographyAuthority; const commercialAuthority = global.BancaTrackerLiveBranchCommercialAuthority; const branchContext = branchAuthority ? await branchAuthority.loadContext() : null; const assignmentContext = assignmentAuthority ? await assignmentAuthority.loadContext(undefined, branchContext) : branchContext; const hierarchyContext = hierarchyAuthority ? await hierarchyAuthority.loadContext(undefined, assignmentContext) : assignmentContext; const authorityContext = geographyAuthority ? await geographyAuthority.loadContext(undefined, hierarchyContext) : hierarchyContext; if (commercialAuthority) await commercialAuthority.loadContext(); commitImport(result, authorityContext); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); } }; reader.onerror = () => setStatus("CSV read failed. The previous dataset is still available.", true); reader.readAsText(file); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }

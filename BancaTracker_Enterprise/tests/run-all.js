@@ -24,6 +24,7 @@ groups.push("step6d7-target-seasonality-ui-contract.test.js");
 groups.push("step-v861-management-bank-runtime-consolidation-contract.test.js");
 groups.push("step-v861-management-scorecard-consolidation-integration.test.js");
 groups.push("step-v861-management-bank-filter-integration.test.js");
+groups.push("step-v864-atomic-import-commit-guard.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
