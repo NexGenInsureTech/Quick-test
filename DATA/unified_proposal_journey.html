@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Sompo & PNB - Digital Proposal Journey</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0a3a60;      /* Deep PNB Blue */
+            --primary-light: #16568a;
+            --accent: #e11b22;       /* Universal Sompo / PNB Red accent */
+            --accent-bg: #fff5f5;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --border-color: #d1d5db;
+            --success: #10b981;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 0;
+        }
+
+        /* Header System */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 3px solid var(--accent);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-placeholder {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-placeholder span {
+            color: var(--accent);
+        }
+
+        .journey-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Container Layout */
+        main {
+            max-width: 1000px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Multi-Step Progress Bar */
+        .progress-container {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .progressbar {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            max-width: 100%;
+            margin: 0 auto;
+            list-style: none;
+        }
+
+        .progressbar::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 5%;
+            right: 5%;
+            height: 4px;
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            position: absolute;
+            top: 25px;
+            left: 5%;
+            width: 0%;
+            height: 4px;
+            background-color: var(--primary);
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 3px solid #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 0.5rem auto;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .step-item.active .step-circle {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: #e0f2fe;
+            box-shadow: 0 0 0 4px rgba(10, 58, 96, 0.15);
+        }
+
+        .step-item.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .step-item.completed .step-circle {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .step-item.completed .step-label {
+            color: var(--primary);
+        }
+
+        /* Master Form Card Elements */
+        .form-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 2.5rem;
+            display: none; /* Controlled via JS */
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .form-card.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2.section-title {
+            color: var(--primary);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p.section-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 1rem;
+        }
+
+        /* Form Layout Helpers */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--accent);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #fff;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10, 58, 96, 0.1);
+        }
+
+        input.error, select.error {
+            border-color: var(--accent) !important;
+            background-color: #fff8f8;
+        }
+
+        .error-message {
+            color: var(--accent);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        /* Product Selector Visual Cards */
+        .product-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .product-selector-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .product-card {
+            border: 2px solid #e5e7eb;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            background: #fff;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+        }
+
+        .product-card.selected {
+            border-color: var(--primary);
+            background-color: #f0f7ff;
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .product-card input[type="radio"] {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .product-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .product-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Interactive Switch Grid / Declarations */
+        .declaration-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .declaration-box:hover {
+            background: #f3f4f6;
+        }
+
+        .declaration-info {
+            max-width: 75%;
+        }
+
+        .declaration-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .declaration-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Toggle Switches */
+        .switch-group {
+            display: flex;
+            background: #e5e7eb;
+            padding: 0.25rem;
+            border-radius: var(--radius-md);
+            width: fit-content;
+        }
+
+        .switch-btn {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: calc(var(--radius-md) - 2px);
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+
+        .switch-btn.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Conditional Section Blocks */
+        .dynamic-product-block {
+            display: none;
+            border-top: 2px dashed #e5e7eb;
+            padding-top: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Dynamic Member Rows Styling */
+        .member-table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+        }
+
+        .member-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .member-table th {
+            background: #f8fafc;
+            color: var(--primary);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .member-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f7ff;
+        }
+
+        .btn-remove {
+            color: var(--accent);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Medical Grid Items Container */
+        .medical-checker-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            background: #fff8f8;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #fee2e2;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .medical-checker-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .medical-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #fca5a5;
+        }
+
+        .medical-label {
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        /* Premium Widget Summary Dashboard */
+        .premium-sticky-card {
+            background: radial-gradient(circle at top left, #0d4b7c, #0a3a60);
+            color: #fff;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 640px) {
+            .premium-sticky-card {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+        }
+
+        .premium-meta h3 {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .premium-amt {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #34d399;
+            line-height: 1.1;
+            margin-top: 0.25rem;
+        }
+
+        .premium-breakdown-text {
+            font-size: 0.8rem;
+            opacity: 0.75;
+        }
+
+        /* Payment Channel Options Matrix */
+        .payment-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .payment-matrix {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .payment-tile {
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .payment-tile:hover {
+            border-color: var(--primary-light);
+            background: #fff;
+        }
+
+        .payment-tile.selected {
+            border-color: var(--primary);
+            background: #e0f2fe;
+            color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .payment-tile input[type="radio"] {
+            display: none;
+        }
+
+        /* Consent Console Layout */
+        .consent-console {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .consent-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            transition: var(--transition);
+        }
+
+        .consent-row:hover {
+            background-color: #f3f4f6;
+        }
+
+        .consent-row input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .consent-text {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        /* Signature Canvas Block */
+        .signature-wrapper {
+            margin-top: 1.5rem;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            background: #fafafa;
+            text-align: center;
+        }
+
+        .canvas-container {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: var(--radius-md);
+            display: inline-block;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        canvas#sig-canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .sig-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-sm-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .btn-sm-link:hover {
+            color: var(--accent);
+        }
+
+        /* Nav Action Bars */
+        .action-bar {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-nav {
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            color: var(--text-muted);
+        }
+
+        .btn-back:hover {
+            background: #f3f4f6;
+            color: var(--text-main);
+        }
+
+        .btn-forward {
+            background: var(--primary);
+            border: 1px solid var(--primary);
+            color: #fff;
+            margin-left: auto;
+        }
+
+        .btn-forward:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-submit-proposal {
+            background: var(--success);
+            border: 1px solid var(--success);
+            color: #fff;
+            margin-left: auto;
+        }
+
+        .btn-submit-proposal:hover {
+            background: #059669;
+        }
+
+        /* Success Overlay Screen */
+        .success-screen {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #d1fae5;
+            color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .reference-no {
+            display: inline-block;
+            background: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            color: var(--primary);
+            border: 1px dashed #d1d5db;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-placeholder">PNB | <span>Universal Sompo</span></div>
+                <div class="journey-badge">Unified Proposal Console</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Multi-Step Progress Dashboard Tracker -->
+        <div class="progress-container">
+            <ul class="progressbar" id="progressbar">
+                <div class="progress-line-fill" id="progress-line-fill"></div>
+                <li class="step-item active">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Product & Profile</div>
+                </li>
+                <li class="step-item">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Policy Risk Context</div>
+                </li>
+                <li class="step-item">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Nominee & Billing</div>
+                </li>
+                <li class="step-item">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Compliance & Sign</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Master Integrated Single-Page Form Journey Object -->
+        <form id="proposalMasterForm" onsubmit="return false;" novalidate>
+            
+            <!-- STEP 1: PRODUCT SELECTION & CLIENT KYC METRICS -->
+            <div class="form-card active" data-step="1">
+                <h2 class="section-title">Product & KYC Registration</h2>
+                <p class="section-subtitle">Select your core protection instrument and finalize instant customer credentials lookup</p>
+                
+                <label class="required">Select Core Protection Product</label>
+                <div class="product-selector-grid">
+                    <div class="product-card selected" onclick="selectProductCard('health')">
+                        <input type="radio" name="product_selection" id="prod_health" value="health" checked>
+                        <span class="product-icon">🛡️</span>
+                        <div class="product-title">Group Health Insurance</div>
+                        <div class="product-desc">Comprehensive medical configurations for families and standard groupings.</div>
+                    </div>
+                    <div class="product-card" onclick="selectProductCard('credit')">
+                        <input type="radio" name="product_selection" id="prod_credit" value="credit">
+                        <span class="product-icon">📊</span>
+                        <div class="product-title">Group Credit Protection</div>
+                        <div class="product-desc">Loan and liability asset balance offsets with dynamic reduction tracking flags.</div>
+                    </div>
+                    <div class="product-card" onclick="selectProductCard('griha')">
+                        <input type="radio" name="product_selection" id="prod_griha" value="griha">
+                        <span class="product-icon">🏠</span>
+                        <div class="product-title">Bharat Griha Raksha</div>
+                        <div class="product-desc">Complete home and structure risk shielding plans with comprehensive feature add-ons.</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="pnb_customer_id" class="required">PNB Customer Relationship ID</label>
+                        <input type="text" id="pnb_customer_id" name="pnb_customer_id" placeholder="Enter 9-Digit Customer ID" required pattern="^[0-9]{9}$">
+                        <div class="error-message">Please supply a valid numeric 9-Digit Customer Identifier matching corporate files.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pan_number" class="required">Permanent Account Number (PAN)</label>
+                        <input type="text" id="pan_number" name="pan_number" placeholder="ABCDE1234F" style="text-transform: uppercase;" required pattern="^[A-Z]{5}[0-9]{4}[A-Z]{1}$">
+                        <div class="error-message">Provide a standard alphanumeric 10-character PAN syntax structural format.</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="proposer_email" class="required">Primary Email Communication Address</label>
+                        <input type="email" id="proposer_email" name="proposer_email" placeholder="client@domain.com" required>
+                        <div class="error-message">A clean, functional email structure is required for continuous certificate delivery.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="proposer_mobile" class="required">Registered Contact Mobile Number</label>
+                        <input type="text" id="proposer_mobile" name="proposer_mobile" placeholder="10-digit mobile number" required pattern="^[6-9][0-9]{9}$">
+                        <div class="error-message">Provide an operational 10-digit standard cellular connection.</div>
+                    </div>
+                </div>
+
+                <!-- KYC Compliance Matrix Elements -->
+                <div class="declaration-box">
+                    <div class="declaration-info">
+                        <div class="declaration-title">Politically Exposed Person (PEP) Status Declaration</div>
+                        <div class="declaration-desc">Identify if you or your core direct line relations occupy cross-border geopolitical administrative positions.</div>
+                    </div>
+                    <div class="switch-group">
+                        <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'pep_status', 'No')">No</button>
+                        <button type="button" class="switch-btn" onclick="setSwitchState(this, 'pep_status', 'Yes')">Yes</button>
+                        <input type="hidden" name="pep_status" id="pep_status" value="No">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: DYNAMIC CONTEXTUAL POLICY CONFIGURATIONS BASED ON STEP 1 CHANNELS -->
+            <div class="form-card" data-step="2">
+                <h2 class="section-title">Policy Coverage Details</h2>
+                <p class="section-subtitle">Provide metrics matching specific selected coverage options</p>
+
+                <!-- 2A. HEALTH SPECIFIC PORTLET BLOCK Container -->
+                <div id="block_health" class="dynamic-product-block" style="display: block;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <label style="font-size: 1.1rem; color: var(--primary);">Insured Members Configuration Panel</label>
+                        <button type="button" class="btn-secondary" onclick="addInsuredMemberRow()">➕ Add Member Row</button>
+                    </div>
+                    <div class="member-table-wrapper">
+                        <table class="member-table" id="memberTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Full Legal Name</th>
+                                    <th style="width: 25%;">Relation Metric</th>
+                                    <th style="width: 25%;">Date of Birth</th>
+                                    <th style="width: 15%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberTableBody">
+                                <tr>
+                                    <td><input type="text" name="member_name[]" class="member-input" placeholder="Primary Proposer Name" required></td>
+                                    <td>
+                                        <select name="member_relation[]" class="member-input">
+                                            <option value="Self">Self (Primary Account Holder)</option>
+                                            <option value="Spouse">Spouse</option>
+                                            <option value="Child">Dependent Child</option>
+                                            <option value="Parent">Parent</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="date" name="member_dob[]" class="member-input" required onchange="calculateDynamicPremium()"></td>
+                                    <td><button type="button" class="btn-remove" onclick="removeInsuredMemberRow(this)">Delete</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Medical Cross-Reference Array Grid -->
+                    <label style="color: var(--accent); font-weight: 700; margin-top: 1.5rem; display: block;">Medical Status Attestation Checklist (Underwriting Flags)</label>
+                    <div class="medical-checker-grid">
+                        <div class="medical-item">
+                            <span class="medical-label">Existing Illness History / Pre-existing Conditions</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_existing', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_existing', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_existing" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Ongoing Regular Prescription Medications</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_ongoing', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_ongoing', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_ongoing" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Doctor Consultant Visits (Past 4 Years)</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_doc_visit', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_doc_visit', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_doc_visit" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Inpatient Hospitalization Registry History</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_hospital', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_hospital', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_hospital" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Metabolic Indicators / Active Diabetes Diagnosis</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_diabetes', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_diabetes', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_diabetes" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Hypertension / Blood Pressure Variance Trackers</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_hyper', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_hyper', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_hyper" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Cardiac Disorder Framework History Checks</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_cardiac', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_cardiac', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_cardiac" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Oncology / Active Malignancies / Cancer Checkers</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_cancer', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_cancer', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_cancer" value="No">
+                            </div>
+                        </div>
+                        <div class="medical-item">
+                            <span class="medical-label">Renal Function Systems / Kidney Disorder Tracking</span>
+                            <div class="switch-group">
+                                <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'med_kidney', 'No')">No</button>
+                                <button type="button" class="switch-btn" onclick="setSwitchState(this, 'med_kidney', 'Yes')">Yes</button>
+                                <input type="hidden" name="med_kidney" value="No">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2B. CREDIT PROTECTION PORTLET BLOCK Container -->
+                <div id="block_credit" class="dynamic-product-block">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="credit_sum_insured_type" class="required">Sum Insured Matrix Protocol Type</label>
+                            <select id="credit_sum_insured_type" name="credit_sum_insured_type" onchange="calculateDynamicPremium()">
+                                <option value="fixed">Fixed Sum Insured Matrix (Flat Risk Track)</option>
+                                <option value="reducing">Reducing Sum Insured Architecture (Amortized Debt Profile)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="credit_base_amount" class="required">Principal Base Capital Insured Scale (INR)</label>
+                            <input type="number" id="credit_base_amount" name="credit_base_amount" value="500000" min="100000" step="50000" oninput="calculateDynamicPremium()">
+                        </div>
+                    </div>
+                    <div class="declaration-box">
+                        <div class="declaration-info">
+                            <div class="declaration-title">Standard Assignment Clause Assents (Absolute Bank Hypothecation)</div>
+                            <div class="declaration-desc">Authorizes direct claim settlement payload matching to bank line books in event of total unexpected loss parameters.</div>
+                        </div>
+                        <div class="switch-group">
+                            <button type="button" class="switch-btn" onclick="setSwitchState(this, 'assignment_clause', 'No')">No</button>
+                            <button type="button" class="switch-btn active" onclick="setSwitchState(this, 'assignment_clause', 'Yes')">Yes</button>
+                            <input type="hidden" name="assignment_clause" id="assignment_clause" value="Yes">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2C. BHARAT GRIHA RAKSHA PORTLET BLOCK Container -->
+                <div id="block_griha" class="dynamic-product-block">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="property_value" class="required">Estimated Property Structure Reconstruction Capital (INR)</label>
+                            <input type="number" id="property_value" name="property_value" value="2500000" min="500000" step="100000" oninput="calculateDynamicPremium()">
+                        </div>
+                        <div class="form-group">
+                            <label for="property_age" class="required">Age of Construction Asset (Years Range)</label>
+                            <input type="number" id="property_age" name="property_age" value="2" min="0" max="50">
+                        </div>
+                    </div>
+                    
+                    <label style="font-size: 1rem; color: var(--primary); font-weight:700; margin: 1.5rem 0 0.5rem 0; display:block;">Optional Framework Endorsement Cover Elements</label>
+                    <div class="grid-3" id="griha_addons">
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_debris" checked onchange="calculateDynamicPremium()"> Debris Removal Costs Cover</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_tenant" onchange="calculateDynamicPremium()"> Tenant Liability Protections</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_accidental" onchange="calculateDynamicPremium()"> Accidental Damage Extensions</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_emi" onchange="calculateDynamicPremium()"> EMI Shield Protection Support</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_purchase" onchange="calculateDynamicPremium()"> Purchase Protection Riders</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_utility" onchange="calculateDynamicPremium()"> Utility Emergency Expenses</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_garden" onchange="calculateDynamicPremium()"> Garden & Landscaping Covers</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="griha_opt_pa" checked onchange="calculateDynamicPremium()"> Personal Accident Add-On</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: BENEFICIARY ASSIGNMENT & REAL-TIME PREMIUM ACCOUNT ROUTING -->
+            <div class="form-card" data-step="3">
+                <h2 class="section-title">Nominee Alignment & Premium Processing</h2>
+                <p class="section-subtitle">Establish lawful estate claims and evaluate live localized tax configurations</p>
+                
+                <!-- Live Real-Time Interactive Pricing Engine Card -->
+                <div class="premium-sticky-card">
+                    <div class="premium-meta">
+                        <h3>Estimated Policy Risk Premium Setup</h3>
+                        <div class="premium-amt" id="display_premium_amt">₹ 4,750</div>
+                        <div class="premium-breakdown-text" id="display_premium_breakdown">Includes base calculations + mandatory 18% Central/State Integrated GST.</div>
+                    </div>
+                    <div>
+                        <div style="background: rgba(255,255,255,0.15); padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size:0.85rem; font-weight:600;">
+                            ⚡ Real-time Dynamic Processing
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="nominee_name" class="required">Legal Nominee Full Name</label>
+                        <input type="text" id="nominee_name" name="nominee_name" placeholder="Beneficiary Estate Name" required>
+                        <div class="error-message">Nominee reference is legally mandatory for estate transition matching rules.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nominee_relation" class="required">Relationship to Proposer</label>
+                        <select id="nominee_relation" name="nominee_relation">
+                            <option value="Spouse">Spouse</option>
+                            <option value="Child">Son / Daughter</option>
+                            <option value="Parent">Mother / Father</option>
+                            <option value="Sibling">Brother / Sister</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nominee_age" class="required">Nominee Age (Years)</label>
+                        <input type="number" id="nominee_age" name="nominee_age" value="32" min="1" max="120" oninput="toggleAppointeeBlock()">
+                    </div>
+                </div>
+
+                <!-- Minor Nominee Safeguard Appointee Block Structure Logic -->
+                <div id="block_minor_appointee" style="display:none; background:#f0fdf4; border: 1px dashed #22c55e; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    <label style="color:#15803d; font-weight:700; margin-bottom: 0.5rem; display:block;">⚠️ Appointee Requirements Engine (Minor Asset Management Rules)</label>
+                    <p style="font-size:0.85rem; color:#166534; margin-bottom:1rem;">Nominees below legal limits (18 years) require a valid adult appointee custodian framework reference.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="appointee_name" class="required">Appointee Guardian Full Name</label>
+                            <input type="text" id="appointee_name" name="appointee_name" placeholder="Legal Adult Custodian Name">
+                            <div class="error-message">Adult Appointee details are mandatory when Nominee age registers beneath legal thresholds.</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="appointee_relation">Guardian Relationship Link</label>
+                            <input type="text" id="appointee_relation" name="appointee_relation" placeholder="e.g. Uncle, Grandparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Routing Configuration Deck -->
+                <label class="required" style="margin-top: 1rem; display:block;">Preferred Funding Settlement Channel Gateway</label>
+                <div class="payment-matrix">
+                    <div class="payment-tile selected" onclick="selectPaymentTile(this)">
+                        <input type="radio" name="payment_channel" value="upi" checked>
+                        <div>UPI Network</div>
+                    </div>
+                    <div class="payment-tile" onclick="selectPaymentTile(this)">
+                        <input type="radio" name="payment_channel" value="netbanking">
+                        <div>Net Banking</div>
+                    </div>
+                    <div class="payment-tile" onclick="selectPaymentTile(this)">
+                        <input type="radio" name="payment_channel" value="debit">
+                        <div>Debit Card</div>
+                    </div>
+                    <div class="payment-tile" onclick="selectPaymentTile(this)">
+                        <input type="radio" name="payment_channel" value="credit">
+                        <div>Credit Card</div>
+                    </div>
+                    <div class="payment-tile" onclick="selectPaymentTile(this)">
+                        <input type="radio" name="payment_channel" value="cheque">
+                        <div>Bank Cheque</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: REGULATORY CONSENTS & LEGAL BIOMETRIC SIGNING CANVAS -->
+            <div class="form-card" data-step="4">
+                <h2 class="section-title">Compliance & Digital Execution</h2>
+                <p class="section-subtitle">Review verification checkpoints to securely pass statutory criteria</p>
+
+                <div class="consent-console">
+                    <div class="consent-row">
+                        <input type="checkbox" id="chk_ckyc" name="consent_ckyc" required>
+                        <div class="consent-text">
+                            <label for="chk_ckyc" class="required">Statutory Centralized KYC (CKYC) Processing Consent Authorization</label>
+                            I hereby grant explicit legal allowance to retrieve and cross-map records across repositories for fast onboarding assertions.
+                        </div>
+                    </div>
+                    <div class="consent-row">
+                        <input type="checkbox" id="chk_aml" name="consent_aml" required>
+                        <div class="consent-text">
+                            <label for="chk_aml" class="required">Anti-Money Laundering (AML) Compliance Self-Declaration Statement</label>
+                            I confirm capital deployed originates through checked legal trade lines and complies with Prevention of Money Laundering mandates.
+                        </div>
+                    </div>
+                    <div class="consent-row">
+                        <input type="checkbox" id="chk_privacy" name="consent_privacy" required>
+                        <div class="consent-text">
+                            <label for="chk_privacy" class="required">Data Processing & Information Privacy Protection Guidelines Agreement</label>
+                            Assent to modern operational parsing routines to handle underlying underwriting factors securely.
+                        </div>
+                    </div>
+                    <div class="consent-row">
+                        <input type="checkbox" id="chk_electronic" name="consent_electronic" required>
+                        <div class="consent-text">
+                            <label for="chk_electronic" class="required">Paperless Digital Electronic Policy Pack Delivery Direct Option</label>
+                            Instruct the company to route legal contracts purely inside digital vaults, bypassing environmental print overheads.
+                        </div>
+                    </div>
+                    <div class="consent-row">
+                        <input type="checkbox" id="chk_omni" name="consent_omnichannel" checked>
+                        <div class="consent-text">
+                            <label for="chk_omni">Omnichannel Update Subscriptions Configuration (SMS, Email, WhatsApp Integration)</label>
+                            Maintain automated transactional ping networks across secure channels for active alert states.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signature Capture Mechanics Section -->
+                <div class="signature-wrapper">
+                    <label class="required" style="margin-bottom: 0.5rem; display:block;">Secure Finger-Touch/Mouse E-Signature Capture Frame Pad</label>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Sign below to bind your declaration responses legally to this application file.</p>
+                    <div class="canvas-container">
+                        <canvas id="sig-canvas" width="450" height="150"></canvas>
+                    </div>
+                    <div class="sig-actions">
+                        <button type="button" class="btn-sm-link" onclick="clearSignatureCanvas()">Clear Signature Path Grid</button>
+                    </div>
+                    <input type="hidden" id="signature_captured_data" name="signature_data" required>
+                    <div class="error-message" id="sig-error-msg" style="text-align:center;">You must provide an authenticated verification mark path trajectory signature block.</div>
+                </div>
+            </div>
+
+            <!-- MASTER NAVIGATION ELEMENT COMPONENT CONTROL BAR -->
+            <div class="action-bar">
+                <button type="button" class="btn-nav btn-back" id="btnPrev" style="display: none;" onclick="navigateStep(-1)">◀ Return Back</button>
+                <button type="button" class="btn-nav btn-forward" id="btnNext" onclick="navigateStep(1)">Proceed Next ▶</button>
+                <button type="button" class="btn-nav btn-submit-proposal" id="btnSubmit" style="display: none;" onclick="executeFinalSubmit()">Finalize & Submit Proposal ✔</button>
+            </div>
+
+        </form>
+
+        <!-- TRANSACTION SUCCESS CONSOLE CARD (POST SUBMISSION OVERLAY UI) -->
+        <div class="form-card" id="successDashboard" style="display:none; text-align: center;">
+            <div class="success-screen">
+                <div class="success-icon">✓</div>
+                <h2 style="color: var(--primary); font-size:1.8rem; font-weight:700;">Proposal Docket Transmitted Successfully!</h2>
+                <p style="color: var(--text-muted); margin: 0.5rem 0 1.5rem 0;">Your application matrix has successfully routed through PNB & Universal Sompo automated dynamic validation checkpoints.</p>
+                
+                <div>Core Docket Transaction Reference ID Token:</div>
+                <div class="reference-no" id="generated_ref_id">US-PNB-8972415-X</div>
+                
+                <p style="font-size:0.9rem; color: var(--text-muted); max-width:600px; margin: 1.5rem auto 0 auto;">
+                    An electronic policy schedule document layout package and confirmation receipt link arrays have been synchronized to your registered primary email address and secure mobile contact numbers.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- UI Interaction Engine Script Core Functions Logic -->
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        let selectedProduct = 'health';
+
+        // Canvas Binding Context Parameters
+        let canvas = document.getElementById('sig-canvas');
+        let ctx = canvas.getContext('2d');
+        let drawing = false;
+        let sigHasPoints = false;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Setup canvas touch/mouse tracking hooks
+            initSignatureCapture();
+            // Trigger dynamic matrix calculations
+            calculateDynamicPremium();
+        });
+
+        // Product Selector Element Visual Actions Mapping
+        function selectProductCard(productType) {
+            selectedProduct = productType;
+            
+            // Toggle visual class active tokens
+            document.querySelectorAll('.product-card').forEach(card => card.classList.remove('selected'));
+            const selectedCard = document.getElementById(`prod_${productType}`).closest('.product-card');
+            selectedCard.classList.add('selected');
+            document.getElementById(`prod_${productType}`).checked = true;
+
+            // Manage conditional visibility layout nodes
+            document.querySelectorAll('.dynamic-product-block').forEach(block => block.style.display = 'none');
+            document.getElementById(`block_${productType}`).style.display = 'block';
+
+            calculateDynamicPremium();
+        }
+
+        // Generic Switch Selector Module State Swapper
+        function setSwitchState(buttonElement, trackingInputId, selectionValue) {
+            const container = buttonElement.closest('.switch-group');
+            container.querySelectorAll('.switch-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+            
+            // Set state inside hidden tracking fields
+            const hiddenInput = container.querySelector(`input[type="hidden"]`) || document.getElementById(trackingInputId);
+            if(hiddenInput) hiddenInput.value = selectionValue;
+        }
+
+        // Dynamic Payment Tile Deck Toggler
+        function selectPaymentTile(tileElement) {
+            document.querySelectorAll('.payment-tile').forEach(t => t.classList.remove('selected'));
+            tileElement.classList.add('selected');
+            tileElement.querySelector('input[type="radio"]').checked = true;
+        }
+
+        // Member Management Row Expansion Matrix
+        function addInsuredMemberRow() {
+            const body = document.getElementById('memberTableBody');
+            const rowCount = body.rows.length;
+            if(rowCount >= 6) {
+                alert("Maximum group coverage rules capping threshold limited to 6 members total.");
+                return;
+            }
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" name="member_name[]" class="member-input" placeholder="Dependent Full Name" required></td>
+                <td>
+                    <select name="member_relation[]" class="member-input">
+                        <option value="Spouse">Spouse</option>
+                        <option value="Child">Dependent Child</option>
+                        <option value="Parent">Parent</option>
+                    </select>
+                </td>
+                <td><input type="date" name="member_dob[]" class="member-input" required onchange="calculateDynamicPremium()"></td>
+                <td><button type="button" class="btn-remove" onclick="removeInsuredMemberRow(this)">Delete</button></td>
+            `;
+            body.appendChild(tr);
+            calculateDynamicPremium();
+        }
+
+        function removeInsuredMemberRow(buttonElement) {
+            const row = buttonElement.closest('tr');
+            const body = document.getElementById('memberTableBody');
+            if(body.rows.length <= 1) {
+                alert("Primary Proposer element record row is mandatory for health underwriting execution workflows.");
+                return;
+            }
+            row.remove();
+            calculateDynamicPremium();
+        }
+
+        // Minor Protection System Toggler
+        function toggleAppointeeBlock() {
+            const ageInput = document.getElementById('nominee_age');
+            const appointeeBlock = document.getElementById('block_minor_appointee');
+            const nameInput = document.getElementById('appointee_name');
+            
+            if(parseInt(ageInput.value) < 18) {
+                appointeeBlock.style.display = 'block';
+                nameInput.setAttribute('required', 'required');
+            } else {
+                appointeeBlock.style.display = 'none';
+                nameInput.removeAttribute('required');
+            }
+        }
+
+        // Real-Time Core Mathematical Underwriting Premium Matrix Processor Engine
+        function calculateDynamicPremium() {
+            let basePremium = 3500; // Base constant baseline value
+
+            if (selectedProduct === 'health') {
+                // Calculation base scaled against member table row quantities
+                const rows = document.getElementById('memberTableBody').rows.length;
+                basePremium = rows * 2200;
+            } 
+            else if (selectedProduct === 'credit') {
+                const amount = parseFloat(document.getElementById('credit_base_amount').value) || 0;
+                const type = document.getElementById('credit_sum_insured_type').value;
+                const factor = type === 'fixed' ? 0.0015 : 0.0011; // Tier adjusted factor metrics
+                basePremium = Math.max(1200, amount * factor);
+            } 
+            else if (selectedProduct === 'griha') {
+                const propVal = parseFloat(document.getElementById('property_value').value) || 0;
+                basePremium = propVal * 0.0008; // structural rate risk multi-pliers
+                
+                // Addon aggregation processing loops
+                const addons = document.querySelectorAll('#griha_addons input[type="checkbox"]:checked');
+                basePremium += (addons.length * 350);
+            }
+
+            // Central / State Statutory Component Pricing Extensions
+            let gstComponent = basePremium * 0.18;
+            let finalGrossTotal = Math.round(basePremium + gstComponent);
+
+            // Print outputs into UI target points
+            document.getElementById('display_premium_amt').innerText = `₹ ${finalGrossTotal.toLocaleString('en-IN')}`;
+            document.getElementById('display_premium_breakdown').innerText = 
+                `Net Underwritten Risk Capital: ₹${Math.round(basePremium).toLocaleString('en-IN')} | Integrated GST Tax (18% Statutory Scale): ₹${Math.round(gstComponent).toLocaleString('en-IN')}`;
+        }
+
+        // Client-Side Active Screen Field Checker Workflow Elements Validation
+        function validateActiveStepFields(step) {
+            const currentCard = document.querySelector(`.form-card[data-step="${step}"]`);
+            if(!currentCard) return true;
+
+            let isStepValid = true;
+
+            // 1. Process basic standard inputs native validation hooks
+            const standardInputs = currentCard.querySelectorAll('input[required], select[required]');
+            standardInputs.forEach(input => {
+                // Clear active states
+                input.classList.remove('error');
+                const grp = input.closest('.form-group');
+                if(grp) {
+                    const errMsg = grp.querySelector('.error-message');
+                    if(errMsg) errMsg.style.display = 'none';
+                }
+
+                if(!input.checkValidity()) {
+                    isStepValid = false;
+                    input.classList.add('error');
+                    if(grp) {
+                        const errMsg = grp.querySelector('.error-message');
+                        if(errMsg) errMsg.style.display = 'block';
+                    }
+                }
+            });
+
+            // 2. Specific workflow validation matrices checks
+            if(step === 2 && selectedProduct === 'health') {
+                // Scan individual inputs nested deep within health member arrays
+                const tableInputs = currentCard.querySelectorAll('.member-input');
+                tableInputs.forEach(input => {
+                    input.classList.remove('error');
+                    if(input.hasAttribute('required') && !input.value.trim()) {
+                        isStepValid = false;
+                        input.classList.add('error');
+                    }
+                });
+            }
+
+            if(step === 4) {
+                // Verify legal compliance document validation marks checkboxes
+                const requiredCheckboxes = currentCard.querySelectorAll('input[type="checkbox"][required]');
+                requiredCheckboxes.forEach(chk => {
+                    const row = chk.closest('.consent-row');
+                    if(row) row.style.border = '1px solid #e5e7eb';
+                    
+                    if(!chk.checked) {
+                        isStepValid = false;
+                        if(row) row.style.border = '1px solid var(--accent)';
+                    }
+                });
+
+                // Verify structural data validation path maps exist on e-signature canvas lines
+                const sigError = document.getElementById('sig-error-msg');
+                sigError.style.display = 'none';
+                if(!sigHasPoints) {
+                    isStepValid = false;
+                    sigError.style.display = 'block';
+                } else {
+                    // Inject graphic payload markers string directly into input nodes tracking targets
+                    document.getElementById('signature_captured_data').value = canvas.toDataURL();
+                }
+            }
+
+            if(!isStepValid) {
+                // Auto scroll smoothly viewport focus directly to the top error context boundary
+                const firstError = currentCard.querySelector('.error, .error-message[style*="block"]');
+                if(firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            return isStepValid;
+        }
+
+        // Multi-Step Layout Orchestration Module Navigation Controls
+        function navigateStep(direction) {
+            // Run systemic validation filters when advancing forward across index boundaries
+            if(direction === 1 && !validateActiveStepFields(currentStep)) {
+                return; // Cease movement operations until errors vanish
+            }
+
+            currentStep += direction;
+            if(currentStep < 1) currentStep = 1;
+            if(currentStep > totalSteps) currentStep = totalSteps;
+
+            // Render current target display configuration structures
+            document.querySelectorAll('.form-card').forEach(card => card.classList.remove('active'));
+            document.querySelector(`.form-card[data-step="${currentStep}"]`).classList.add('active');
+
+            updateProgressDashboardIndicators();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Synchronize Progress Steps Tracking UI Dashboard Anchors
+        function updateProgressDashboardIndicators() {
+            const steps = document.querySelectorAll('#progressbar .step-item');
+            steps.forEach((step, idx) => {
+                step.classList.remove('active', 'completed');
+                if(idx + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if(idx + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+
+            // Adjust underlying geometric percentage fillers tracking markers
+            const progressFillWidth = ((currentStep - 1) / (totalSteps - 1)) * 90;
+            document.getElementById('progress-line-fill').style.width = `${progressFillWidth}%`;
+
+            // Interface Control Button Visibility State Machine Logic
+            document.getElementById('btnPrev').style.display = currentStep === 1 ? 'none' : 'inline-flex';
+            if(currentStep === totalSteps) {
+                document.getElementById('btnNext').style.display = 'none';
+                document.getElementById('btnSubmit').style.display = 'inline-flex';
+            } else {
+                document.getElementById('btnNext').style.display = 'inline-flex';
+                document.getElementById('btnSubmit').style.display = 'none';
+            }
+        }
+
+        // Signature Grid Interaction Capture Implementation Mechanics Engine
+        function initSignatureCapture() {
+            ctx.strokeStyle = "#0a3a60";
+            ctx.lineWidth = 2.5;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+
+            // Mouse handling binding arrays hooks
+            canvas.addEventListener("mousedown", (e) => {
+                drawing = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            });
+            canvas.addEventListener("mousemove", (e) => {
+                if(!drawing) return;
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                sigHasPoints = true;
+            });
+            window.addEventListener("mouseup", () => { drawing = false; });
+
+            // Mobile tactile screen gesture touch framework compatibility overrides
+            canvas.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                drawing = true;
+                ctx.beginPath();
+                ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            }, { passive: false });
+
+            canvas.addEventListener("touchmove", (e) => {
+                e.preventDefault();
+                if(!drawing) return;
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx.stroke();
+                sigHasPoints = true;
+            }, { passive: false });
+
+            canvas.addEventListener("touchend", () => { drawing = false; });
+        }
+
+        function clearSignatureCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            sigHasPoints = false;
+            document.getElementById('signature_captured_data').value = "";
+        }
+
+        // Transmit Proposal Payload Form Core Execution Pipeline Hook Routine
+        function executeFinalSubmit() {
+            if(!validateActiveStepFields(currentStep)) return;
+
+            // Generate real random operational application tracking strings tokens arrays
+            const confirmationToken = `US-PNB-${Math.floor(1000000 + Math.random() * 9000000)}-IN`;
+            document.getElementById('generated_ref_id').innerText = confirmationToken;
+
+            // Hide configuration workflows controls and display summary console dashboards overlays
+            document.getElementById('proposalMasterForm').style.display = 'none';
+            document.getElementById('progressbar').closest('.progress-container').style.display = 'none';
+            document.getElementById('successDashboard').style.display = 'block';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
