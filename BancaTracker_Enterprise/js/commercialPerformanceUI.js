@@ -21,12 +21,30 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   let lastExecutionResult = null;
   let lastExecutionStatus = null;
   let lastExecutionPriority = null;
+  let lastBranchExecutionWorklist = null;
   let lastExecutionContext = null;
   let lastExecutionDrilldown = null;
   let lastDriverAnalysis = null;
 
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
+  const BRANCH_WORKLIST_LIMIT = 100;
+  const BRANCH_WORKLIST_COLUMNS = Object.freeze([
+    { key: "periodKey", label: "Period" }, { key: "bankId", label: "Bank ID" }, { key: "canonicalBank", label: "Bank" },
+    { key: "branchId", label: "Branch ID" }, { key: "branchName", label: "Branch" },
+    { key: "stateId", label: "State ID" }, { key: "stateName", label: "State" }, { key: "zoneId", label: "Zone ID" }, { key: "zoneName", label: "Zone" },
+    { key: "assignedRmId", label: "Assigned RM ID" }, { key: "assignedRmName", label: "Assigned RM" },
+    { key: "asmId", label: "ASM ID" }, { key: "asmName", label: "ASM" }, { key: "zsmId", label: "ZSM ID" }, { key: "zsmName", label: "ZSM" },
+    { key: "ownershipBasis", label: "Ownership Basis" },
+    { key: "actualPremium", label: "Actual Premium" }, { key: "budget", label: "Budget" }, { key: "potential", label: "Potential" },
+    { key: "achievementPct", label: "Achievement %" }, { key: "budgetGap", label: "Budget Gap" }, { key: "budgetRemaining", label: "Budget Remaining" },
+    { key: "potentialPenetrationPct", label: "Potential Penetration %" }, { key: "potentialGap", label: "Potential Gap" },
+    { key: "commercialStatus", label: "Commercial Status" }, { key: "referenceStatus", label: "Reference Status" },
+    { key: "maturityBand", label: "Maturity Band" }, { key: "active", label: "Active" }, { key: "nearActive", label: "Near Active" },
+    { key: "activationGap", label: "Activation Gap" }, { key: "nextMaturityThreshold", label: "Next Maturity Threshold" },
+    { key: "maturityGap", label: "Next Maturity Gap" }, { key: "strategyObjective", label: "Strategy Objective" }, { key: "executionCue", label: "Execution Cue" },
+    { key: "priorityRank", label: "Priority Rank" }, { label: "Priority Reasons", value: (row) => Array.isArray(row.priorityReasons) ? row.priorityReasons.join("; ") : "" },
+  ]);
   function ensureMaturityMarkup() {
     const page = element("commercialPage");
     if (!page || element("maturityHeading") || typeof page.insertAdjacentHTML !== "function") return;
@@ -374,6 +392,98 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const rows = priorityResult.executionPriority.map((row) => `<tr data-priority-key="${escape(row.key)}"><td><span class="commercial-priority-rank">${row.priorityRank}</span></td><td><button type="button" class="commercial-drilldown-select commercial-priority-drilldown-select" aria-label="Drill down into ${escape(row.label)}" data-parent-key="${escape(row.key)}" data-parent-label="${escape(row.label)}"><span class="commercial-priority-drilldown-label">${escape(row.label)}</span><span class="commercial-priority-drilldown-cue" aria-hidden="true">›</span></button></td><td>${escape(money(row.priorityBasis.projectedShortfallAmount))}</td><td>${escape(money(row.priorityBasis.paceGapMagnitude))}</td><td>${escape(money(row.priorityBasis.budget))}</td><td>${escape(statusLabel(row.sourceStatus.paceStatus))}</td><td>${escape(statusLabel(row.sourceStatus.projectionStatus))}</td><td>Execution attention</td></tr>`).join("");
     container.innerHTML = `<table><thead><tr><th>Rank</th><th>${escape(dimensionLabels[state.execution.dimension])}</th><th>Projected Shortfall</th><th>Pace Gap Magnitude</th><th>Budget</th><th>Pace</th><th>Projection</th><th>Attention</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+
+  function blank(value, formatter) { return value === null || value === undefined ? "" : formatter ? formatter(value) : String(value); }
+  function worklistDiagnosticLabel(code) { return String(code || "UNKNOWN_DIAGNOSTIC").replace(/_/g, " ").toLowerCase().replace(/^./, (value) => value.toUpperCase()); }
+  function renderBranchExecutionWorklist(result = lastBranchExecutionWorklist, notes = []) {
+    const readiness = element("branchExecutionWorklistReadiness");
+    const diagnostics = element("branchExecutionWorklistDiagnostics");
+    const count = element("branchExecutionWorklistCount");
+    const table = element("branchExecutionWorklistTable");
+    const exportButton = element("branchExecutionWorklistExport");
+    const status = result && result.status || "NO_ROWS";
+    const validRows = result && Array.isArray(result.rows) ? result.rows : [];
+    exportButton.disabled = !["READY", "PARTIAL"].includes(status) || !validRows.length;
+    if (!result) {
+      const blocked = notes.length > 0;
+      readiness.innerHTML = blocked ? `<span class="commercial-status">INVALID INPUT</span> Canonical worklist scope could not be verified.` : `<span class="commercial-status">NO ROWS</span> No governed worklist is available.`;
+      diagnostics.textContent = notes.join(" · "); count.textContent = ""; table.innerHTML = blocked ? `<p class="empty-state">The worklist is unavailable until canonical scope can be proven.</p>` : `<p class="empty-state">No governed branch execution rows are available.</p>`;
+      return null;
+    }
+    const reconciliation = result.reconciliation || {};
+    const statusClass = status === "READY" ? " commercial-status-ready" : status === "PARTIAL" ? " commercial-status-partial" : "";
+    readiness.innerHTML = `<span class="commercial-status${statusClass}">${escape(status.replace(/_/g, " "))}</span>${escape(result.scope.periodKey || "No period")} · ${escape(result.scope.bankKey || "All banks")}<br><span class="scorecard-note">Population: ${reconciliation.scopedPopulationCount || 0} · Ranked: ${reconciliation.identifiedRankedCount || 0} · Unranked: ${reconciliation.identifiedUnrankedCount || 0} · Excluded: ${reconciliation.excludedCount || 0} · Signed Actual: ${escape(blank(reconciliation.scopedActual, money))}</span>`;
+    const diagnosticLabels = (result.diagnostics || []).map((item) => worklistDiagnosticLabel(item.code));
+    diagnostics.textContent = [...new Set([...notes, ...diagnosticLabels])].join(" · ");
+    if (status === "INVALID_INPUT") {
+      count.textContent = ""; table.innerHTML = `<p class="empty-state">The worklist is unavailable because canonical scope, identity, or financial reconciliation could not be verified.</p>`; return result;
+    }
+    if (status === "NO_ROWS" || !validRows.length) {
+      count.textContent = ""; table.innerHTML = `<p class="empty-state">No governed commercial branch-period rows are available for this scope.</p>`; return result;
+    }
+    const visible = validRows.slice(0, BRANCH_WORKLIST_LIMIT);
+    count.textContent = validRows.length > visible.length ? `Showing first ${visible.length} of ${validRows.length} rows. Full CSV includes all rows.` : `Showing all ${visible.length} rows.`;
+    const body = visible.map((row) => `<tr data-branch-id="${escape(row.branchId)}"><td>${escape(blank(row.priorityRank))}</td><td>${escape(blank(row.branchName || row.branchId))}</td><td>${escape(blank(row.canonicalBank))}</td><td>${escape(blank(row.stateName))}</td><td>${escape(blank(row.zoneName))}</td><td>${escape(blank(row.assignedRmName))}</td><td>${escape(blank(row.asmName))}</td><td>${escape(blank(row.zsmName))}</td><td>${escape(blank(row.ownershipBasis))}</td><td class="${semanticClass(row.actualPremium)}">${escape(blank(row.actualPremium, money))}</td><td>${escape(blank(row.budget, money))}</td><td>${escape(blank(row.potential, money))}</td><td class="${semanticClass(row.budgetGap)}">${escape(blank(row.budgetGap, signedMoney))}</td><td class="${semanticClass(row.potentialGap)}">${escape(blank(row.potentialGap, signedMoney))}</td><td>${escape(blank(row.maturityBand))}</td><td>${escape(blank(row.active, (value) => value ? "TRUE" : "FALSE"))}</td><td>${escape(blank(row.nearActive, (value) => value ? "TRUE" : "FALSE"))}</td><td>${escape(blank(row.strategyObjective))}</td><td>${escape(blank(row.activationGap, money))}</td><td>${escape(blank(row.maturityGap, money))}</td><td>${escape(blank(row.executionCue))}</td><td>${escape(Array.isArray(row.priorityReasons) ? row.priorityReasons.join("; ") : "")}</td></tr>`).join("");
+    table.innerHTML = `<table><thead><tr><th>Priority</th><th>Branch</th><th>Bank</th><th>State</th><th>Zone</th><th>Assigned RM</th><th>ASM</th><th>ZSM</th><th>Ownership Basis</th><th>Actual</th><th>Budget</th><th>Potential</th><th>Budget Gap</th><th>Potential Gap</th><th>Maturity</th><th>Active</th><th>Near Active</th><th>Strategy</th><th>Activation Gap</th><th>Next-band Gap</th><th>Execution Cue</th><th>Priority Reasons</th></tr></thead><tbody>${body}</tbody></table>`;
+    return result;
+  }
+
+  function resolveSelectedBankScope(coreState) {
+    const selectedBank = coreState && coreState.filters && coreState.filters.bank;
+    if (selectedBank === "ALL") return Object.freeze({ valid: true, bankKey: null, reason: null });
+    if (typeof selectedBank !== "string" || !selectedBank.trim()) return Object.freeze({ valid: false, bankKey: null, reason: "SELECTION_INVALID" });
+    const context = coreState && coreState.context;
+    const facts = context && Array.isArray(context.fullUploadData) ? context.fullUploadData : [];
+    if (!facts.length) return Object.freeze({ valid: false, bankKey: null, reason: "EMPTY_SCOPE" });
+    const bankIds = new Set();
+    for (const fact of facts) {
+      if (!fact || fact.bank !== selectedBank) return Object.freeze({ valid: false, bankKey: null, reason: "INCONSISTENT_SCOPE" });
+      if (typeof fact.bankId !== "string" || !fact.bankId.trim()) return Object.freeze({ valid: false, bankKey: null, reason: "BANK_ID_MISSING" });
+      bankIds.add(fact.bankId);
+    }
+    if (bankIds.size !== 1) return Object.freeze({ valid: false, bankKey: null, reason: "BANK_ID_CONFLICT" });
+    return Object.freeze({ valid: true, bankKey: [...bankIds][0], reason: null });
+  }
+
+  function buildBranchExecutionWorklist(performance, priority) {
+    const authority = global.BancaTrackerBranchExecutionWorklist;
+    const coreState = global.BancaTrackerCore && global.BancaTrackerCore.state;
+    if (!authority || !coreState || !state.execution.selectedPeriod) {
+      lastBranchExecutionWorklist = null; renderBranchExecutionWorklist(null); return null;
+    }
+    const provenance = authority.buildProductivityProvenance(coreState.context);
+    const bankScope = resolveSelectedBankScope(coreState);
+    const bankSelected = coreState.filters && coreState.filters.bank !== "ALL";
+    const bankKey = bankScope.bankKey;
+    if (!bankScope.valid) {
+      lastBranchExecutionWorklist = null;
+      renderBranchExecutionWorklist(null, ["Selected bank scope has no proven canonical bank ID."]);
+      return null;
+    }
+    const priorityCompatible = state.execution.dimension === "BRANCH" && bankKey === null && priority && ["READY", "PARTIAL"].includes(priority.status) && priority.rankingApplicable === true && priority.periodKey === state.execution.selectedPeriod && priority.dimension === "BRANCH";
+    const notes = [];
+    if (state.execution.dimension !== "BRANCH") notes.push("Select Branch execution dimension to include governed branch ranks.");
+    else if (bankKey !== null) notes.push("Bank-scoped priority is unavailable because the priority authority has no canonical bank-scope provenance.");
+    if (provenance && provenance.status === "INVALID" && !bankSelected) notes.push("All-bank strategy is unavailable because multi-bank strategy scope cannot be proven.");
+    if (provenance && provenance.status === "INVALID" && bankSelected) notes.push("Strategy enrichment is unavailable because current Productivity provenance is invalid.");
+    if (provenance && provenance.periodKey !== state.execution.selectedPeriod) notes.push("Current-period strategy is unavailable for the selected historical execution month.");
+    lastBranchExecutionWorklist = authority.buildWorklist({
+      periodKey: state.execution.selectedPeriod,
+      bankKey,
+      commercialPerformanceResult: performance,
+      productivityResult: coreState.productivity || null,
+      productivityProvenance: provenance,
+      executionPriorityResult: priorityCompatible ? priority : null,
+    });
+    renderBranchExecutionWorklist(lastBranchExecutionWorklist, notes);
+    return lastBranchExecutionWorklist;
+  }
+
+  function exportBranchExecutionWorklist() {
+    const result = lastBranchExecutionWorklist;
+    if (!result || !["READY", "PARTIAL"].includes(result.status) || !result.rows.length || !global.BancaTrackerCsvExport) return null;
+    return downloadExport(result.rows, BRANCH_WORKLIST_COLUMNS, "branch-execution-worklist", [result.scope.periodKey], result.scope.bankKey ? `bank-${result.scope.bankKey}` : "all-banks");
+  }
   function clearExecutionDrilldown(message = "Select an execution entity to view governed child context.") {
     state.execution.drilldown = { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null };
     lastExecutionDrilldown = null;
@@ -513,7 +623,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
   function renderExecution(periodContext, performance, authorityContext, forceDefaultAsOf = false) {
     if (!global.BancaTrackerCommercialExecution) return null;
     resolveExecutionState(periodContext, forceDefaultAsOf); renderExecutionControls(periodContext);
-    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available."); return null; }
+    if (!state.execution.selectedPeriod) { lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastBranchExecutionWorklist = null; lastExecutionContext = null; renderExecutionReadiness(null); element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); renderBranchExecutionWorklist(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available."); return null; }
     const common = { facts: global.BancaTrackerCore.state.factData || [], performanceResult: performance, periodContext, selectedPeriod: state.execution.selectedPeriod, asOfDay: state.execution.asOfDay, authorityContext };
     const overall = global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: "OVERALL" });
     const table = state.execution.dimension === "OVERALL" ? overall : global.BancaTrackerCommercialExecution.buildExecution({ ...common, dimension: state.execution.dimension });
@@ -522,6 +632,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const priority = global.BancaTrackerCommercialExecutionPriority && statusTable && global.BancaTrackerCommercialExecutionPriority.buildPriority(table, statusTable);
     lastExecutionResult = table; lastExecutionStatus = statusTable || null; lastExecutionPriority = priority || null; lastExecutionContext = common;
     renderExecutionReadiness(table); renderExecutionKpis(overall); renderExecutionStatusSummary(statusOverall, statusTable); renderExecutionTable(table, statusTable); renderExecutionPriority(priority);
+    const worklist = buildBranchExecutionWorklist(performance, priority);
     const selected = state.execution.drilldown;
     if (selected.parentKey) {
       if (selected.parentDimension !== state.execution.dimension || !table.rows.some((row) => row.key === selected.parentKey)) clearExecutionDrilldown("The selected entity is no longer available in the current execution snapshot.");
@@ -532,7 +643,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       if (driver.parentDimension !== state.execution.dimension || !table.rows.some((row) => row.key === driver.parentKey)) clearDriverAnalysis("The selected entity is no longer available in the current governed data.");
       else buildDriverAnalysis();
     } else renderDriverAnalysis(null);
-    return { overall, table, statusOverall, statusTable, priority };
+    return { overall, table, statusOverall, statusTable, priority, worklist };
   }
 
   function render() {
@@ -550,7 +661,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
       }
       if (global.BancaTrackerCommercialExecution) {
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
-        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available.");
+        lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastBranchExecutionWorklist = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); renderBranchExecutionWorklist(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available.");
       }
       return null;
     }
@@ -615,6 +726,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("executionDimension").addEventListener("change", function () { handleExecutionDimensionChange(this.value); });
     element("executionAttentionFilter").addEventListener("change", function () { handleExecutionAttentionFilterChange(this.value); });
     element("executionPriorityView").addEventListener("change", function () { handleExecutionPriorityViewChange(this.value); });
+    element("branchExecutionWorklistExport").addEventListener("click", exportBranchExecutionWorklist);
     element("executionDrilldownChild").addEventListener("change", function () { handleExecutionDrilldownChildChange(this.value); });
     element("executionDriverMode").addEventListener("change", function () { handleDriverAnalysisModeChange(this.value); });
     element("executionDriverDimension").addEventListener("change", function () { handleDriverAnalysisDimensionChange(this.value); });
@@ -622,5 +734,5 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderPace, renderPaceKpis, renderPaceChart, renderPaceTable, renderMaturity, renderMaturityDistribution, renderMaturityMovement, exportPace, exportMaturityDistribution, exportMaturityMovement, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, renderDriverAnalysis, buildDriverAnalysis, clearDriverAnalysis, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handlePaceThroughDayChange, handlePaceEntityChange, handleMaturityPeriodChange, handleMaturityAddMonth, handleMaturityRemoveMonth, handleMaturityDimensionChange, handleMaturityEntityChange, handleMaturityTransitionChange, handleMaturityFilterChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, handleDriverAnalysisModeChange, handleDriverAnalysisDimensionChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderPace, renderPaceKpis, renderPaceChart, renderPaceTable, renderMaturity, renderMaturityDistribution, renderMaturityMovement, exportPace, exportMaturityDistribution, exportMaturityMovement, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, resolveSelectedBankScope, renderBranchExecutionWorklist, buildBranchExecutionWorklist, exportBranchExecutionWorklist, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, renderDriverAnalysis, buildDriverAnalysis, clearDriverAnalysis, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleMaturityPeriodChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handlePaceThroughDayChange, handlePaceEntityChange, handleMaturityAddMonth, handleMaturityRemoveMonth, handleMaturityDimensionChange, handleMaturityEntityChange, handleMaturityTransitionChange, handleMaturityFilterChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, handleDriverAnalysisModeChange, handleDriverAnalysisDimensionChange, money, percent, signedMoney, points, growth });
 })(window);

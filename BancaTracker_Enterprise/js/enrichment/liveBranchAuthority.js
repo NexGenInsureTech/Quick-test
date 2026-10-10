@@ -83,6 +83,7 @@ Purpose : Apply durable Branch Master identity to live fact records
       ...record,
       legacyBranchCode,
       legacyBranchName,
+      bankId: resolution.bankId,
       branchId: resolution.branchId,
       branchCode: resolution.branchCode,
       branch: resolution.branchName,
