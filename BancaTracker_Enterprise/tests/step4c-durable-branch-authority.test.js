@@ -51,20 +51,24 @@ assert.strictEqual(legacy.branch, "Guwahati Main Old");
 
 const exact = BranchAuthority.applyRecord(source(), context);
 assert.deepStrictEqual(
-  [exact.branchAuthority, exact.branchId, exact.branchCode, exact.branch, exact.legacyBranchName],
-  ["GOVERNED_EXACT", "IB:00123", "00123", "Guwahati Main", "Guwahati Main Old"],
+  [exact.branchAuthority, exact.bankId, exact.branchId, exact.branchCode, exact.branch, exact.legacyBranchName],
+  ["GOVERNED_EXACT", "IB", "IB:00123", "00123", "Guwahati Main", "Guwahati Main Old"],
 );
+assert.strictEqual(exact.bank, "IB", "canonical bankId propagation does not replace the source display bank");
 assert.strictEqual(exact.baCode, "RM482");
 assert.deepStrictEqual([exact.bankRegionId, exact.bankZoneId, exact.fgmOfficeId], ["NER", "BZ1", "FGM1"]);
 
 const fallback = BranchAuthority.applyRecord(source({ branchCode: "99999", branch: "Dibrugarh" }), context);
-assert.deepStrictEqual([fallback.branchAuthority, fallback.branchId], ["GOVERNED_FALLBACK", "IB:00017"]);
+assert.deepStrictEqual([fallback.branchAuthority, fallback.bankId, fallback.branchId], ["GOVERNED_FALLBACK", "IB", "IB:00017"]);
 
 const ambiguous = BranchAuthority.applyRecord(source({ branchCode: "", branch: "Main" }), context);
-assert.deepStrictEqual([ambiguous.branchAuthority, ambiguous.branchId], ["AMBIGUOUS", null]);
+assert.deepStrictEqual([ambiguous.branchAuthority, ambiguous.bankId, ambiguous.branchId], ["AMBIGUOUS", undefined, null]);
 
 const unmapped = BranchAuthority.applyRecord(source({ premium: -25, branchCode: "99999", branch: "Unknown" }), context);
-assert.deepStrictEqual([unmapped.branchAuthority, unmapped.branchId, unmapped.premium], ["UNMAPPED", null, -25]);
+assert.deepStrictEqual([unmapped.branchAuthority, unmapped.bankId, unmapped.branchId, unmapped.premium], ["UNMAPPED", undefined, null, -25]);
+
+const displayPreserved = BranchAuthority.applyRecord(source({ bankId: "IB", bank: "Indian Bank Display" }), context);
+assert.deepStrictEqual([displayPreserved.bank, displayPreserved.bankId, displayPreserved.branchId], ["Indian Bank Display", "IB", "IB:00123"]);
 
 const rows = [
   exact,

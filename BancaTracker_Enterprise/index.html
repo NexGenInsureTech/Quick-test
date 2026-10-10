@@ -335,6 +335,16 @@
             </div>
             <div id="executionPriorityTable" aria-live="polite"></div>
           </div>
+          <div class="commercial-priority-table" aria-labelledby="branchExecutionWorklistHeading">
+            <div class="opportunity-ownership-header">
+              <h3 id="branchExecutionWorklistHeading">Branch Execution Worklist</h3>
+              <button id="branchExecutionWorklistExport" type="button" disabled>Download Full CSV</button>
+            </div>
+            <div id="branchExecutionWorklistReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+            <p id="branchExecutionWorklistDiagnostics" class="scorecard-note"></p>
+            <p id="branchExecutionWorklistCount" class="table-limit-note"></p>
+            <div id="branchExecutionWorklistTable"></div>
+          </div>
           <section class="commercial-drilldown-panel" aria-labelledby="executionDrilldownHeading">
             <div class="commercial-drilldown-header">
               <h3 id="executionDrilldownHeading">Governed Child Context</h3>
@@ -541,6 +551,7 @@
     <script src="js/analytics/commercialExecution.js"></script>
     <script src="js/analytics/commercialExecutionStatus.js"></script>
     <script src="js/analytics/commercialExecutionPriority.js"></script>
+    <script src="js/analytics/branchExecutionWorklist.js"></script>
     <script src="js/analytics/commercialExecutionDrilldown.js"></script>
     <script src="js/analytics/commercialDriverAnalysis.js"></script>
     <script src="js/analytics/businessAttributionReconciliation.js"></script>
