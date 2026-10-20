@@ -26,6 +26,11 @@ groups.push("step-v861-management-scorecard-consolidation-integration.test.js");
 groups.push("step-v861-management-bank-filter-integration.test.js");
 groups.push("step-v864-atomic-import-commit-guard.test.js");
 groups.push("step-v865-multi-file-pr-batch-replace.test.js");
+groups.push("step-v866-atomic-replace-worklist-acceptance.test.js");
+groups.push("step-v866-branch-execution-worklist.test.js");
+groups.push("step-v866-branch-execution-worklist-integration.test.js");
+groups.push("step-v866-multi-bank-worklist-acceptance.test.js");
+groups.push("step-v867-branch-execution-actionability.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
