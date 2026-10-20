@@ -31,6 +31,7 @@ Purpose : Project a governed branch execution worklist
   function freezeRow(row) {
     const copy = { ...row };
     if (Array.isArray(copy.priorityReasons)) copy.priorityReasons = Object.freeze([...copy.priorityReasons]);
+    if (copy.priorityEvidence && typeof copy.priorityEvidence === "object") copy.priorityEvidence = Object.freeze({ ...copy.priorityEvidence });
     return Object.freeze(copy);
   }
 
@@ -196,6 +197,80 @@ Purpose : Project a governed branch execution worklist
     return { index: compatible ? index : new Map(), requested: true, applicable: compatible, complete: compatible && priorityResult.status === "READY" };
   }
 
+  function verifiedOwner(commercial) {
+    const mapped = validText(commercial.assignedRmId);
+    return {
+      responsibleOwnerId: mapped ? commercial.assignedRmId : null,
+      responsibleOwnerName: mapped && validText(commercial.assignedRmName) ? commercial.assignedRmName : null,
+      responsibleOwnerRole: mapped ? "ASSIGNED_RM" : null,
+      ownershipStatus: mapped ? "MAPPED" : "UNMAPPED",
+    };
+  }
+
+  function escalationOwner(commercial) {
+    const hierarchy = [
+      ["CSM", commercial.csmId, commercial.csmName],
+      ["ASM", commercial.asmId, commercial.asmName],
+      ["ZSM", commercial.zsmId, commercial.zsmName],
+      ["NATIONAL_HEAD", commercial.nationalHeadId, commercial.nationalHeadName],
+    ];
+    const match = hierarchy.find(([, id]) => validText(id));
+    return {
+      escalationOwnerId: match ? match[1] : null,
+      escalationOwnerName: match && validText(match[2]) ? match[2] : null,
+      escalationOwnerRole: match ? match[0] : null,
+    };
+  }
+
+  function finiteOrNull(value) {
+    return finite(value) ? value : null;
+  }
+
+  function actionability(priorityRow, strategyRow) {
+    if (!priorityRow) return {
+      priorityExplanation: null, suggestedAction: null, impactBasis: null, impactAmount: null,
+      projectedShortfallAmount: null, paceGapMagnitude: null, projectedMonthEndActual: null,
+      requiredDailyRunRate: null, priorityEvidence: null,
+    };
+    const basis = priorityRow.priorityBasis || {};
+    const measures = priorityRow.sourceMeasures || {};
+    const reasons = Array.isArray(priorityRow.attentionReasons) ? priorityRow.attentionReasons : [];
+    const projectedShortfallAmount = finiteOrNull(basis.projectedShortfallAmount);
+    const paceGapMagnitude = finiteOrNull(basis.paceGapMagnitude);
+    const hasProjectedShortfall = reasons.includes("PROJECTED_SHORTFALL") && basis.hasProjectedShortfall === true && projectedShortfallAmount !== null;
+    const behindPace = reasons.includes("BEHIND_LINEAR_PACE") && basis.behindPace === true && paceGapMagnitude !== null;
+    const strategyCue = strategyRow && validText(strategyRow.executionCue) ? strategyRow.executionCue : null;
+    let priorityExplanation = null;
+    let suggestedAction = null;
+    let impactBasis = null;
+    let impactAmount = null;
+    if (hasProjectedShortfall) {
+      priorityExplanation = "Priority is supported by a supplied projected Budget shortfall; this is a planning gap, not guaranteed uplift.";
+      suggestedAction = "Review the branch plan against the projected Budget shortfall and required daily run rate.";
+      impactBasis = "PROJECTED_BUDGET_SHORTFALL";
+      impactAmount = projectedShortfallAmount;
+    } else if (behindPace) {
+      priorityExplanation = "Priority is supported by a supplied linear pace gap; this is a pacing measure, not guaranteed uplift.";
+      suggestedAction = "Review current-period activity and the supplied linear pace gap.";
+      impactBasis = "PACE_GAP_MAGNITUDE";
+      impactAmount = paceGapMagnitude;
+    }
+    if (strategyCue && suggestedAction) suggestedAction = `${suggestedAction} ${strategyCue}`;
+    return {
+      priorityExplanation, suggestedAction, impactBasis, impactAmount,
+      projectedShortfallAmount, paceGapMagnitude,
+      projectedMonthEndActual: finiteOrNull(measures.projectedMonthEndActual),
+      requiredDailyRunRate: finiteOrNull(measures.requiredDailyRunRate),
+      priorityEvidence: {
+        projectedBudgetGap: finiteOrNull(measures.projectedBudgetGap),
+        paceGap: finiteOrNull(measures.paceGap),
+        projectedMonthEndActual: finiteOrNull(measures.projectedMonthEndActual),
+        projectedAchievementPct: finiteOrNull(measures.projectedAchievementPct),
+        requiredDailyRunRate: finiteOrNull(measures.requiredDailyRunRate),
+      },
+    };
+  }
+
   function buildWorklist(input = {}) {
     const periodKey = input.periodKey;
     const bankKey = input.bankKey === undefined || input.bankKey === null ? null : input.bankKey;
@@ -281,11 +356,17 @@ Purpose : Project a governed branch execution worklist
       const strategyValues = strategyRow
         ? Object.fromEntries(STRATEGY_FIELDS.map((field) => [field, strategyRow[field] === undefined ? null : strategyRow[field]]))
         : emptyStrategy();
+      const owner = verifiedOwner(commercial);
+      const escalation = escalationOwner(commercial);
+      const action = actionability(priorityRow, strategyRow);
       return {
         ...commercial,
         ...strategyValues,
         priorityRank: priorityRow ? priorityRow.priorityRank : null,
         priorityReasons: priorityRow && Array.isArray(priorityRow.attentionReasons) ? [...priorityRow.attentionReasons] : [],
+        ...action,
+        ...owner,
+        ...escalation,
         ownershipBasis: "CURRENT_ACTIVE_MASTER",
       };
     }).sort((left, right) => {

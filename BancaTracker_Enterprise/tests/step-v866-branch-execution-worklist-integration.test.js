@@ -36,6 +36,14 @@ const commercialRows = Array.from({ length: 126 }, (_, index) => ({
   activationGap: index === 2 ? 5000 : null, nextMaturityThreshold: index === 2 ? 25000 : null, maturityGap: index === 2 ? 5000 : null,
   strategyObjective: index === 2 ? "Convert" : null, executionCue: index === 2 ? "Close the gap." : null,
   priorityRank: index === 3 ? 1 : null, priorityReasons: index === 3 ? ["PROJECTED_SHORTFALL", "BEHIND_LINEAR_PACE"] : [],
+  ownershipStatus: index === 1 ? "UNMAPPED" : "MAPPED",
+  responsibleOwnerId: index === 1 ? null : "RM1", responsibleOwnerName: index === 1 ? null : "Owner", responsibleOwnerRole: index === 1 ? null : "ASSIGNED_RM",
+  escalationOwnerId: "A1", escalationOwnerName: index === 3 ? "Area <Lead>" : "Area", escalationOwnerRole: "ASM",
+  priorityExplanation: index === 3 ? "Supplied shortfall <not uplift>." : null,
+  suggestedAction: index === 3 ? "Review & act on supplied evidence." : null,
+  impactBasis: index === 3 ? "PROJECTED_BUDGET_SHORTFALL" : null, impactAmount: index === 3 ? 75 : null,
+  projectedShortfallAmount: index === 3 ? 75 : null, paceGapMagnitude: index === 3 ? 25 : null,
+  projectedMonthEndActual: index === 3 ? 125 : null, requiredDailyRunRate: index === 3 ? 5 : null,
 }));
 
 function result(status = "PARTIAL", rows = commercialRows, diagnostics = []) {
@@ -107,6 +115,8 @@ check(elements.branchExecutionWorklistCount.textContent.includes("126"));
 check(elements.branchExecutionWorklistTable.innerHTML.includes("-₹25"), "negative Actual is visible");
 check(elements.branchExecutionWorklistTable.innerHTML.includes("₹0"), "zero Actual is visible");
 check(elements.branchExecutionWorklistTable.innerHTML.includes("<td></td>"), "missing values render blank");
+check(elements.branchExecutionWorklistTable.innerHTML.includes("Supplied shortfall &lt;not uplift&gt;."), "actionability text is HTML escaped");
+check(!elements.branchExecutionWorklistTable.innerHTML.includes("Area <Lead>"), "owner text is never emitted as raw HTML");
 check(elements.branchExecutionWorklistReadiness.innerHTML.includes("PARTIAL"));
 
 const download = UI.exportBranchExecutionWorklist();
@@ -118,13 +128,16 @@ equal(download.filename, "branch-execution-worklist_2026-04_all-banks.csv");
 const exported = parseCsv(exportCalls.csv);
 equal(exported.length, 127, "CSV contains one header and exactly 126 data records despite embedded newlines");
 equal(exported[0], exportCalls.columns.map((column) => column.label), "CSV header order matches the worklist column contract");
-equal(new Set(exported.slice(1).map((row) => row[3])).size, 126, "canonical branch IDs are complete and unique");
-equal(exported.slice(1).reduce((sum, row) => sum + Number(row[16]), 0), commercialRows.reduce((sum, row) => sum + row.actualPremium, 0), "exported signed Actual reconciles to the fixture aggregate");
-equal(exported[2][17], "", "missing Budget remains empty");
-equal(exported[2][18], "", "missing Potential remains empty");
-equal(exported[2][10], "", "missing owner remains empty");
-equal(exported[4][35], "PROJECTED_SHORTFALL; BEHIND_LINEAR_PACE", "multiple priority reasons share one deterministic CSV cell");
-equal(exported[5][4], "Branch, \"Quoted\"\nLine", "CSV escaping round-trips commas, quotes, and newlines");
+const exportColumn = (label) => exported[0].indexOf(label);
+equal(new Set(exported.slice(1).map((row) => row[exportColumn("Branch ID")])).size, 126, "canonical branch IDs are complete and unique");
+equal(exported.slice(1).reduce((sum, row) => sum + Number(row[exportColumn("Actual Premium")]), 0), commercialRows.reduce((sum, row) => sum + row.actualPremium, 0), "exported signed Actual reconciles to the fixture aggregate");
+equal(exported[2][exportColumn("Budget")], "", "missing Budget remains empty");
+equal(exported[2][exportColumn("Potential")], "", "missing Potential remains empty");
+equal(exported[2][exportColumn("Assigned RM ID")], "", "missing owner remains empty");
+equal(exported[4][exportColumn("Priority Reasons")], "PROJECTED_SHORTFALL; BEHIND_LINEAR_PACE", "multiple priority reasons share one deterministic CSV cell");
+equal(exported[4][exportColumn("Impact Amount (Not Guaranteed Uplift)")], "75", "impact amount is exported from the complete projection");
+equal(exported[4][exportColumn("Escalation Owner")], "Area <Lead>", "CSV round-trips actionability text without HTML encoding");
+equal(exported[5][exportColumn("Branch")], "Branch, \"Quoted\"\nLine", "CSV escaping round-trips commas, quotes, and newlines");
 
 UI.state.execution.dimension = "BRANCH";
 const branchPriority = { status: "READY", periodKey: "2026-04", dimension: "BRANCH", rankingApplicable: true, executionPriority: [] };

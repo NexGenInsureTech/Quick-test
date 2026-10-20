@@ -36,6 +36,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     { key: "assignedRmId", label: "Assigned RM ID" }, { key: "assignedRmName", label: "Assigned RM" },
     { key: "asmId", label: "ASM ID" }, { key: "asmName", label: "ASM" }, { key: "zsmId", label: "ZSM ID" }, { key: "zsmName", label: "ZSM" },
     { key: "ownershipBasis", label: "Ownership Basis" },
+    { key: "ownershipStatus", label: "Ownership Status" },
+    { key: "responsibleOwnerId", label: "Responsible Owner ID" }, { key: "responsibleOwnerName", label: "Responsible Owner" }, { key: "responsibleOwnerRole", label: "Responsible Owner Role" },
+    { key: "escalationOwnerId", label: "Escalation Owner ID" }, { key: "escalationOwnerName", label: "Escalation Owner" }, { key: "escalationOwnerRole", label: "Escalation Owner Role" },
     { key: "actualPremium", label: "Actual Premium" }, { key: "budget", label: "Budget" }, { key: "potential", label: "Potential" },
     { key: "achievementPct", label: "Achievement %" }, { key: "budgetGap", label: "Budget Gap" }, { key: "budgetRemaining", label: "Budget Remaining" },
     { key: "potentialPenetrationPct", label: "Potential Penetration %" }, { key: "potentialGap", label: "Potential Gap" },
@@ -44,6 +47,10 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     { key: "activationGap", label: "Activation Gap" }, { key: "nextMaturityThreshold", label: "Next Maturity Threshold" },
     { key: "maturityGap", label: "Next Maturity Gap" }, { key: "strategyObjective", label: "Strategy Objective" }, { key: "executionCue", label: "Execution Cue" },
     { key: "priorityRank", label: "Priority Rank" }, { label: "Priority Reasons", value: (row) => Array.isArray(row.priorityReasons) ? row.priorityReasons.join("; ") : "" },
+    { key: "priorityExplanation", label: "Priority Explanation" }, { key: "suggestedAction", label: "Suggested Action" },
+    { key: "impactBasis", label: "Impact Basis" }, { key: "impactAmount", label: "Impact Amount (Not Guaranteed Uplift)" },
+    { key: "projectedShortfallAmount", label: "Projected Shortfall" }, { key: "paceGapMagnitude", label: "Pace Gap Magnitude" },
+    { key: "projectedMonthEndActual", label: "Projected Month-end Actual" }, { key: "requiredDailyRunRate", label: "Required Daily Run-rate" },
   ]);
   function ensureMaturityMarkup() {
     const page = element("commercialPage");
@@ -423,8 +430,8 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     }
     const visible = validRows.slice(0, BRANCH_WORKLIST_LIMIT);
     count.textContent = validRows.length > visible.length ? `Showing first ${visible.length} of ${validRows.length} rows. Full CSV includes all rows.` : `Showing all ${visible.length} rows.`;
-    const body = visible.map((row) => `<tr data-branch-id="${escape(row.branchId)}"><td>${escape(blank(row.priorityRank))}</td><td>${escape(blank(row.branchName || row.branchId))}</td><td>${escape(blank(row.canonicalBank))}</td><td>${escape(blank(row.stateName))}</td><td>${escape(blank(row.zoneName))}</td><td>${escape(blank(row.assignedRmName))}</td><td>${escape(blank(row.asmName))}</td><td>${escape(blank(row.zsmName))}</td><td>${escape(blank(row.ownershipBasis))}</td><td class="${semanticClass(row.actualPremium)}">${escape(blank(row.actualPremium, money))}</td><td>${escape(blank(row.budget, money))}</td><td>${escape(blank(row.potential, money))}</td><td class="${semanticClass(row.budgetGap)}">${escape(blank(row.budgetGap, signedMoney))}</td><td class="${semanticClass(row.potentialGap)}">${escape(blank(row.potentialGap, signedMoney))}</td><td>${escape(blank(row.maturityBand))}</td><td>${escape(blank(row.active, (value) => value ? "TRUE" : "FALSE"))}</td><td>${escape(blank(row.nearActive, (value) => value ? "TRUE" : "FALSE"))}</td><td>${escape(blank(row.strategyObjective))}</td><td>${escape(blank(row.activationGap, money))}</td><td>${escape(blank(row.maturityGap, money))}</td><td>${escape(blank(row.executionCue))}</td><td>${escape(Array.isArray(row.priorityReasons) ? row.priorityReasons.join("; ") : "")}</td></tr>`).join("");
-    table.innerHTML = `<table><thead><tr><th>Priority</th><th>Branch</th><th>Bank</th><th>State</th><th>Zone</th><th>Assigned RM</th><th>ASM</th><th>ZSM</th><th>Ownership Basis</th><th>Actual</th><th>Budget</th><th>Potential</th><th>Budget Gap</th><th>Potential Gap</th><th>Maturity</th><th>Active</th><th>Near Active</th><th>Strategy</th><th>Activation Gap</th><th>Next-band Gap</th><th>Execution Cue</th><th>Priority Reasons</th></tr></thead><tbody>${body}</tbody></table>`;
+    const body = visible.map((row) => `<tr data-branch-id="${escape(row.branchId)}"><td>${escape(blank(row.priorityRank))}</td><td>${escape(blank(row.branchName || row.branchId))}</td><td>${escape(blank(row.canonicalBank))}</td><td>${escape(blank(row.stateName))}</td><td>${escape(blank(row.zoneName))}</td><td>${escape(blank(row.ownershipStatus))}</td><td>${escape(blank(row.responsibleOwnerName))}</td><td>${escape(blank(row.escalationOwnerName))}</td><td>${escape(blank(row.escalationOwnerRole))}</td><td class="${semanticClass(row.actualPremium)}">${escape(blank(row.actualPremium, money))}</td><td>${escape(blank(row.budget, money))}</td><td>${escape(blank(row.potential, money))}</td><td>${escape(Array.isArray(row.priorityReasons) ? row.priorityReasons.join("; ") : "")}</td><td>${escape(blank(row.priorityExplanation))}</td><td>${escape(blank(row.impactBasis))}</td><td class="${semanticClass(row.impactAmount)}">${escape(blank(row.impactAmount, money))}</td><td>${escape(blank(row.suggestedAction))}</td><td>${escape(blank(row.strategyObjective))}</td><td>${escape(blank(row.executionCue))}</td></tr>`).join("");
+    table.innerHTML = `<table><thead><tr><th>Priority</th><th>Branch</th><th>Bank</th><th>State</th><th>Zone</th><th>Ownership</th><th>Responsible RM</th><th>Escalation Owner</th><th>Escalation Role</th><th>Actual</th><th>Budget</th><th>Potential</th><th>Priority Reasons</th><th>Why</th><th>Impact Basis</th><th>Impact (Not Guaranteed Uplift)</th><th>Suggested Action</th><th>Strategy</th><th>Execution Cue</th></tr></thead><tbody>${body}</tbody></table>`;
     return result;
   }
 
