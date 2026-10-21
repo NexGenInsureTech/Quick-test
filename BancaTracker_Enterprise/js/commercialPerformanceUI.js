@@ -9,7 +9,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
 (function (global) {
   "use strict";
 
-  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE", paceThroughDay: null, paceSelectionMode: "ALL_CHANNELS", paceEntityKey: null }, maturity: { periods: [], dimension: "OVERALL", entityKey: null, transitionIndex: 0, movementFilter: "ALL" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null }, driverAnalysis: { parentDimension: null, parentKey: null, parentLabel: null, mode: "EXECUTION_SNAPSHOT", driverDimension: "LOB" } } };
+  const state = { scopeType: "MONTH", selectedPeriod: null, selectedFinancialYear: null, dimension: "BANK", monthlyTrend: { financialYear: null, scopeType: "OVERALL", managementBank: null }, comparison: { basePeriod: null, comparisonPeriod: null, dimension: "BANK", selectedEntityKey: null, dailyViewMode: "CUMULATIVE", paceThroughDay: null, paceSelectionMode: "ALL_CHANNELS", paceEntityKey: null }, maturity: { periods: [], dimension: "OVERALL", entityKey: null, transitionIndex: 0, movementFilter: "ALL" }, execution: { selectedPeriod: null, asOfDay: null, asOfExplicit: false, dimension: "BANK", attentionFilter: "ALL", priorityView: "NONE", drilldown: { parentDimension: null, parentKey: null, parentLabel: null, childDimension: null }, driverAnalysis: { parentDimension: null, parentKey: null, parentLabel: null, mode: "EXECUTION_SNAPSHOT", driverDimension: "LOB" } } };
   const dimensionLabels = Object.freeze({ OVERALL: "Overall", BANK: "Bank", BRANCH: "Branch", STATE: "State", ZONE: "Zone", BANK_REGION: "Bank Region", BANK_ZONE: "Bank Zone", FGM_OFFICE: "FGM Office", ASSIGNED_RM: "Assigned RM", CSM: "CSM", ASM: "ASM", ZSM: "ZSM", NATIONAL_HEAD: "National Head" });
   let initialized = false;
   let lastDailyResult = null;
@@ -86,6 +86,50 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const present = summary && summary[`${prefix}PresentCount`] || 0;
     const missing = summary && summary[`${prefix}MissingCount`] || 0;
     return `${label}: ${missing ? "Partial" : present ? "Complete" : "Unavailable"} (${present}/${present + missing} branch-periods)`;
+  }
+
+  function trendStatus(value) { return String(value || "").replace(/_/g, " "); }
+  function managementBanks(facts) {
+    const authority = global.BancaTrackerManagementBank;
+    if (!authority) return [];
+    return [...new Set((facts || []).map((fact) => authority.resolve(fact && fact.bank).managementBank).filter(Boolean))].sort();
+  }
+  function renderMonthlyTrend() {
+    const authority = global.BancaTrackerMonthlyPremiumTrend;
+    const facts = global.BancaTrackerCore && global.BancaTrackerCore.state.factData || [];
+    if (!authority) throw new Error("Monthly Net Premium Trend authority is unavailable.");
+    const financialYears = authority.availableFinancialYears(facts);
+    const banks = managementBanks(facts);
+    if (!financialYears.includes(state.monthlyTrend.financialYear)) state.monthlyTrend.financialYear = financialYears.at(-1) || null;
+    if (!banks.includes(state.monthlyTrend.managementBank)) state.monthlyTrend.managementBank = banks[0] || null;
+    element("monthlyTrendFinancialYear").innerHTML = financialYears.map((value) => option(value, value, value === state.monthlyTrend.financialYear)).join("");
+    element("monthlyTrendScope").value = state.monthlyTrend.scopeType;
+    element("monthlyTrendBank").innerHTML = banks.map((value) => option(value, value, value === state.monthlyTrend.managementBank)).join("");
+    element("monthlyTrendBankControl").hidden = state.monthlyTrend.scopeType !== "MANAGEMENT_BANK";
+    if (!state.monthlyTrend.financialYear) {
+      element("monthlyTrendReadiness").innerHTML = `<span class="commercial-status">NO OBSERVED DATA</span> No valid canonical financial year is available.`;
+      element("monthlyTrendTable").innerHTML = `<p class="empty-state">No observed canonical-month data is available.</p>`;
+      return null;
+    }
+    const scope = state.monthlyTrend.scopeType === "MANAGEMENT_BANK"
+      ? { type: "MANAGEMENT_BANK", managementBank: state.monthlyTrend.managementBank }
+      : { type: "OVERALL" };
+    const result = authority.buildMonthlyPremiumTrend(facts, { financialYear: state.monthlyTrend.financialYear, scope });
+    const difference = result.reconciliation && result.reconciliation.commercialIneligibleRows || 0;
+    const unattributedDates = result.universeDiagnostics && result.universeDiagnostics.invalidOrMissingDateRows || 0;
+    element("monthlyTrendReadiness").innerHTML = `<span class="commercial-status${result.status === "READY" ? " commercial-status-ready" : ""}">${escape(trendStatus(result.status))}</span> ${escape(result.financialYear)} · ${escape(scope.type === "OVERALL" ? "Overall" : scope.managementBank)} · Observed-data comparison<br><span class="scorecard-note">Selected-FY canonical-date rows: ${escape(result.diagnostics.eligibleCanonicalDateRows)} · Selected-FY invalid premium rows: ${escape(result.diagnostics.invalidPremiumRows)} · Unattributed invalid/missing date rows: ${escape(unattributedDates)} · Commercial population difference: ${escape(difference)} row(s) without governed branch identity.</span>`;
+    const rows = result.months.map((month) => `<tr><td>${escape(periodLabel(month.periodKey))}</td><td class="${semanticClass(month.actualPremium)}">${escape(money(month.actualPremium))}</td><td>${escape(month.transactionRowCount)}</td><td>${escape(month.observedData ? "Observed" : "No observed data")}</td><td class="${semanticClass(month.previousActualPremium)}">${escape(money(month.previousActualPremium))}</td><td class="${semanticClass(month.momAbsoluteChange)}">${escape(signedMoney(month.momAbsoluteChange))}</td><td>${escape(percent(month.momPercentChange))}<span class="scorecard-note"> · ${escape(trendStatus(month.momStatus))}</span></td><td class="${semanticClass(month.priorYearActualPremium)}">${escape(money(month.priorYearActualPremium))}</td><td class="${semanticClass(month.yoyAbsoluteChange)}">${escape(signedMoney(month.yoyAbsoluteChange))}</td><td>${escape(percent(month.yoyPercentChange))}<span class="scorecard-note"> · ${escape(trendStatus(month.yoyStatus))}</span></td><td>${escape(month.temporalCompleteness)}</td></tr>`).join("");
+    element("monthlyTrendTable").innerHTML = `<table><thead><tr><th>Fiscal Month</th><th>Signed Net Premium (USGI NET PREMIUM)</th><th>Transaction Rows</th><th>Data Availability</th><th>Previous Month Premium</th><th>MoM Absolute Change</th><th>MoM %</th><th>Same Month Previous FY Premium</th><th>YoY Absolute Change</th><th>YoY %</th><th>Temporal Completeness</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return result;
+  }
+  function safeRenderMonthlyTrend() {
+    try { return renderMonthlyTrend(); }
+    catch (error) {
+      console.error("Monthly Net Premium Trend render failed", error);
+      if (element("monthlyTrendReadiness")) element("monthlyTrendReadiness").textContent = "Monthly Net Premium Trend could not render. Existing Commercial Performance remains available.";
+      if (element("monthlyTrendTable")) element("monthlyTrendTable").innerHTML = `<p class="empty-state">Trend unavailable.</p>`;
+      return null;
+    }
   }
   function renderReadiness(result, periodContext) {
     const status = result ? result.status : periodContext.status;
@@ -657,6 +701,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const performance = global.BancaTrackerCore && global.BancaTrackerCore.state.commercialPerformance;
     const rollups = global.BancaTrackerCommercialRollups;
     const periodContext = rollups.buildPeriodContext(performance);
+    const monthlyTrend = safeRenderMonthlyTrend();
     syncState(periodContext);
     if (!periodContext.availablePeriods.length) {
       clearMaturityExportState();
@@ -670,7 +715,7 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
         resolveExecutionState(periodContext, true); renderExecutionControls(periodContext); renderExecutionReadiness(null);
         lastExecutionResult = null; lastExecutionStatus = null; lastExecutionPriority = null; lastBranchExecutionWorklist = null; lastExecutionContext = null; element("executionKpis").innerHTML = ""; element("executionAttentionSummary").innerHTML = ""; element("executionTable").innerHTML = `<p class="empty-state">No commercial periods are available.</p>`; renderExecutionPriority(null); renderBranchExecutionWorklist(null); clearExecutionDrilldown("No commercial periods are available."); clearDriverAnalysis("No commercial periods are available.");
       }
-      return null;
+      return { monthlyTrend };
     }
     renderControls(periodContext);
     const authorityContext = global.BancaTrackerLiveGeographyAuthority && global.BancaTrackerLiveGeographyAuthority.getCachedContext();
@@ -682,12 +727,15 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     const pace = renderPace(periodContext, performance, authorityContext);
     const execution = renderExecution(periodContext, performance, authorityContext);
     const maturity = renderMaturity(periodContext, performance, authorityContext);
-    return { periodContext, overall, table, comparison, pace, execution, maturity };
+    return { periodContext, overall, table, comparison, pace, execution, maturity, monthlyTrend };
   }
   function handleScopeChange(value) { state.scopeType = value || element("commercialScope").value; return render(); }
   function handlePeriodChange(value) { state.selectedPeriod = value || element("commercialPeriod").value; state.selectedFinancialYear = global.BancaTrackerCommercialRollups.getFinancialYear(state.selectedPeriod); return render(); }
   function handleFinancialYearChange(value) { state.selectedFinancialYear = value || element("commercialFinancialYear").value; return render(); }
   function handleDimensionChange(value) { state.dimension = value || element("commercialDimension").value; return render(); }
+  function handleMonthlyTrendFinancialYearChange(value) { state.monthlyTrend.financialYear = value || element("monthlyTrendFinancialYear").value; return safeRenderMonthlyTrend(); }
+  function handleMonthlyTrendScopeChange(value) { state.monthlyTrend.scopeType = value || element("monthlyTrendScope").value; return safeRenderMonthlyTrend(); }
+  function handleMonthlyTrendBankChange(value) { state.monthlyTrend.managementBank = value || element("monthlyTrendBank").value; return safeRenderMonthlyTrend(); }
   function handleComparisonPeriodChange(role, value) { state.comparison[role] = value || null; return render(); }
   function handleComparisonDimensionChange(value) { state.comparison.dimension = value || element("comparisonDimension").value; state.comparison.selectedEntityKey = null; state.comparison.paceSelectionMode = state.comparison.dimension === "BANK" ? "ALL_CHANNELS" : "ENTITY"; state.comparison.paceEntityKey = null; return render(); }
   function handleDailyEntityChange(value) { state.comparison.selectedEntityKey = value || element("dailyEntity").value; renderDaily(lastDailyResult); return lastDailyResult; }
@@ -718,6 +766,9 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     element("commercialPeriod").addEventListener("change", function () { handlePeriodChange(this.value); });
     element("commercialFinancialYear").addEventListener("change", function () { handleFinancialYearChange(this.value); });
     element("commercialDimension").addEventListener("change", function () { handleDimensionChange(this.value); });
+    element("monthlyTrendFinancialYear").addEventListener("change", function () { handleMonthlyTrendFinancialYearChange(this.value); });
+    element("monthlyTrendScope").addEventListener("change", function () { handleMonthlyTrendScopeChange(this.value); });
+    element("monthlyTrendBank").addEventListener("change", function () { handleMonthlyTrendBankChange(this.value); });
     element("comparisonBasePeriod").addEventListener("change", function () { handleComparisonPeriodChange("basePeriod", this.value); });
     element("comparisonPeriod").addEventListener("change", function () { handleComparisonPeriodChange("comparisonPeriod", this.value); });
     element("comparisonDimension").addEventListener("change", function () { handleComparisonDimensionChange(this.value); });
@@ -741,5 +792,5 @@ Purpose : Render cached governed commercial roll-ups without owning formulas
     initialized = true;
   }
   init();
-  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderPace, renderPaceKpis, renderPaceChart, renderPaceTable, renderMaturity, renderMaturityDistribution, renderMaturityMovement, exportPace, exportMaturityDistribution, exportMaturityMovement, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, resolveSelectedBankScope, renderBranchExecutionWorklist, buildBranchExecutionWorklist, exportBranchExecutionWorklist, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, renderDriverAnalysis, buildDriverAnalysis, clearDriverAnalysis, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleMaturityPeriodChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handlePaceThroughDayChange, handlePaceEntityChange, handleMaturityAddMonth, handleMaturityRemoveMonth, handleMaturityDimensionChange, handleMaturityEntityChange, handleMaturityTransitionChange, handleMaturityFilterChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, handleDriverAnalysisModeChange, handleDriverAnalysisDimensionChange, money, percent, signedMoney, points, growth });
+  global.BancaTrackerCommercialPerformanceUI = Object.freeze({ state, init, render, renderControls, renderKpis, renderTable, renderReadiness, renderMonthlyTrend, safeRenderMonthlyTrend, renderComparison, renderComparisonKpis, renderComparisonTable, renderDaily, renderPace, renderPaceKpis, renderPaceChart, renderPaceTable, renderMaturity, renderMaturityDistribution, renderMaturityMovement, exportPace, exportMaturityDistribution, exportMaturityMovement, renderExecution, renderExecutionKpis, renderExecutionStatusSummary, renderExecutionTable, renderExecutionPriority, resolveSelectedBankScope, renderBranchExecutionWorklist, buildBranchExecutionWorklist, exportBranchExecutionWorklist, renderExecutionDrilldown, buildExecutionDrilldown, clearExecutionDrilldown, renderDriverAnalysis, buildDriverAnalysis, clearDriverAnalysis, filterExecutionRows, handleScopeChange, handlePeriodChange, handleFinancialYearChange, handleDimensionChange, handleMonthlyTrendFinancialYearChange, handleMonthlyTrendScopeChange, handleMonthlyTrendBankChange, handleMaturityPeriodChange, handleComparisonPeriodChange, handleComparisonDimensionChange, handleDailyEntityChange, handleDailyViewChange, handlePaceThroughDayChange, handlePaceEntityChange, handleMaturityAddMonth, handleMaturityRemoveMonth, handleMaturityDimensionChange, handleMaturityEntityChange, handleMaturityTransitionChange, handleMaturityFilterChange, handleExecutionPeriodChange, handleExecutionAsOfChange, handleExecutionDimensionChange, handleExecutionAttentionFilterChange, handleExecutionPriorityViewChange, handleExecutionParentSelect, handleExecutionDrilldownChildChange, handleDriverAnalysisModeChange, handleDriverAnalysisDimensionChange, money, percent, signedMoney, points, growth });
 })(window);

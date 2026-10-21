@@ -262,6 +262,21 @@
         <h2>Governed Commercial Roll-up</h2>
         <div id="commercialTable"></div>
       </div>
+      <section class="commercial-comparison-section" aria-labelledby="monthlyPremiumTrendHeading">
+        <div class="panel">
+          <h2 id="monthlyPremiumTrendHeading">Monthly Net Premium Trend</h2>
+          <p class="scorecard-note">Observed-data comparison using <strong>Signed Net Premium (USGI NET PREMIUM)</strong>. Temporal completeness is not certified.</p>
+          <div class="commercial-controls" aria-label="Monthly net premium trend controls">
+            <label for="monthlyTrendFinancialYear">Financial Year<select id="monthlyTrendFinancialYear"></select></label>
+            <label for="monthlyTrendScope">Scope<select id="monthlyTrendScope"><option value="OVERALL">Overall</option><option value="MANAGEMENT_BANK">Governed Management Bank</option></select></label>
+            <label id="monthlyTrendBankControl" for="monthlyTrendBank" hidden>Management Bank<select id="monthlyTrendBank"></select></label>
+          </div>
+          <div id="monthlyTrendReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+        </div>
+        <div class="panel commercial-table-wrap">
+          <div id="monthlyTrendTable"></div>
+        </div>
+      </section>
       <section class="commercial-comparison-section" aria-labelledby="commercialComparisonHeading">
         <div class="panel">
           <h2 id="commercialComparisonHeading">Commercial Comparison</h2>
@@ -541,6 +556,7 @@
     <script src="js/dataQualityGuidance.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/analytics/managementBank.js"></script>
+    <script src="js/analytics/monthlyPremiumTrend.js"></script>
     <script src="js/analytics/commercialPerformance.js"></script>
     <script src="js/analytics/commercialRollups.js"></script>
     <script src="js/analytics/commercialComparison.js"></script>

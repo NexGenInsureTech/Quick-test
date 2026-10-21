@@ -31,6 +31,8 @@ groups.push("step-v866-branch-execution-worklist.test.js");
 groups.push("step-v866-branch-execution-worklist-integration.test.js");
 groups.push("step-v866-multi-bank-worklist-acceptance.test.js");
 groups.push("step-v867-branch-execution-actionability.test.js");
+groups.push("step-v868-monthly-premium-trend.test.js");
+groups.push("step-v868-monthly-premium-trend-ui.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
