@@ -308,7 +308,9 @@ Purpose : Normalize and validate durable Branch to RM assignments
     const findings = [];
 
     records.forEach((record) => findings.push(...validateRow(record)));
-    findings.push(...validateDataset(records, context));
+    for (const datasetFinding of validateDataset(records, context)) {
+      findings.push(datasetFinding);
+    }
 
     const errorCount = findings.filter(
       (finding) => finding.severity === DATA_QUALITY_SEVERITY.ERROR,

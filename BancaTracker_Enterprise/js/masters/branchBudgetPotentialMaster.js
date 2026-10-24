@@ -143,7 +143,9 @@ Purpose : Govern period-specific branch Budget and Potential reference data
     if (!Array.isArray(rawRows)) throw new TypeError("Branch Budget & Potential rows must be an array.");
     const records = rawRows.map((row, index) => normalizeRow(row, datasetId, index + 2));
     const findings = records.flatMap(validateRow);
-    findings.push(...validateDataset(records, context));
+    for (const datasetFinding of validateDataset(records, context)) {
+      findings.push(datasetFinding);
+    }
     const errorCount = findings.filter((item) => item.severity === severity.ERROR).length;
     const warningCount = findings.filter((item) => item.severity === severity.WARNING).length;
     return { records, findings, valid: errorCount === 0, errorCount, warningCount, commercialSummary: summarize(records, findings), commercialReadiness: assessReadiness(records, findings) };
