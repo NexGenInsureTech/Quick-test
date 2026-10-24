@@ -256,12 +256,115 @@ Purpose : Render read-only master metadata and canonical readiness
     document.getElementById("masterActivationConfirmation").hidden = true;
   }
 
+  function isIdentityDiagnosticPreview(preview) {
+    return Boolean(preview && (
+      preview.datasetType === "BRANCH_BUDGET_POTENTIAL"
+      || (preview.datasetType === "BRANCH_ASSIGNMENT" && preview.importChoice === "BRANCH_ASSIGNMENT")
+    ));
+  }
+
+  function sanitizeErrorLocation(error) {
+    const stack = error && typeof error.stack === "string" ? error.stack : "";
+    const match = stack.match(/([^/\\\s():]+\.js):(\d+):(\d+)/);
+    return match ? `${match[1]}:${match[2]}:${match[3]}` : "UNAVAILABLE";
+  }
+
+  function clearBranchIdentityHealth() {
+    const panel = document.getElementById("branchIdentityHealthPanel");
+    if (!panel) return;
+    panel.hidden = true;
+    document.getElementById("branchIdentityHealthProcessing").textContent = "";
+    document.getElementById("branchIdentityHealthSummary").innerHTML = "";
+    document.getElementById("branchIdentityHealthRows").innerHTML = "";
+    document.getElementById("branchIdentityHealthNote").textContent = "";
+  }
+
+  function updateIdentityHealthProcessing(stage, status, error = null) {
+    const panel = document.getElementById("branchIdentityHealthPanel");
+    if (!panel) return;
+    panel.hidden = false;
+    const location = status === "FAILED" ? sanitizeErrorLocation(error) : null;
+    document.getElementById("branchIdentityHealthProcessing").textContent = location
+      ? `Stage: ${stage} · ${status} · Location: ${location}`
+      : `Stage: ${stage} · ${status}`;
+  }
+
+  function renderBranchIdentityHealth(result) {
+    const panel = document.getElementById("branchIdentityHealthPanel");
+    if (!panel) return result;
+    panel.hidden = false;
+    updateIdentityHealthProcessing(result.processing.stage, result.processing.status);
+    const master = result.master;
+    const imported = result.imported;
+    document.getElementById("branchIdentityHealthSummary").innerHTML = [
+      ["Active Branch Master", master.available ? "AVAILABLE" : "MISSING OR INCONSISTENT"],
+      ["Active pointer", master.activePointerAvailable ? "PRESENT" : "MISSING"],
+      ["Active dataset", master.activeDatasetAvailable ? "PRESENT" : "MISSING"],
+      ["Snapshot", master.snapshotConsistent ? "CONSISTENT" : "INCONSISTENT"],
+      ["Declared master rows", master.declaredRecordCount === null ? "N/A" : master.declaredRecordCount],
+      ["Stored master rows", master.storedRecordCount],
+      ["Distinct master identities", master.distinctIdentityCount],
+      ["Invalid master identities", master.invalidIdentityCount],
+      ["Duplicate master identities", master.duplicateIdentityCount],
+      ["Declared/stored difference", master.declaredStoredDiscrepancy === null ? "N/A" : master.declaredStoredDiscrepancy],
+      ["Source rows", imported.sourceRowCount],
+      ["Distinct branch identities", imported.distinctBranchIdentityCount],
+      ...(imported.distinctBranchPeriodCount === null ? [] : [["Distinct branch-periods", imported.distinctBranchPeriodCount]]),
+      ["Governed duplicate findings", imported.governedDuplicateFindingCount],
+      ["Exact rows", result.rowCoverage.exactRows],
+      ["Non-exact rows", result.rowCoverage.unmatchedRows],
+    ].map(([label, value]) => `<div class="card"><div>${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join("");
+    document.getElementById("branchIdentityHealthRows").innerHTML = global.BancaTrackerBranchIdentityHealth.CATEGORIES
+      .map((category) => `<tr><td>${escapeHtml(category.replace(/_/g, " "))}</td><td>${escapeHtml(result.primaryIdentityCounts[category])}</td><td>${escapeHtml(result.primaryRowCounts[category])}</td></tr>`)
+      .join("");
+    const secondaryTotal = Object.values(result.secondaryCandidateSignals.identityCounts).reduce((sum, value) => sum + value, 0);
+    document.getElementById("branchIdentityHealthNote").textContent = `Primary classifications are exclusive. Secondary candidate signals may overlap (${secondaryTotal.toLocaleString("en-IN")} signal(s)). No identities or source values are displayed or exported.`;
+    return result;
+  }
+
+  async function buildBranchIdentityHealth(preview, repository = global.BancaTrackerRepository) {
+    if (!isIdentityDiagnosticPreview(preview)) return null;
+    const authority = global.BancaTrackerBranchIdentityHealth;
+    if (!authority || typeof authority.build !== "function") throw new Error("Branch identity diagnostic authority is unavailable.");
+    if (!repository || typeof repository.getActiveDatasetId !== "function" || typeof repository.getActiveDataset !== "function") {
+      throw new Error("Active Branch Master metadata is unavailable.");
+    }
+    const [activePointer, activeDataset] = await Promise.all([
+      repository.getActiveDatasetId("BRANCH_MASTER"),
+      repository.getActiveDataset("BRANCH_MASTER"),
+    ]);
+    return authority.build({
+      datasetType: preview.datasetType,
+      importedRecords: preview.records,
+      masterRecords: preview.dependencyContext && preview.dependencyContext.branchRecords,
+      findings: preview.findings,
+      activePointer,
+      activeDataset,
+      stage: "IDENTITY_DIAGNOSTIC",
+    });
+  }
+
+  async function renderBranchIdentityHealthForPreview(preview, repository = global.BancaTrackerRepository) {
+    if (!isIdentityDiagnosticPreview(preview)) {
+      clearBranchIdentityHealth();
+      return null;
+    }
+    updateIdentityHealthProcessing("IDENTITY_DIAGNOSTIC", "RUNNING");
+    try {
+      return renderBranchIdentityHealth(await buildBranchIdentityHealth(preview, repository));
+    } catch (error) {
+      updateIdentityHealthProcessing("IDENTITY_DIAGNOSTIC", "FAILED", error);
+      return null;
+    }
+  }
+
   function resetImportUi() {
     global.BancaTrackerMasterDataImport.cancelImport();
     document.getElementById("masterImportFile").value = "";
     document.getElementById("masterImportPreview").hidden = true;
     document.getElementById("masterActivationConfirmation").hidden = true;
     document.getElementById("masterImportStatus").textContent = "Select a master type and CSV file to validate.";
+    clearBranchIdentityHealth();
   }
 
   function initializeImportUi() {
@@ -274,19 +377,27 @@ Purpose : Render read-only master metadata and canonical readiness
     typeSelect.addEventListener("change", () => { resetImportUi(); renderSchemaHelp(typeSelect.value); });
     document.getElementById("masterImportFile").addEventListener("change", async (event) => {
       const status = document.getElementById("masterImportStatus");
+      let processingStage = "PARSE";
+      clearBranchIdentityHealth();
       try {
         status.className = "scorecard-note";
         status.textContent = "Parsing and validating CSV…";
         const file = event.target.files[0];
         const parsed = await global.BancaTrackerMasterDataImport.parseFile(file);
+        processingStage = "VALIDATION";
         const preview = await global.BancaTrackerMasterDataImport.prepareImport(typeSelect.value, parsed, { fileName: file.name });
+        processingStage = "PREVIEW";
         renderImportPreview(preview);
+        await renderBranchIdentityHealthForPreview(preview);
         status.textContent = preview.valid ? "Validation passed. Review activation when ready." : "Validation failed. Correct the errors before activation.";
         if (!preview.valid) status.className = "master-import-error";
       } catch (error) {
         status.className = "master-import-error";
         status.textContent = error.message || "Unable to validate the selected CSV.";
         document.getElementById("masterImportPreview").hidden = true;
+        if (["BRANCH_ASSIGNMENT", "BRANCH_BUDGET_POTENTIAL"].includes(typeSelect.value)) {
+          updateIdentityHealthProcessing(processingStage, "FAILED", error);
+        }
       }
     });
     document.getElementById("cancelMasterImport").addEventListener("click", resetImportUi);
@@ -299,10 +410,12 @@ Purpose : Render read-only master metadata and canonical readiness
     document.getElementById("closeMasterActivation").addEventListener("click", () => { document.getElementById("masterActivationConfirmation").hidden = true; });
     document.getElementById("confirmMasterActivation").addEventListener("click", async (event) => {
       const status = document.getElementById("masterImportStatus");
+      const identityDiagnosticActive = isIdentityDiagnosticPreview(global.BancaTrackerMasterDataImport.getCurrentPreview());
       event.target.disabled = true;
       try {
         status.className = "scorecard-note";
         status.textContent = "Staging, saving and activating master…";
+        if (identityDiagnosticActive) updateIdentityHealthProcessing("STAGE_SAVE_ACTIVATE", "RUNNING");
         await global.BancaTrackerMasterDataImport.commitImport();
         if (global.BancaTrackerLiveBranchUniverseAuthority && typeSelect.value === "BRANCH_MASTER") {
           await global.BancaTrackerLiveBranchUniverseAuthority.loadContext();
@@ -316,6 +429,7 @@ Purpose : Render read-only master metadata and canonical readiness
         }
         status.textContent = "Master activated successfully.";
         document.getElementById("masterImportPreview").hidden = true;
+        clearBranchIdentityHealth();
         await render();
         const rows = global.BancaTrackerCore && global.BancaTrackerCore.state.factData;
         if (rows && rows.length && global.BancaTrackerShadowEnrichment) {
@@ -324,6 +438,7 @@ Purpose : Render read-only master metadata and canonical readiness
       } catch (error) {
         status.className = "master-import-error";
         status.textContent = error.message || "Master activation failed. The previous active version remains unchanged.";
+        if (identityDiagnosticActive) updateIdentityHealthProcessing("STAGE_SAVE_ACTIVATE", "FAILED", error);
       } finally { event.target.disabled = false; }
     });
     document.getElementById("masterStatusRows").addEventListener("click", (event) => {
@@ -345,6 +460,11 @@ Purpose : Render read-only master metadata and canonical readiness
     buildViewModel,
     loadMasterMetadata,
     renderImportPreview,
+    buildBranchIdentityHealth,
+    renderBranchIdentityHealth,
+    renderBranchIdentityHealthForPreview,
+    clearBranchIdentityHealth,
+    sanitizeErrorLocation,
     initializeImportUi,
     IMPORT_CHOICES,
   });

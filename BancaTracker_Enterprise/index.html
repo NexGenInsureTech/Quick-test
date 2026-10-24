@@ -488,6 +488,19 @@
             <button id="closeMasterActivation" type="button">Go Back</button>
           </div>
         </div>
+        <section id="branchIdentityHealthPanel" aria-labelledby="branchIdentityHealthHeading" hidden>
+          <h3 id="branchIdentityHealthHeading">Branch Identity Health</h3>
+          <p class="scorecard-note">Aggregate local-only diagnostics. Representation candidates are explanations only and never change governed matching.</p>
+          <p id="branchIdentityHealthProcessing" class="scorecard-note" aria-live="polite"></p>
+          <section id="branchIdentityHealthSummary" class="cards"></section>
+          <div class="master-data-table">
+            <table>
+              <thead><tr><th>Exclusive classification</th><th>Distinct identities</th><th>Source rows</th></tr></thead>
+              <tbody id="branchIdentityHealthRows"></tbody>
+            </table>
+          </div>
+          <p id="branchIdentityHealthNote" class="table-limit-note"></p>
+        </section>
       </section>
       <div class="panel master-data-table">
         <h2>Structural Master Status</h2>
@@ -603,6 +616,7 @@
     <script src="js/masters/branchAssignmentMaster.js"></script>
     <script src="js/masters/branchBudgetPotentialMaster.js"></script>
     <script src="js/masters/targetSeasonalityMaster.js"></script>
+    <script src="js/diagnostics/branchIdentityHealth.js"></script>
 
     <!-- BancaTracker v8.2 Enrichment Foundation -->
     <script src="js/enrichment/dateResolver.js"></script>
