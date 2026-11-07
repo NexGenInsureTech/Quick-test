@@ -61,6 +61,23 @@
     Object.assign(state, runtime);
   }
 
+  const requiredImportStateFields = ["factData", "importSummary", "dataQuality"];
+  function validateImportActivation(candidate) {
+    if (!candidate || typeof candidate !== "object") throw new Error("IMPORT_ACTIVATION_CANDIDATE_INVALID");
+    requiredImportStateFields.forEach((field) => {
+      if (!Object.prototype.hasOwnProperty.call(candidate, field)) throw new Error(`IMPORT_ACTIVATION_CANDIDATE_MISSING_${field.toUpperCase()}`);
+    });
+    const fields = Object.keys(candidate);
+    fields.forEach((field) => {
+      const sourceDescriptor = Object.getOwnPropertyDescriptor(candidate, field);
+      const targetDescriptor = Object.getOwnPropertyDescriptor(state, field);
+      if (!sourceDescriptor || !("value" in sourceDescriptor)) throw new Error(`IMPORT_ACTIVATION_SOURCE_PROPERTY_UNSAFE:${field}`);
+      if (!targetDescriptor || !("value" in targetDescriptor) || targetDescriptor.writable !== true) {
+        throw new Error(`IMPORT_ACTIVATION_TARGET_PROPERTY_UNSAFE:${field}`);
+      }
+    });
+  }
+
   function refresh() {
     const started = performance.now();
     const runtime = calculateRuntime(state.factData, state.filters, state.dataQuality);
@@ -99,8 +116,23 @@
     };
   }
 
+  function applyCoverageAuthority(record, governance = {}) {
+    const authority = global.BancaTrackerPolicyCoverage;
+    if (!authority || typeof authority.apply !== "function") throw new Error("POLICY_COVERAGE_AUTHORITY_UNAVAILABLE");
+    return authority.apply(record, governance);
+  }
+
+  function requireCoverageAuthority() {
+    if (!global.BancaTrackerPolicyCoverage || typeof global.BancaTrackerPolicyCoverage.apply !== "function") {
+      throw new Error("POLICY_COVERAGE_AUTHORITY_UNAVAILABLE");
+    }
+  }
+
   function prepareImport(result, authorityContext) {
-    const dateRows = result.rows.map(applyDateAuthority);
+    requireCoverageAuthority();
+    const coverageAuthority = global.BancaTrackerPolicyCoverage;
+    const coverageRows = result.rows.map((record) => coverageAuthority.apply(record));
+    const dateRows = coverageRows.map(applyDateAuthority);
     const branchAuthority = global.BancaTrackerLiveBranchAuthority;
     const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority;
     const hierarchyAuthority = global.BancaTrackerLiveHierarchyAuthority;
@@ -117,7 +149,10 @@
       : hierarchyRows;
     const monthSet = new Set(); const bankSet = new Set(); factData.forEach((row) => { monthSet.add(row.month); if (row.bank) bankSet.add(row.bank); });
     const months = utils.orderMonths([...monthSet]); const banks = [...bankSet].sort();
-    const importSummary = { ...result.summary, rejectionReasons: { ...(result.summary.rejectionReasons || {}) }, warningReasons: { ...(result.summary.warningReasons || {}) }, unconfiguredMonths: months.filter((month) => !config.FISCAL_MONTHS.includes(month)) };
+    const coverage = coverageAuthority && typeof coverageAuthority.summarize === "function"
+      ? coverageAuthority.summarize(factData)
+      : null;
+    const importSummary = { ...result.summary, rejectionReasons: { ...(result.summary.rejectionReasons || {}) }, warningReasons: { ...(result.summary.warningReasons || {}) }, unconfiguredMonths: months.filter((month) => !config.FISCAL_MONTHS.includes(month)), coverage };
     const dataQuality = global.BancaTrackerDataQuality.build(factData, config, importSummary);
     const filters = { month: "ALL", bank: "ALL" };
     const runtime = calculateRuntime(factData, filters, dataQuality);
@@ -125,7 +160,15 @@
   }
 
   function activateImport(candidate) {
-    activateRuntime(candidate);
+    if (!candidate.importSummary.batch) { validateImportActivation(candidate); activateRuntime(candidate); return candidate; }
+    const importSummary = { ...candidate.importSummary, batch: { ...candidate.importSummary.batch, status: "COMMITTED" } };
+    const dataQuality = candidate.dataQuality && candidate.dataQuality.importSummary === candidate.importSummary
+      ? { ...candidate.dataQuality, importSummary }
+      : candidate.dataQuality;
+    const committedCandidate = { ...candidate, importSummary, dataQuality };
+    validateImportActivation(committedCandidate);
+    activateRuntime(committedCandidate);
+    return committedCandidate;
   }
 
   function projectImport(candidate) {
@@ -144,14 +187,13 @@
 
   function commitImport(result, authorityContext) {
     setStatus("Building analytics...", false);
-    const candidate = prepareImport(result, authorityContext);
-    activateImport(candidate);
+    const candidate = activateImport(prepareImport(result, authorityContext));
     projectImport(candidate);
     return { ...result, rows: candidate.factData, headerMap: candidate.headerMap, summary: candidate.importSummary };
   }
 
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
-  function loadCsvText(text) { try { const result = processSynchronously(text); return commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
+  function loadCsvText(text) { try { requireCoverageAuthority(); const result = processSynchronously(text); return commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text, progressPrefix = "") { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(`${progressPrefix}${event.data.stage}`, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
 
   const sumReasons = (target, source) => Object.entries(source || {}).forEach(([reason, count]) => { target[reason] = (target[reason] || 0) + count; });
@@ -209,6 +251,7 @@
     const files = Array.from(fileList || []).map((file, selectionIndex) => ({ file, selectionIndex }));
     try {
       if (!files.length) return null;
+      requireCoverageAuthority();
       const invalid = files.find(({ file }) => !/\.csv$/i.test(file.name || ""));
       if (invalid) throw new Error(`Unsupported file: ${invalid.file.name || `selection ${invalid.selectionIndex + 1}`}. Select CSV files only.`);
       if (!global.crypto || !global.crypto.subtle || typeof global.crypto.subtle.digest !== "function") throw new Error("SHA-256 duplicate-file protection is unavailable in this browser. The batch was not imported.");
@@ -223,7 +266,7 @@
       }
       summary.acceptedRows = rows.length;
       summary.batch = {
-        fileCount: files.length, importMode: "REPLACE", status: "COMMITTED", importedAt: new Date().toISOString(),
+        fileCount: files.length, importMode: "REPLACE", status: "PREPARED", importedAt: new Date().toISOString(),
         totalRows: summary.totalRows, acceptedRows: summary.acceptedRows, rejectedRows: summary.rejectedRows,
         warningRows: summary.warningRows, negativePremiumRows: summary.negativePremiumRows,
         observedMonths: [...new Set(fileProvenance.flatMap((file) => file.observedMonths))].sort(), files: fileProvenance,
@@ -241,5 +284,5 @@
   function handleFileChange(event) { handleFiles(event.target.files, event.target); }
   function init() { document.getElementById("csvFile").addEventListener("change", handleFileChange); document.getElementById("monthFilter").addEventListener("change", function () { state.filters.month = this.value; refresh(); }); document.getElementById("bankFilter").addEventListener("change", function () { state.filters.bank = this.value; refresh(); }); }
   function getPerformanceContext() { return state.context || buildContext(); }
-  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, handleFiles, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment, applyDateAuthority }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
+  global.BancaTrackerCore = Object.freeze({ state, init, loadCsvText, handleFiles, refresh, renderPage, setActivePage, getPerformanceContext, processSynchronously, runShadowEnrichment, applyDateAuthority, applyCoverageAuthority }); Object.defineProperty(global, "factData", { get: () => state.factData }); Object.defineProperty(global, "filteredData", { get: () => state.filteredData }); init();
 })(window);

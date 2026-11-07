@@ -77,8 +77,8 @@ const resetCounters = () => { events.length = 0; activeWork = 0; maxActiveWork =
 
   // T2/T3/T13-T22/T26-T28: combined totals, order, one preparation/activation/projection/shadow, provenance, signed and mixed-FY facts.
   resetCounters(); const shadowBefore = shadowCalls;
-  let activeFacts = BancaTrackerCore.state.factData; let activationCount = 0;
-  Object.defineProperty(BancaTrackerCore.state, "factData", { configurable: true, get() { return activeFacts; }, set(value) { activationCount += 1; activeFacts = value; } });
+  let activationCount = 0; const objectAssign = Object.assign;
+  Object.assign = function (target, ...sources) { if (target === BancaTrackerCore.state) activationCount += 1; return objectAssign(target, ...sources); };
   let summaryText = elements.importSummary.textContent; let projectionCount = 0;
   Object.defineProperty(elements.importSummary, "textContent", { configurable: true, get() { return summaryText; }, set(value) { projectionCount += 1; summaryText = value; } });
   const a = file("a.csv", [row(10, "Apr-25", "A1", "01/04/2025"), row(-2, "Apr-25", "A2", "02/04/2025")]);
@@ -93,7 +93,7 @@ const resetCounters = () => { events.length = 0; activeWork = 0; maxActiveWork =
   assert.deepStrictEqual(summary.batch.observedMonths, ["Apr-25", "Apr-26", "May-26"]); assert.strictEqual(summary.batch.importMode, "REPLACE"); assert.strictEqual(summary.batch.status, "COMMITTED");
   assert.strictEqual(authorityCounts.branchLoad, 1); assert.strictEqual(authorityCounts.assignmentLoad, 1); assert.strictEqual(authorityCounts.hierarchyLoad, 1); assert.strictEqual(authorityCounts.geographyLoad, 1); assert.strictEqual(authorityCounts.commercialLoad, 1); assert.strictEqual(authorityCounts.branchApply, 1);
   assert.strictEqual(activationCount, 1); assert.strictEqual(projectionCount, 1);
-  Object.defineProperty(BancaTrackerCore.state, "factData", { configurable: true, writable: true, value: activeFacts });
+  Object.assign = objectAssign;
   Object.defineProperty(elements.importSummary, "textContent", { configurable: true, writable: true, value: summaryText });
   assert.strictEqual(workerRuns, 3); assert.strictEqual(maxActiveWork, 1); await settle(); assert.strictEqual(shadowCalls, shadowBefore + 1);
 

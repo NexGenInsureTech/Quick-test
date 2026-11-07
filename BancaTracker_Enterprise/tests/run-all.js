@@ -38,9 +38,11 @@ groups.push("step-structural-master-stack-safety-a.test.js");
 groups.push("step-branch-identity-health.test.js");
 groups.push("step-branch-identity-health-ui.test.js");
 groups.push("step-bri-01a-policy-tenure.test.js");
+groups.push("step-bri-01b-coverage-date-ingestion.test.js");
 let failed = false;
+const policyCoveragePreload = path.join(__dirname, "..", "js", "enrichment", "policyCoverage.js");
 groups.forEach((file) => {
-  const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
+  const result = spawnSync(process.execPath, ["--require", policyCoveragePreload, path.join(__dirname, file)], { encoding: "utf8" });
   if (result.status === 0) { console.log(`PASS ${file}`); if (result.stdout.trim()) console.log(result.stdout.trim()); }
   else { failed = true; console.error(`FAIL ${file}`); if (result.stdout.trim()) console.error(result.stdout.trim()); if (result.stderr.trim()) console.error(result.stderr.trim()); }
 });

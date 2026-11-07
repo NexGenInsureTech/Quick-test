@@ -42,6 +42,14 @@
           "POLICY ISSUED DATE",
           "POLICY ISSUE DATE",
         ],
+        "POLICY COVERAGE START DATE": [
+          "POLICY START DATE",
+          "START DATE",
+        ],
+        "POLICY COVERAGE END DATE": [
+          "POLICY END DATE",
+          "EXPIRY DATE",
+        ],
       },
       REQUIRED_SEMANTICS: ["POLICY ISSUED DATE"],
       MANDATORY: [
@@ -62,6 +70,8 @@
         "PRODUCT CODE",
         "Day",
         "POLICY ISSUED DATE",
+        "POLICY COVERAGE START DATE",
+        "POLICY COVERAGE END DATE",
       ],
     },
     BANK_ALIASES: {
