@@ -37,6 +37,7 @@ groups.push("step-v869-monthly-yoy-comparison-ui.test.js");
 groups.push("step-structural-master-stack-safety-a.test.js");
 groups.push("step-branch-identity-health.test.js");
 groups.push("step-branch-identity-health-ui.test.js");
+groups.push("step-bri-01a-policy-tenure.test.js");
 let failed = false;
 groups.forEach((file) => {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { encoding: "utf8" });
