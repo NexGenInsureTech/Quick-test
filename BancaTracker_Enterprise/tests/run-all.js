@@ -41,6 +41,7 @@ groups.push("step-bri-01a-policy-tenure.test.js");
 groups.push("step-bri-01b-coverage-date-ingestion.test.js");
 groups.push("step-bri-02a-premium-portion.test.js");
 groups.push("step-bri-02b-premium-portion-ingestion.test.js");
+groups.push("step-bri-03a-premium-composition-dashboard.test.js");
 let failed = false;
 const policyCoveragePreload = path.join(__dirname, "..", "js", "enrichment", "policyCoverage.js");
 const premiumPortionPreload = path.join(__dirname, "..", "js", "analytics", "premiumPortion.js");

@@ -21,6 +21,7 @@
       ><span id="status">Upload CSV</span
       ><button id="productivityTab">Productivity &amp; Opportunity</button
       ><button id="commercialTab">Commercial Performance</button
+      ><button id="premiumCompositionTab">Premium Composition</button
       ><button id="qualityTab">Data Quality</button
       ><button id="masterDataTab">Master Data</button
       ><button id="helpTab">Help, Manual &amp; Glossary</button>
@@ -389,6 +390,20 @@
         </div>
       </section>
     </div>
+    <div id="premiumCompositionPage" style="display: none">
+      <div class="panel">
+        <h2>Historical Premium Composition</h2>
+        <p class="scorecard-note">Signed Net Premium is classified from governed endorsement-suffix metadata. INITIAL and ADVANCE are successfully classified premium portions; UNKNOWN includes missing, ungoverned and unexpected metadata; INVALID contains malformed identifiers. These are transaction-row classifications, not policy counts, renewals or cash-collection timing.</p>
+        <div class="commercial-controls" aria-label="Premium composition controls">
+          <label for="premiumCompositionFinancialYear">Financial Year<select id="premiumCompositionFinancialYear"></select></label>
+          <label for="premiumCompositionManagementBank">Management Bank<select id="premiumCompositionManagementBank"><option value="ALL">All Management Banks</option></select></label>
+        </div>
+        <div id="premiumCompositionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+      </div>
+      <section id="premiumCompositionKpis" class="cards" aria-label="Premium composition KPIs"></section>
+      <div class="panel commercial-table-wrap"><h2>Monthly Signed-Premium Composition</h2><div id="premiumCompositionTrend"></div></div>
+      <div class="panel commercial-table-wrap"><h2>Product-wise Premium Composition</h2><div id="premiumCompositionProducts"></div></div>
+    </div>
     <div id="qualityPage" style="display: none">
       <section id="qualitySummary" class="cards"></section>
       <p id="qualityScope" class="scorecard-note">
@@ -570,6 +585,7 @@
     <script src="js/dataQualityGuidance.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/analytics/managementBank.js"></script>
+    <script src="js/analytics/premiumComposition.js"></script>
     <script src="js/analytics/monthlyPremiumTrend.js"></script>
     <script src="js/analytics/commercialPerformance.js"></script>
     <script src="js/analytics/commercialRollups.js"></script>
@@ -593,6 +609,7 @@
     <script src="js/core.js"></script>
     <script src="js/performance.js"></script>
     <script src="js/commercialPerformanceUI.js"></script>
+    <script src="js/premiumCompositionUI.js"></script>
     <script src="app.js"></script>
     <script src="js/activation.js"></script>
     <script src="js/scorecard.js"></script>

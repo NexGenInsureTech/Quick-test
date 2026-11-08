@@ -18,8 +18,8 @@ class FakeElement {
 }
 const ids = [
   "helpGettingStartedContent", "helpManualContent", "helpGlossaryCategory", "helpGlossaryResults", "helpGlossarySearch", "helpGlossaryClear", "helpGlossaryCount", "helpGlossaryEmpty", "helpInterpretationContent", "helpScopeContent", "helpDataContent", "helpTroubleshootingContent",
-  "misTab", "actTab", "scoreTab", "targetTab", "productivityTab", "commercialTab", "qualityTab", "masterDataTab", "helpTab",
-  "misPage", "activationPage", "scorecardPage", "targetPage", "productivityPage", "commercialPage", "qualityPage", "masterDataPage", "helpPage"
+  "misTab", "actTab", "scoreTab", "targetTab", "productivityTab", "commercialTab", "premiumCompositionTab", "qualityTab", "masterDataTab", "helpTab",
+  "misPage", "activationPage", "scorecardPage", "targetPage", "productivityPage", "commercialPage", "premiumCompositionPage", "qualityPage", "masterDataPage", "helpPage"
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement("div", id)]));
 elements.helpGlossarySearch.value = ""; elements.helpGlossaryCategory.value = "";
@@ -77,7 +77,7 @@ assert(!source.includes("factData"), "Help must not depend on uploaded facts");
 
 const requiredSections = ["Getting Started", "User Manual", "KPI &amp; Field Glossary", "Interpretation Guide", "Understanding Filters &amp; Scope", "Data &amp; Master Reference", "Data Quality &amp; Troubleshooting"];
 requiredSections.forEach((heading) => assert(html.includes(heading)));
-const navIds = ["misTab", "actTab", "scoreTab", "targetTab", "productivityTab", "commercialTab", "qualityTab", "masterDataTab", "helpTab"];
+const navIds = ["misTab", "actTab", "scoreTab", "targetTab", "productivityTab", "commercialTab", "premiumCompositionTab", "qualityTab", "masterDataTab", "helpTab"];
 let last = -1; navIds.forEach((id) => { const next = html.indexOf(`id="${id}"`); assert(next > last, `${id} missing or out of order`); last = next; });
 assert(html.includes('id="helpPage"') && html.includes('id="helpTab"'));
 assert(css.includes(".help-section-nav") && css.includes("@media(max-width:900px)") && css.includes("overflow-wrap: anywhere"));
@@ -86,7 +86,7 @@ assert(allHelpText().includes("Prepare and import PR data") && allHelpText().inc
 window.BancaTrackerCore = { state: { activePage: "misPage" }, setActivePage(pageId) { this.state.activePage = pageId; } };
 load("app.js"); window.BancaTrackerApp.showPage("helpPage");
 assert.strictEqual(elements.helpPage.style.display, "block");
-["misPage", "activationPage", "scorecardPage", "targetPage", "productivityPage", "commercialPage", "qualityPage", "masterDataPage"].forEach((id) => assert.strictEqual(elements[id].style.display, "none"));
+["misPage", "activationPage", "scorecardPage", "targetPage", "productivityPage", "commercialPage", "premiumCompositionPage", "qualityPage", "masterDataPage"].forEach((id) => assert.strictEqual(elements[id].style.display, "none"));
 assert(elements.helpTab.classList.contains("active-tab"));
 assert.deepStrictEqual(Array.from(window.BancaTrackerApp.pages).map((pair) => pair[0]), navIds);
 assert(appSource.includes('["helpTab", "helpPage"]'));
