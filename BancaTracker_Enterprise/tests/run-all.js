@@ -39,6 +39,7 @@ groups.push("step-branch-identity-health.test.js");
 groups.push("step-branch-identity-health-ui.test.js");
 groups.push("step-bri-01a-policy-tenure.test.js");
 groups.push("step-bri-01b-coverage-date-ingestion.test.js");
+groups.push("step-bri-02a-premium-portion.test.js");
 let failed = false;
 const policyCoveragePreload = path.join(__dirname, "..", "js", "enrichment", "policyCoverage.js");
 groups.forEach((file) => {
