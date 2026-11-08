@@ -128,10 +128,25 @@
     }
   }
 
-  function prepareImport(result, authorityContext) {
+  function requirePremiumPortionAuthority() {
+    const enrichment = global.BancaTrackerPremiumPortionEnrichment;
+    if (!enrichment || typeof enrichment.apply !== "function" || typeof enrichment.summarize !== "function" || typeof enrichment.preflight !== "function") {
+      throw new Error("PREMIUM_PORTION_ENRICHMENT_UNAVAILABLE");
+    }
+    enrichment.preflight();
+  }
+
+  function requireImportAuthorities() {
+    requirePremiumPortionAuthority();
     requireCoverageAuthority();
+  }
+
+  function prepareImport(result, authorityContext) {
+    requireImportAuthorities();
+    const premiumPortionEnrichment = global.BancaTrackerPremiumPortionEnrichment;
     const coverageAuthority = global.BancaTrackerPolicyCoverage;
-    const coverageRows = result.rows.map((record) => coverageAuthority.apply(record));
+    const premiumPortionRows = result.rows.map((record) => premiumPortionEnrichment.apply(record));
+    const coverageRows = premiumPortionRows.map((record) => coverageAuthority.apply(record));
     const dateRows = coverageRows.map(applyDateAuthority);
     const branchAuthority = global.BancaTrackerLiveBranchAuthority;
     const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority;
@@ -152,7 +167,8 @@
     const coverage = coverageAuthority && typeof coverageAuthority.summarize === "function"
       ? coverageAuthority.summarize(factData)
       : null;
-    const importSummary = { ...result.summary, rejectionReasons: { ...(result.summary.rejectionReasons || {}) }, warningReasons: { ...(result.summary.warningReasons || {}) }, unconfiguredMonths: months.filter((month) => !config.FISCAL_MONTHS.includes(month)), coverage };
+    const premiumPortion = premiumPortionEnrichment.summarize(factData);
+    const importSummary = { ...result.summary, rejectionReasons: { ...(result.summary.rejectionReasons || {}) }, warningReasons: { ...(result.summary.warningReasons || {}) }, unconfiguredMonths: months.filter((month) => !config.FISCAL_MONTHS.includes(month)), coverage, premiumPortion };
     const dataQuality = global.BancaTrackerDataQuality.build(factData, config, importSummary);
     const filters = { month: "ALL", bank: "ALL" };
     const runtime = calculateRuntime(factData, filters, dataQuality);
@@ -193,7 +209,7 @@
   }
 
   function processSynchronously(text) { return global.BancaTrackerCsvProcessor.process(text, config, (progress) => setStatus(progress.stage, false)); }
-  function loadCsvText(text) { try { requireCoverageAuthority(); const result = processSynchronously(text); return commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
+  function loadCsvText(text) { try { requireImportAuthorities(); const result = processSynchronously(text); return commitImport(result); } catch (error) { setStatus(error.message || "Unable to process CSV.", true); return null; } }
   function processWithWorker(text, progressPrefix = "") { return new Promise((resolve, reject) => { let worker; try { worker = new Worker("js/csvWorker.js"); } catch (error) { reject(error); return; } worker.onmessage = (event) => { if (event.data.type === "progress") setStatus(`${progressPrefix}${event.data.stage}`, false); else if (event.data.type === "complete") { worker.terminate(); resolve(event.data.result); } else if (event.data.type === "error") { worker.terminate(); reject(new Error(event.data.message)); } }; worker.onerror = () => { worker.terminate(); reject(new Error("CSV worker failed.")); }; worker.postMessage({ text, config }); }); }
 
   const sumReasons = (target, source) => Object.entries(source || {}).forEach(([reason, count]) => { target[reason] = (target[reason] || 0) + count; });
@@ -251,7 +267,7 @@
     const files = Array.from(fileList || []).map((file, selectionIndex) => ({ file, selectionIndex }));
     try {
       if (!files.length) return null;
-      requireCoverageAuthority();
+      requireImportAuthorities();
       const invalid = files.find(({ file }) => !/\.csv$/i.test(file.name || ""));
       if (invalid) throw new Error(`Unsupported file: ${invalid.file.name || `selection ${invalid.selectionIndex + 1}`}. Select CSV files only.`);
       if (!global.crypto || !global.crypto.subtle || typeof global.crypto.subtle.digest !== "function") throw new Error("SHA-256 duplicate-file protection is unavailable in this browser. The batch was not imported.");

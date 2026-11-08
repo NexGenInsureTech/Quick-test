@@ -40,10 +40,16 @@ groups.push("step-branch-identity-health-ui.test.js");
 groups.push("step-bri-01a-policy-tenure.test.js");
 groups.push("step-bri-01b-coverage-date-ingestion.test.js");
 groups.push("step-bri-02a-premium-portion.test.js");
+groups.push("step-bri-02b-premium-portion-ingestion.test.js");
 let failed = false;
 const policyCoveragePreload = path.join(__dirname, "..", "js", "enrichment", "policyCoverage.js");
+const premiumPortionPreload = path.join(__dirname, "..", "js", "analytics", "premiumPortion.js");
+const premiumPortionEnrichmentPreload = path.join(__dirname, "..", "js", "enrichment", "premiumPortionEnrichment.js");
 groups.forEach((file) => {
-  const result = spawnSync(process.execPath, ["--require", policyCoveragePreload, path.join(__dirname, file)], { encoding: "utf8" });
+  const premiumPortionPreloads = file === "step-bri-02a-premium-portion.test.js"
+    ? []
+    : ["--require", premiumPortionPreload, "--require", premiumPortionEnrichmentPreload];
+  const result = spawnSync(process.execPath, ["--require", policyCoveragePreload, ...premiumPortionPreloads, path.join(__dirname, file)], { encoding: "utf8" });
   if (result.status === 0) { console.log(`PASS ${file}`); if (result.stdout.trim()) console.log(result.stdout.trim()); }
   else { failed = true; console.error(`FAIL ${file}`); if (result.stdout.trim()) console.error(result.stdout.trim()); if (result.stderr.trim()) console.error(result.stderr.trim()); }
 });

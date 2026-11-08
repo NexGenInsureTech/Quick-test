@@ -50,6 +50,9 @@
           "POLICY END DATE",
           "EXPIRY DATE",
         ],
+        "ENDORSEMENT NO": [
+          "ENDORSEMENT NO",
+        ],
       },
       REQUIRED_SEMANTICS: ["POLICY ISSUED DATE"],
       MANDATORY: [
@@ -72,6 +75,7 @@
         "POLICY ISSUED DATE",
         "POLICY COVERAGE START DATE",
         "POLICY COVERAGE END DATE",
+        "ENDORSEMENT NO",
       ],
     },
     BANK_ALIASES: {
