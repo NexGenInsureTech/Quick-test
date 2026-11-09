@@ -58,7 +58,7 @@ assert.strictEqual(Object.prototype.hasOwnProperty.call(result.kpis, "policyCoun
 
 // Browser renderer uses the pure result and leaves Commercial Performance state untouched.
 class Element { constructor() { this.innerHTML = ""; this.value = ""; this.listeners = {}; } addEventListener(type, handler) { this.listeners[type] = handler; } }
-const elements = Object.fromEntries(["premiumCompositionFinancialYear", "premiumCompositionManagementBank", "premiumCompositionReadiness", "premiumCompositionKpis", "premiumCompositionTrend", "premiumCompositionProducts"].map((id) => [id, new Element()]));
+const elements = Object.fromEntries(["premiumCompositionFinancialYear", "premiumCompositionManagementBank", "premiumCompositionReadiness", "premiumCompositionKpis", "premiumCompositionTrend", "premiumCompositionProducts", "premiumTenureReadiness", "premiumTenureMatrix"].map((id) => [id, new Element()]));
 global.document = { getElementById: (id) => elements[id] || null };
 global.BancaTrackerUtils = { escapeHtml: (value) => String(value == null ? "" : value).replace(/[&<>'\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]), formatRupees: (value) => `${Number(value) < 0 ? "-" : ""}₹${Math.abs(Number(value || 0))}` };
 const commercialSentinel = Object.freeze({ unchanged: true });

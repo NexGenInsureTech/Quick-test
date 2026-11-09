@@ -146,7 +146,7 @@
     const premiumPortionEnrichment = global.BancaTrackerPremiumPortionEnrichment;
     const coverageAuthority = global.BancaTrackerPolicyCoverage;
     const premiumPortionRows = result.rows.map((record) => premiumPortionEnrichment.apply(record));
-    const coverageRows = premiumPortionRows.map((record) => coverageAuthority.apply(record));
+    const coverageRows = premiumPortionRows.map((record) => coverageAuthority.apply(record, config.POLICY_TENURE_GOVERNANCE));
     const dateRows = coverageRows.map(applyDateAuthority);
     const branchAuthority = global.BancaTrackerLiveBranchAuthority;
     const assignmentAuthority = global.BancaTrackerLiveAssignmentAuthority;

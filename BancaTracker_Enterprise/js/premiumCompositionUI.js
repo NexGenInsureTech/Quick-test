@@ -26,6 +26,20 @@
     const rows = result.products.map((row) => `<tr><td>${escape(row.product)}</td><td class="${negative(row.totalPremium)}">${escape(money(row.totalPremium))}</td><td class="${negative(row.premiums.INITIAL)}">${escape(money(row.premiums.INITIAL))}</td><td class="${negative(row.premiums.ADVANCE)}">${escape(money(row.premiums.ADVANCE))}</td><td class="${negative(row.premiums.UNKNOWN)}">${escape(money(row.premiums.UNKNOWN))}</td><td class="${negative(row.premiums.INVALID)}">${escape(money(row.premiums.INVALID))}</td><td>${escape(row.rowCount)}</td></tr>`).join("");
     element("premiumCompositionProducts").innerHTML = `<table><thead><tr><th>Product</th><th>Total</th><th>Initial</th><th>Advance</th><th>Unknown</th><th>Invalid</th><th>Transaction Rows</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+  function tenureLabel(value) { return String(value || "UNKNOWN").replace(/_/g, " "); }
+  function renderTenureReadiness(result) {
+    const readiness = result.tenureReadiness;
+    if (!readiness) { element("premiumTenureReadiness").innerHTML = `<p class="empty-state">Tenure evidence is unavailable.</p>`; return; }
+    const diagnostics = Object.entries(readiness.diagnosticCounts).sort(([left], [right]) => left.localeCompare(right));
+    const diagnosticText = (diagnostics.length ? diagnostics.map(([code, count]) => `${code}: ${count}`).join(" · ") : "No tenure diagnostics") +
+      (readiness.statusCounts.UNKNOWN ? " · Unknown tenure remains unevidenced" : "");
+    element("premiumTenureReadiness").innerHTML = `<span class="commercial-status${readiness.statusCounts.UNKNOWN || readiness.statusCounts.INVALID ? " commercial-status-partial" : " commercial-status-ready"}">INFORMATIONAL</span>Successful tenure evidence ${escape(readiness.successfulTenureRowShare.toFixed(1))}% · Success ${escape(readiness.statusCounts.SUCCESS)} · Unknown ${escape(readiness.statusCounts.UNKNOWN)} · Invalid ${escape(readiness.statusCounts.INVALID)}<br><span class="scorecard-note">${escape(diagnosticText)} · Matrix premium difference ${escape(money(readiness.reconciliation.premiumDifference))} · Matrix row difference ${escape(readiness.reconciliation.rowDifference)}.</span>`;
+  }
+  function renderTenureMatrix(result) {
+    if (!result.tenureRows || !result.tenureRows.some((row) => row.rowCount)) { element("premiumTenureMatrix").innerHTML = `<p class="empty-state">No tenure composition is available for this scope.</p>`; return; }
+    const rows = result.tenureRows.map((row) => `<tr><td>${escape(tenureLabel(row.tenureClassification))}</td><td class="${negative(row.totalPremium)}">${escape(money(row.totalPremium))}</td><td class="${negative(row.premiums.INITIAL)}">${escape(money(row.premiums.INITIAL))}</td><td class="${negative(row.premiums.ADVANCE)}">${escape(money(row.premiums.ADVANCE))}</td><td class="${negative(row.premiums.UNKNOWN)}">${escape(money(row.premiums.UNKNOWN))}</td><td class="${negative(row.premiums.INVALID)}">${escape(money(row.premiums.INVALID))}</td><td>${escape(row.rowCount)}</td></tr>`).join("");
+    element("premiumTenureMatrix").innerHTML = `<table><thead><tr><th>Tenure Evidence</th><th>Total</th><th>Initial Portion</th><th>Advance Portion</th><th>Unknown Portion</th><th>Invalid Portion</th><th>Transaction Rows</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
   function render() {
     const authority = global.BancaTrackerPremiumComposition; const facts = global.BancaTrackerCore && global.BancaTrackerCore.state.factData || [];
     if (!authority) throw new Error("Premium Composition authority is unavailable.");
@@ -35,7 +49,7 @@
     element("premiumCompositionFinancialYear").innerHTML = years.map((year) => option(year, year, year === state.financialYear)).join("");
     element("premiumCompositionManagementBank").innerHTML = option("ALL", "All Management Banks", state.managementBank === "ALL") + banks.map((bank) => option(bank, bank, bank === state.managementBank)).join("");
     const result = authority.buildPremiumComposition(facts, { financialYear: state.financialYear, managementBank: state.managementBank });
-    renderCards(result); renderTrend(result); renderProducts(result);
+    renderCards(result); renderTrend(result); renderProducts(result); renderTenureReadiness(result); renderTenureMatrix(result);
     const k = result.kpis || { unknownPremium: 0, invalidPremium: 0, classifiedTransactionRowShare: 0, transactionRows: 0 };
     element("premiumCompositionReadiness").innerHTML = `<span class="commercial-status${result.status === "READY" ? " commercial-status-ready" : result.status === "PARTIAL" ? " commercial-status-partial" : ""}">${escape(result.status.replace(/_/g, " "))}</span>${escape(result.financialYear || "No financial year")} · ${escape(result.managementBank === "ALL" ? "All Management Banks" : result.managementBank)} · Classified transaction-row share ${escape(k.classifiedTransactionRowShare.toFixed(1))}%<br><span class="scorecard-note">Unknown premium ${escape(money(k.unknownPremium))} · Invalid premium ${escape(money(k.invalidPremium))} · ${escape(k.transactionRows)} transaction row(s) · Reconciliation difference ${escape(money(result.reconciliation && result.reconciliation.premiumDifference || 0))}.</span>`;
     return result;
@@ -47,5 +61,5 @@
     initialized = true;
   }
   init();
-  global.BancaTrackerPremiumCompositionUI = Object.freeze({ state, init, render, renderCards, renderTrend, renderProducts });
+  global.BancaTrackerPremiumCompositionUI = Object.freeze({ state, init, render, renderCards, renderTrend, renderProducts, renderTenureReadiness, renderTenureMatrix });
 })(window);

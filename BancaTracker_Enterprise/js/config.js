@@ -15,6 +15,10 @@
       NEAR_ACTIVE_MAX: 24999,
     },
     MANAGEMENT: { SMALL_ACTIVATION_GAP: 5000 },
+    POLICY_TENURE_GOVERNANCE: Object.freeze({
+      endDateConvention: "INCLUSIVE",
+      leapDayAnniversaryConvention: "MAR_01",
+    }),
     RENDER_LIMITS: {
       DATA_QUALITY_HIERARCHY: 100,
       DATA_QUALITY_IDENTITY: 100,

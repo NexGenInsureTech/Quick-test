@@ -62,6 +62,9 @@ assert.strictEqual(applyCoverage("01/01/2026", "31/12/2028", { endDateConvention
 assert.strictEqual(applyCoverage("01/01/2026", "31/12/2030", { endDateConvention: "INCLUSIVE" }).policyTenureClassification, "LONG_TERM_4_TO_5_YEARS");
 assert.strictEqual(applyCoverage("01/01/2026", "30/06/2027", { endDateConvention: "INCLUSIVE" }).policyTenureClassification, "NON_STANDARD_TERM");
 assert.strictEqual(applyCoverage("01/03/2019", "29/02/2020", { endDateConvention: "INCLUSIVE" }).policyTenureClassification, "ANNUAL");
+const missingGovernance = applyCoverage("01/04/2026", "31/03/2027");
+assert.strictEqual(missingGovernance.policyTenureStatus, "UNKNOWN");
+assert.deepStrictEqual(missingGovernance.policyTenureDiagnosticCodes, ["END_DATE_CONVENTION_MISSING"]);
 
 // The coverage adapter is an application dependency: direct use fails closed instead of returning an unenriched record.
 const coverageAuthority = global.BancaTrackerPolicyCoverage;
@@ -101,9 +104,11 @@ for (const startHeader of ["POLICY START DATE", "START DATE"]) {
     assert.strictEqual(row.coverageStartDateSourceValue, " 01/04/2026 ");
     assert.strictEqual(row.coverageStartDateNormalized, "2026-04-01");
     assert.strictEqual(row.coverageEndDateNormalized, "2027-03-31");
-    assert.strictEqual(row.policyTenureStatus, "UNKNOWN");
-    assert.deepStrictEqual(row.policyTenureDiagnosticCodes, ["END_DATE_CONVENTION_MISSING"]);
-    assert.strictEqual(BancaTrackerCore.state.importSummary.coverage.diagnosticCounts.END_DATE_CONVENTION_MISSING, 1);
+    assert.strictEqual(row.policyTenureStatus, "SUCCESS");
+    assert.strictEqual(row.policyTenureClassification, "ANNUAL");
+    assert.strictEqual(row.policyTenureEndDateConvention, "INCLUSIVE");
+    assert.deepStrictEqual(row.policyTenureDiagnosticCodes, []);
+    assert.strictEqual(BancaTrackerCore.state.importSummary.coverage.classificationCounts.ANNUAL, 1);
   }
 }
 
@@ -188,6 +193,7 @@ const file = (name, rows) => fakeFile(name, csv(coverageHeaders, rows));
   ], new Element());
   global.BancaTrackerDataQuality = dataQualityAuthority;
   assert.ok(batch, elements.status.textContent); assert.deepStrictEqual(batch.rows.map((item) => item.premium), [11, -3]);
+  assert.deepStrictEqual(batch.rows.map((item) => [item.policyTenureClassification, item.policyTenureEndDateConvention]), [["ANNUAL", "INCLUSIVE"], ["ANNUAL", "INCLUSIVE"]]);
   assert.strictEqual(batch.summary.batch.fileCount, 2); assert.strictEqual(batch.summary.coverage.rowsWithValidDatePair, 2);
   assert.deepStrictEqual(preparationStatuses, ["PREPARED"]);
   assert.strictEqual(batch.summary.batch.status, "COMMITTED");
