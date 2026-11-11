@@ -1,6 +1,6 @@
 (function (global) {
   "use strict";
-  const state = { financialYear: null, managementBank: "ALL" };
+  const state = { financialYear: null, managementBank: "ALL", reportingDate: "" };
   let initialized = false;
   const element = (id) => document.getElementById(id);
   const escape = (value) => global.BancaTrackerUtils.escapeHtml(value);
@@ -40,6 +40,22 @@
     const rows = result.tenureRows.map((row) => `<tr><td>${escape(tenureLabel(row.tenureClassification))}</td><td class="${negative(row.totalPremium)}">${escape(money(row.totalPremium))}</td><td class="${negative(row.premiums.INITIAL)}">${escape(money(row.premiums.INITIAL))}</td><td class="${negative(row.premiums.ADVANCE)}">${escape(money(row.premiums.ADVANCE))}</td><td class="${negative(row.premiums.UNKNOWN)}">${escape(money(row.premiums.UNKNOWN))}</td><td class="${negative(row.premiums.INVALID)}">${escape(money(row.premiums.INVALID))}</td><td>${escape(row.rowCount)}</td></tr>`).join("");
     element("premiumTenureMatrix").innerHTML = `<table><thead><tr><th>Tenure Evidence</th><th>Total</th><th>Initial Portion</th><th>Advance Portion</th><th>Unknown Portion</th><th>Invalid Portion</th><th>Transaction Rows</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+  function renderExpiry(result) {
+    if (!element("premiumExpiryReadiness") || !element("premiumExpiryCohorts")) return;
+    const expiry = result.expiry;
+    if (!expiry || expiry.status !== "READY") {
+      element("premiumExpiryReadiness").innerHTML = `<span class="commercial-status commercial-status-partial">${escape(expiry ? expiry.status.replace(/_/g, " ") : "UNAVAILABLE")}</span> Expiry-date evidence is unavailable for this scope. Existing Premium Composition results are unchanged.`;
+      element("premiumExpiryCohorts").innerHTML = `<p class="empty-state">Resolve the displayed expiry scope or dependency status to view cohorts.</p>`; return;
+    }
+    const evidence = expiry.evidence; const reconciliation = expiry.reconciliation;
+    const reconciliationValues = [...Object.values(reconciliation), ...expiry.months.flatMap((row) => Object.values(row.reconciliation || {}))];
+    const reconciliationFailed = reconciliationValues.some((value) => typeof value !== "number" || !Number.isFinite(value) || value !== 0);
+    const diagnosticText = Object.entries(expiry.diagnosticCounts).sort(([a], [b]) => a.localeCompare(b)).map(([code, count]) => `${code}: ${count}`).join(" · ") || "No expiry diagnostics";
+    element("premiumExpiryReadiness").innerHTML = `<span class="commercial-status${evidence.MISSING.rowCount || evidence.INVALID.rowCount || reconciliationFailed ? " commercial-status-partial" : " commercial-status-ready"}">EXPIRY-DATE EVIDENCE</span> Reporting date ${escape(expiry.reportingDate)} · Valid ${escape(evidence.VALID.rowCount)} · Missing ${escape(evidence.MISSING.rowCount)} · Invalid ${escape(evidence.INVALID.rowCount)} transaction rows · Reconciliation ${reconciliationFailed ? "PARTIAL" : "READY"}<br><span class="scorecard-note">${escape(diagnosticText)} · Evidence premium difference ${escape(money(reconciliation.evidencePremiumDifference))} · Evidence row difference ${escape(reconciliation.evidenceRowDifference)} · Monthly premium difference ${escape(money(reconciliation.validMonthPremiumDifference))} · Monthly row difference ${escape(reconciliation.validMonthRowDifference)}.</span>`;
+    if (!expiry.months.length) { element("premiumExpiryCohorts").innerHTML = `<p class="empty-state">No valid expiry-date evidence is available for this scope.</p>`; return; }
+    const rows = expiry.months.map((row) => `<tr><td>${escape(periodLabel(row.expiryMonth))}</td><td>${escape(row.expiryFinancialYear)}</td><td>${escape(row.timingBand.replace(/_/g, " "))}</td><td class="${negative(row.totalPremium)}">${escape(money(row.totalPremium))}</td><td>${escape(row.rowCount)}</td><td class="${negative(row.premiums.INITIAL)}">${escape(money(row.premiums.INITIAL))}</td><td class="${negative(row.premiums.ADVANCE)}">${escape(money(row.premiums.ADVANCE))}</td><td class="${negative(row.premiums.UNKNOWN)}">${escape(money(row.premiums.UNKNOWN))}</td><td class="${negative(row.premiums.INVALID)}">${escape(money(row.premiums.INVALID))}</td></tr>`).join("");
+    element("premiumExpiryCohorts").innerHTML = `<table><thead><tr><th>Expiry Month</th><th>Expiry FY</th><th>Timing</th><th>Historical Signed Premium</th><th>Transaction Rows</th><th>Initial</th><th>Advance</th><th>Unknown</th><th>Invalid</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
   function render() {
     const authority = global.BancaTrackerPremiumComposition; const facts = global.BancaTrackerCore && global.BancaTrackerCore.state.factData || [];
     if (!authority) throw new Error("Premium Composition authority is unavailable.");
@@ -48,8 +64,9 @@
     if (state.managementBank !== "ALL" && !banks.includes(state.managementBank)) state.managementBank = "ALL";
     element("premiumCompositionFinancialYear").innerHTML = years.map((year) => option(year, year, year === state.financialYear)).join("");
     element("premiumCompositionManagementBank").innerHTML = option("ALL", "All Management Banks", state.managementBank === "ALL") + banks.map((bank) => option(bank, bank, bank === state.managementBank)).join("");
-    const result = authority.buildPremiumComposition(facts, { financialYear: state.financialYear, managementBank: state.managementBank });
-    renderCards(result); renderTrend(result); renderProducts(result); renderTenureReadiness(result); renderTenureMatrix(result);
+    if (element("premiumCompositionReportingDate")) element("premiumCompositionReportingDate").value = state.reportingDate;
+    const result = authority.buildPremiumComposition(facts, { financialYear: state.financialYear, managementBank: state.managementBank, reportingDate: state.reportingDate });
+    renderCards(result); renderTrend(result); renderProducts(result); renderTenureReadiness(result); renderTenureMatrix(result); renderExpiry(result);
     const k = result.kpis || { unknownPremium: 0, invalidPremium: 0, classifiedTransactionRowShare: 0, transactionRows: 0 };
     element("premiumCompositionReadiness").innerHTML = `<span class="commercial-status${result.status === "READY" ? " commercial-status-ready" : result.status === "PARTIAL" ? " commercial-status-partial" : ""}">${escape(result.status.replace(/_/g, " "))}</span>${escape(result.financialYear || "No financial year")} · ${escape(result.managementBank === "ALL" ? "All Management Banks" : result.managementBank)} · Classified transaction-row share ${escape(k.classifiedTransactionRowShare.toFixed(1))}%<br><span class="scorecard-note">Unknown premium ${escape(money(k.unknownPremium))} · Invalid premium ${escape(money(k.invalidPremium))} · ${escape(k.transactionRows)} transaction row(s) · Reconciliation difference ${escape(money(result.reconciliation && result.reconciliation.premiumDifference || 0))}.</span>`;
     return result;
@@ -58,8 +75,9 @@
     if (initialized) return;
     element("premiumCompositionFinancialYear").addEventListener("change", function () { state.financialYear = this.value; render(); });
     element("premiumCompositionManagementBank").addEventListener("change", function () { state.managementBank = this.value; render(); });
+    if (element("premiumCompositionReportingDate")) element("premiumCompositionReportingDate").addEventListener("change", function () { state.reportingDate = this.value; render(); });
     initialized = true;
   }
   init();
-  global.BancaTrackerPremiumCompositionUI = Object.freeze({ state, init, render, renderCards, renderTrend, renderProducts, renderTenureReadiness, renderTenureMatrix });
+  global.BancaTrackerPremiumCompositionUI = Object.freeze({ state, init, render, renderCards, renderTrend, renderProducts, renderTenureReadiness, renderTenureMatrix, renderExpiry });
 })(window);

@@ -68,6 +68,18 @@ Purpose : Govern parent-scoped LOB and Product commercial driver analysis
     return { key: "__UNMAPPED__", label: "Unmapped" };
   }
 
+  function resolveProductIdentity(fact) {
+    const diagnostics = [];
+    const identity = driverIdentity(fact && typeof fact === "object" ? fact : {}, "PRODUCT", diagnostics);
+    return Object.freeze({
+      key: identity.key,
+      label: identity.label,
+      code: identity.code || null,
+      name: identity.name || null,
+      diagnostics: Object.freeze(diagnostics.map((item) => Object.freeze({ ...item }))),
+    });
+  }
+
   function aggregate(facts, driverDimension, diagnostics) {
     const byKey = new Map();
     facts.forEach((fact) => {
@@ -192,5 +204,5 @@ Purpose : Govern parent-scoped LOB and Product commercial driver analysis
     return { status, mode, basePeriod: options.basePeriod, comparisonPeriod: options.comparisonPeriod, parent: { dimension: options.parentSelection.parentDimension, key: options.parentSelection.parentKey, label: options.parentSelection.parentLabel || parent.row && parent.row.label || options.parentSelection.parentKey, baseActual: parentValues.baseActual, comparisonActual: parentValues.comparisonActual, change: parentValues.change }, driverDimension: options.driverDimension, rows, reconciliation, diagnostics: sortDiagnostics(diagnostics) };
   }
 
-  global.BancaTrackerCommercialDriverAnalysis = Object.freeze({ getSupportedDriverDimensions, buildExecutionDrivers, buildComparisonDrivers });
+  global.BancaTrackerCommercialDriverAnalysis = Object.freeze({ getSupportedDriverDimensions, resolveProductIdentity, buildExecutionDrivers, buildComparisonDrivers });
 })(window);

@@ -397,10 +397,17 @@
         <div class="commercial-controls" aria-label="Premium composition controls">
           <label for="premiumCompositionFinancialYear">Financial Year<select id="premiumCompositionFinancialYear"></select></label>
           <label for="premiumCompositionManagementBank">Management Bank<select id="premiumCompositionManagementBank"><option value="ALL">All Management Banks</option></select></label>
+          <label for="premiumCompositionReportingDate">Reporting Date<input id="premiumCompositionReportingDate" type="date" aria-describedby="premiumExpiryGuidance"></label>
         </div>
         <div id="premiumCompositionReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
       </div>
       <section id="premiumCompositionKpis" class="cards" aria-label="Premium composition KPIs"></section>
+      <div class="panel commercial-table-wrap">
+        <h2>Expiry-Month Cohorts</h2>
+        <p id="premiumExpiryGuidance" class="scorecard-note">Historical signed premium and transaction rows are organized by validated inclusive expiry-date evidence. Expiry evidence does not establish policy status or renewal eligibility.</p>
+        <div id="premiumExpiryReadiness" class="commercial-comparison-readiness" aria-live="polite"></div>
+        <div id="premiumExpiryCohorts"></div>
+      </div>
       <div class="panel commercial-table-wrap">
         <h2>Tenure × Premium-Portion Signed Premium</h2>
         <p class="scorecard-note">Tenure evidence is informational and never gates signed financial results. UNKNOWN includes missing or unresolved evidence; leap-day anniversaries use governed MAR_01 semantics. No row implies fresh business, renewal or renewal eligibility.</p>
