@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian General Insurance Bancassurance Landscape: Benchmarks, Regulatory Reset &amp; Multi-Bank Strategy (FY26–FY28)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & THEME VARIABLES (LIGHT & DARK EXECUTIVE MODES)
+       ========================================================================== */
+    :root {
+      --bg-page: #F4F7FA;
+      --bg-surface: #FFFFFF;
+      --bg-surface-alt: #F8FAFC;
+      --bg-navy: #0F2342;
+      --bg-navy-light: #183461;
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --text-inverse: #F8FAFC;
+      --accent-teal: #0D7377;
+      --accent-teal-bg: #E6F4F4;
+      --accent-amber: #D97706;
+      --accent-amber-bg: #FEF3C7;
+      --accent-crimson: #B91C1C;
+      --accent-crimson-bg: #FEE2E2;
+      --accent-emerald: #047857;
+      --accent-emerald-bg: #D1FAE5;
+      --border-light: #E2E8F0;
+      --border-medium: #CBD5E1;
+      --shadow-sm: 0 1px 3px rgba(15, 35, 66, 0.06), 0 1px 2px rgba(15, 35, 66, 0.04);
+      --shadow-md: 0 4px 12px rgba(15, 35, 66, 0.08);
+      --shadow-lg: 0 10px 25px rgba(15, 35, 66, 0.12);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #09111E;
+      --bg-surface: #111D32;
+      --bg-surface-alt: #162540;
+      --bg-navy: #060D18;
+      --bg-navy-light: #13284A;
+      --text-primary: #F1F5F9;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+      --text-inverse: #F8FAFC;
+      --accent-teal: #2DD4BF;
+      --accent-teal-bg: rgba(45, 212, 191, 0.14);
+      --accent-amber: #FBBF24;
+      --accent-amber-bg: rgba(251, 191, 36, 0.14);
+      --accent-crimson: #F87171;
+      --accent-crimson-bg: rgba(248, 113, 113, 0.14);
+      --accent-emerald: #34D399;
+      --accent-emerald-bg: rgba(52, 211, 153, 0.14);
+      --border-light: #1E293B;
+      --border-medium: #334155;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.55);
+    }
+
+    /* ==========================================================================
+       RESET & TYPOGRAPHY
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* ==========================================================================
+       STICKY NAVIGATION BAR
+       ========================================================================== */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: var(--bg-navy);
+      color: var(--text-inverse);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 64px;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 0.5rem 0;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #0D7377, #14B8A6);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.05em;
+    }
+
+    .brand-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: #94A3B8;
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 2px;
+    }
+
+    .nav-links a {
+      color: #CBD5E1;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.45rem 0.7rem;
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      background-color: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.42rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: var(--transition);
+    }
+
+    .btn-nav:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-nav-primary {
+      background: #0D7377;
+      border-color: #14B8A6;
+    }
+
+    .btn-nav-primary:hover {
+      background: #0F8A8F;
+    }
+
+    /* ==========================================================================
+       HERO & MACRO SNAPSHOT SECTION
+       ========================================================================== */
+    .hero-banner {
+      background: linear-gradient(135deg, #0F2342 0%, #163360 65%, #0D4B5C 100%);
+      color: #FFFFFF;
+      padding: 3rem 0 3.5rem;
+      border-bottom: 4px solid #0D7377;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(13, 115, 119, 0.35);
+      border: 1px solid rgba(45, 212, 191, 0.4);
+      color: #5EEAD4;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: clamp(1.75rem, 3.4vw, 2.65rem);
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      max-width: 960px;
+      margin-bottom: 1rem;
+    }
+
+    .hero-lead {
+      font-size: 1.05rem;
+      color: #CBD5E1;
+      max-width: 880px;
+      margin-bottom: 1.75rem;
+    }
+
+    .macro-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .macro-pill {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1rem;
+    }
+
+    .macro-pill-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94A3B8;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .macro-pill-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+
+    .macro-pill-note {
+      font-size: 0.76rem;
+      color: #5EEAD4;
+      margin-top: 0.2rem;
+    }
+
+    /* 4 Key KPI Cards overlapping Hero bottom */
+    .kpi-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.15rem;
+      margin-top: -2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-top: 4px solid var(--accent-teal);
+      border-radius: var(--radius-md);
+      padding: 1.35rem;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+    }
+
+    .kpi-card:nth-child(2) { border-top-color: #2563EB; }
+    .kpi-card:nth-child(3) { border-top-color: var(--accent-amber); }
+    .kpi-card:nth-child(4) { border-top-color: var(--accent-emerald); }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .kpi-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-number {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 0.45rem;
+    }
+
+    .kpi-desc {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       SECTIONS & CARDS ARCHITECTURE
+       ========================================================================== */
+    .section-block {
+      padding: 3.5rem 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-header {
+      margin-bottom: 2rem;
+    }
+
+    .section-num {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-teal);
+      background: var(--accent-teal-bg);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.015em;
+      margin-bottom: 0.45rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.98rem;
+      color: var(--text-secondary);
+      max-width: 840px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       SEGMENTED TABS & BUTTONS
+       ========================================================================== */
+    .tab-group {
+      display: inline-flex;
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 0.5rem 0.95rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-navy);
+      color: #FFFFFF;
+      box-shadow: var(--shadow-sm);
+    }
+
+    [data-theme="dark"] .tab-btn.active {
+      background: var(--accent-teal);
+      color: #09111E;
+    }
+
+    /* ==========================================================================
+       SECTION 2: TIER BENCHMARKS & 4-PILLAR VALIDATION
+       ========================================================================== */
+    .tier-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tier-metric-box {
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 1.1rem;
+    }
+
+    .tier-metric-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tier-metric-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--accent-teal);
+      margin: 0.25rem 0;
+    }
+
+    .tier-metric-sub {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.15rem;
+      margin-top: 1.5rem;
+    }
+
+    .validation-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-left: 4px solid var(--accent-teal);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .validation-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+      color: var(--text-primary);
+    }
+
+    .validation-card p {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       TABLES (RESPONSIVE WRAPPER)
+       ========================================================================== */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.86rem;
+    }
+
+    thead {
+      background: var(--bg-navy);
+      color: #FFFFFF;
+    }
+
+    th {
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background-color: var(--bg-surface-alt);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .badge-teal { background: var(--accent-teal-bg); color: var(--accent-teal); }
+    .badge-amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
+    .badge-crimson { background: var(--accent-crimson-bg); color: var(--accent-crimson); }
+    .badge-emerald { background: var(--accent-emerald-bg); color: var(--accent-emerald); }
+
+    /* ==========================================================================
+       SECTION 3: PEER CHARTS CONTAINER
+       ========================================================================== */
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .chart-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .chart-caption {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ==========================================================================
+       SECTION 4: REGULATORY RESET COMPARISON
+       ========================================================================== */
+    .reg-alert-banner {
+      background: var(--accent-amber-bg);
+      border: 1px solid var(--accent-amber);
+      border-left: 5px solid var(--accent-amber);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.35rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .reg-alert-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .reg-alert-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .reg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.15rem;
+    }
+
+    .reg-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .reg-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .reg-card h4 {
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .reg-split {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+    }
+
+    .reg-legacy {
+      background: var(--accent-crimson-bg);
+      padding: 0.65rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+    }
+
+    .reg-new {
+      background: var(--accent-emerald-bg);
+      padding: 0.65rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+    }
+
+    .reg-label-sm {
+      font-weight: 800;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    /* ==========================================================================
+       SECTION 5: 7-PILLAR ACCORDION & 180-DAY GANTT
+       ========================================================================== */
+    .accordion-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 1rem 1.25rem;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 1rem;
+    }
+
+    .accordion-header:hover {
+      background: var(--bg-surface-alt);
+    }
+
+    .pillar-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-navy);
+      color: #FFFFFF;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-right: 0.65rem;
+      flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .pillar-num {
+      background: var(--accent-teal);
+      color: #09111E;
+    }
+
+    .accordion-body {
+      padding: 0 1.25rem 1.15rem 3.4rem;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .accordion-item.open .accordion-body {
+      display: block;
+    }
+
+    .gantt-bar-wrap {
+      background: var(--border-light);
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
+
+    .gantt-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0D7377, #2563EB);
+      border-radius: 999px;
+    }
+
+    /* ==========================================================================
+       SECTION 6: SCORECARDS & INTERACTIVE SIMULATOR
+       ========================================================================== */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 500px) {
+      .two-col-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .simulator-panel {
+      background: var(--bg-surface);
+      border: 2px solid var(--accent-teal);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      margin-top: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .sim-cohort-card {
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+    }
+
+    .sim-cohort-card h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border-medium);
+    }
+
+    .slider-group {
+      margin-bottom: 0.85rem;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .slider-val {
+      color: var(--accent-teal);
+      font-weight: 800;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #0D7377;
+      cursor: pointer;
+    }
+
+    .sim-outputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 2px dashed var(--border-medium);
+    }
+
+    .sim-out-box {
+      background: var(--bg-navy);
+      color: #FFFFFF;
+      padding: 1.1rem;
+      border-radius: var(--radius-md);
+    }
+
+    .sim-out-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94A3B8;
+    }
+
+    .sim-out-num {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #5EEAD4;
+      margin: 0.2rem 0;
+    }
+
+    .sim-out-sub {
+      font-size: 0.76rem;
+      color: #CBD5E1;
+    }
+
+    /* ==========================================================================
+       SECTION 7: USGI THREE-SPEED STRATEGY
+       ========================================================================== */
+    .speed-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .speed-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-top: 4px solid var(--bg-navy);
+      border-radius: var(--radius-md);
+      padding: 1.35rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .speed-card.speed-1 { border-top-color: #1D4ED8; }
+    .speed-card.speed-2 { border-top-color: #0D7377; }
+    .speed-card.speed-3 { border-top-color: #D97706; }
+
+    .speed-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+    }
+
+    .speed-banks {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-teal);
+      margin-bottom: 0.75rem;
+    }
+
+    .speed-list {
+      list-style: none;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    .speed-list li {
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .speed-list li:last-child {
+      border-bottom: none;
+    }
+
+    .sme-risk-box {
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-medium);
+      border-left: 5px solid var(--accent-crimson);
+      border-radius: var(--radius-md);
+      padding: 1.35rem;
+      margin-top: 1.5rem;
+    }
+
+    /* ==========================================================================
+       FOOTER & TOAST MESSAGE
+       ========================================================================== */
+    .site-footer {
+      background: var(--bg-navy);
+      color: #CBD5E1;
+      padding: 2.5rem 0;
+      margin-top: 2rem;
+    }
+
+    .footer-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .toast-msg {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #0F2342;
+      color: #FFFFFF;
+      border: 1px solid #14B8A6;
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 2000;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       PRINT STYLESHEET (EXECUTIVE REPORT EXPORT)
+       ========================================================================== */
+    @media print {
+      .top-nav, .nav-actions, .tab-group, input[type="range"], .btn-nav, .toast-msg {
+        display: none !important;
+      }
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        font-size: 11pt;
+      }
+      .hero-banner {
+        background: #0F2342 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .accordion-body {
+        display: block !important;
+      }
+      .card, .kpi-card, .speed-card, .reg-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #CBD5E1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       STICKY NAVIGATION HEADER
+       ======================================================================== -->
+  <header class="top-nav">
+    <div class="container nav-inner">
+      <div class="brand-block">
+        <span class="brand-badge">IRDAI • GI BANCA</span>
+        <div>
+          <span class="brand-title">Indian GI Bancassurance Strategy</span>
+          <span class="brand-sub">Benchmarks, Oct 2026 Regulatory Reset &amp; USGI Multi-Bank Playbook</span>
+        </div>
+      </div>
+
+      <nav class="nav-links" aria-label="Primary Sections">
+        <a href="#macro">1. Macro &amp; KPIs</a>
+        <a href="#benchmarks">2. Tier Benchmarks</a>
+        <a href="#peers">3. Peer Matrix</a>
+        <a href="#regulatory">4. Oct 2026 Reset</a>
+        <a href="#roadmap">5. 7-Pillar Roadmap</a>
+        <a href="#scorecards">6. Scorecards &amp; Sim</a>
+        <a href="#usgi">7. USGI 3-Speed</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="btn-nav" id="themeToggleBtn" title="Toggle Dark/Light Theme">
+          <span id="themeIcon">◐</span> Theme
+        </button>
+        <button type="button" class="btn-nav btn-nav-primary" onclick="window.print()">
+          ⎙ Print / PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       1. HERO & EXECUTIVE MACRO SNAPSHOT
+       ======================================================================== -->
+  <section id="macro" class="hero-banner">
+    <div class="container">
+      <div class="hero-eyebrow">
+        <span>Strategic Research Dossier</span> • <span>FY26 Actuals &amp; FY27–FY28 Outlook</span>
+      </div>
+      <h1 class="hero-title">Indian General Insurance Bancassurance Landscape: Benchmarks, Regulatory Reset &amp; Multi-Bank Strategy</h1>
+      <p class="hero-lead">
+        An institutional blueprint for Bancassurance Channel Leadership—integrating FY26 industry GDPI benchmarks, peer promoter insurer operating models, the landmark September/October 2026 IRDAI distribution reforms, and a differentiated Three-Speed execution framework for multi-bank consortia.
+      </p>
+
+      <div class="macro-pills tabular-nums">
+        <div class="macro-pill">
+          <div class="macro-pill-label">FY26 GI Industry GDPI</div>
+          <div class="macro-pill-val">~₹3,36,000 Cr</div>
+          <div class="macro-pill-note">+9.4% YoY reported (11.1% ex-1/n accounting impact)</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-pill-label">Medium-Term Trajectory</div>
+          <div class="macro-pill-val">9.6% – 10.4% CAGR</div>
+          <div class="macro-pill-note">Scaling toward $62.2 Bn (~₹5.2L Cr) GWP by 2030</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-pill-label">Private Insurer Market Share</div>
+          <div class="macro-pill-val">68.4% → 69.6%</div>
+          <div class="macro-pill-note">Driven by retail health, MSME commercial &amp; digital banca</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-pill-label">Structural Inflection Points</div>
+          <div class="macro-pill-val">100% FDI &amp; Ind AS</div>
+          <div class="macro-pill-note">Sabka Bima Sabki Raksha Act (2025), Ind AS (Apr 2026) &amp; Bima Sugam</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 Core KPI Cards -->
+  <div class="container">
+    <div class="kpi-grid-4 tabular-nums">
+      <div class="kpi-card">
+        <div class="kpi-tag">Active Branch Productivity</div>
+        <div class="kpi-number">₹5L – ₹25L / yr</div>
+        <div class="kpi-desc">Averaging <strong>3 to 6 policies/month</strong> per active branch; top metro mortgage/SME hubs scale to ₹45L–₹85L+.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-tag">Dedicated FoS Productivity</div>
+        <div class="kpi-number">₹25L – ₹1Cr+ / yr</div>
+        <div class="kpi-desc">Co-located insurer Banca RMs/BSMs; varies sharply by bank tier, loan desk access, and retail health mix.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-tag">Open Architecture Cap</div>
+        <div class="kpi-number">Up to 9 GI Partners</div>
+        <div class="kpi-desc">IRDAI corporate agency cap per bank; transitioning toward unified <strong>Insurance Distribution Entity (IDE)</strong> licensing.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-tag">Branch Activation Rate</div>
+        <div class="kpi-number">30%–40% → &gt;65%</div>
+        <div class="kpi-desc">Industry baseline hovers at ~35% active branches monthly; top-quartile banca channels exceed 65%–75%.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. INTERACTIVE MARKET BENCHMARKS & VALIDATION TRIANGULATION
+       ======================================================================== -->
+  <section id="benchmarks" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 02 • Empirical Calibration</span>
+        <h2 class="section-title">Interactive Tier Benchmarks &amp; Data Validation Triangulation</h2>
+        <p class="section-subtitle">
+          Select a banking geography tier below to inspect calibrated productivity thresholds, ticket sizes, and Feet-on-Street (FoS) deployment norms, backed by four regulatory and actuarial triangulation sources.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h3 class="card-title">Branch &amp; Resource Productivity by Geography Tier</h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Toggle tiers to inspect active branch output, monthly policy velocity, and FoS economics.</p>
+          </div>
+          <div class="tab-group" role="tablist" aria-label="Bank Geography Tier">
+            <button type="button" class="tab-btn active" data-tier="metro">Metro &amp; Tier-1 Urban</button>
+            <button type="button" class="tab-btn" data-tier="semi">Semi-Urban &amp; Tier-2/3</button>
+            <button type="button" class="tab-btn" data-tier="rural">Rural &amp; RRB Clusters</button>
+            <button type="button" class="tab-btn" data-tier="provenance">Provenance &amp; Methodology</button>
+          </div>
+        </div>
+
+        <div class="tier-metrics-grid tabular-nums" id="tierMetricsContainer">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div id="tierNarrativeBox" style="background: var(--bg-surface-alt); padding: 1rem 1.15rem; border-radius: var(--radius-sm); border-left: 4px solid var(--accent-teal); font-size: 0.86rem; color: var(--text-secondary);">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.35rem;">4-Pillar Regulatory &amp; Actuarial Validation Methodology</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">How Bancassurance Heads audit and verify external channel benchmarks before setting board budgets:</p>
+
+      <div class="grid-4">
+        <div class="validation-card">
+          <h4>1. IRDAI Annual Reports &amp; RBI Branch Tables</h4>
+          <p>Divide channel-wise non-life GDPI under <em>Corporate Agents – Banks</em> (IRDAI Handbook) by partner bank branch counts (RBI <em>Statistical Tables Relating to Banks in India</em>) to isolate all-branch vs. active-branch productivity.</p>
+        </div>
+        <div class="validation-card" style="border-left-color: #2563EB;">
+          <h4>2. IRDAI Corporate Agent &amp; IDE Norms</h4>
+          <p>Verify the 9-insurer open-architecture cap per bank, Specified Person (SP) certification rosters on the IRDAI BAP portal, and proposed unified Insurance Distribution Entity (IDE) rules.</p>
+        </div>
+        <div class="validation-card" style="border-left-color: var(--accent-amber);">
+          <h4>3. Public Disclosures (NL-21 &amp; NL-34)</h4>
+          <p>Cross-examine insurers' mandatory quarterly public disclosures—specifically <strong>NL-21</strong> (employee/sales resource schedules) and <strong>NL-34</strong> (channel-wise business)—to benchmark GWP per Banca RM.</p>
+        </div>
+        <div class="validation-card" style="border-left-color: var(--accent-emerald);">
+          <h4>4. Consulting &amp; Rating Agency Studies</h4>
+          <p>Triangulate branch activation ratios (30%–40% median vs. &gt;65% leaders), credit-attach conversion, and loss ratios against <strong>Swiss Re Sigma</strong>, <strong>BCG FY26 GI Round-Up</strong>, and <strong>ICRA June 2026</strong> sector reports.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       3. PEER INSURER BENCHMARKING MATRIX & INTERACTIVE VISUAL CHARTS
+       ======================================================================== -->
+  <section id="peers" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 03 • Competitive Landscape</span>
+        <h2 class="section-title">Peer Insurer Benchmarking Matrix &amp; Channel Analytics</h2>
+        <p class="section-subtitle">
+          Comparing India's three benchmark bank-promoted general insurers alongside Universal Sompo General Insurance (USGI) across FY26 GDPI scale, banca channel share, branch reach, and active branch productivity.
+        </p>
+      </div>
+
+      <div class="table-responsive tabular-nums">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric / Dimension</th>
+              <th>SBI General Insurance</th>
+              <th>HDFC ERGO General</th>
+              <th>ICICI Lombard General</th>
+              <th>Universal Sompo (USGI)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FY26 GDPI / GWP</strong><br><span style="font-size:0.76rem; color:var(--text-muted);">(with FY25 baseline)</span></td>
+              <td><strong>~₹15,904 Cr</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">FY25: ~₹14,000 Cr</span></td>
+              <td><strong>~₹15,769 Cr</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">FY25: ₹15,817 Cr</span></td>
+              <td><strong>~₹30,618 Cr</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">FY25: ₹26,833 Cr</span></td>
+              <td><strong>~₹6,008 Cr</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">FY25: ₹5,078 Cr (+9.87% YoY)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Banca Share of GWP</strong></td>
+              <td><span class="badge badge-teal">~25% – 30%</span><br><span style="font-size:0.78rem; color:var(--text-muted);">(excl. crop; ~21–25% total)</span></td>
+              <td><span class="badge badge-teal">~20% – 26%</span><br><span style="font-size:0.78rem; color:var(--text-muted);">(~55%+ of retail distribution)</span></td>
+              <td><span class="badge badge-amber">~7% – 9%</span><br><span style="font-size:0.78rem; color:var(--text-muted);">(selective retail health &amp; SME)</span></td>
+              <td><span class="badge badge-emerald">Multi-Bank Core</span><br><span style="font-size:0.78rem; color:var(--text-muted);">Balanced Crop, Motor, Health &amp; SME</span></td>
+            </tr>
+            <tr>
+              <td><strong>Est. Annual Banca GWP</strong></td>
+              <td><strong>~₹3,200 – ₹3,800 Cr</strong></td>
+              <td><strong>~₹3,200 – ₹4,000 Cr</strong></td>
+              <td><strong>~₹2,100 – ₹2,600 Cr</strong></td>
+              <td><strong>~₹370 Cr</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">Indian Bank: ₹148 Cr<br>IOB: ₹111 Cr<br>Karnataka Bank: ₹75 Cr<br>2 RRBs: ₹11 Cr + NBFCs</span></td>
+            </tr>
+            <tr>
+              <td><strong>Anchor Bank &amp; Branch Reach</strong></td>
+              <td><strong>State Bank of India</strong> (~22,500+ branches) + RRBs</td>
+              <td><strong>HDFC Bank</strong> (~8,800–9,000+ post-merger branches)</td>
+              <td><strong>ICICI Bank</strong> (~6,500+ branches) + 7+ open-arch banks</td>
+              <td><strong>~10,500 Promoter Branches</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">+ ~1,700 RRB Branches</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dedicated Banca Staff / FoS</strong></td>
+              <td><strong>~2,500+</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">Est. Co-located RMs</span></td>
+              <td><strong>~3,000+</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">Est. Co-located RMs</span></td>
+              <td><strong>~800+</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">Est. specialized desks</span></td>
+              <td><strong>510 Total Staff</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">(486 Active + 24 Notice/Backend) as of Mar '26</span></td>
+            </tr>
+            <tr>
+              <td><strong>All-Branch Avg. Productivity</strong></td>
+              <td>~₹14L – ₹17L / branch</td>
+              <td><strong>~₹35L – ₹45L / branch</strong></td>
+              <td>~₹30L – ₹38L / branch</td>
+              <td>Tiered: ₹3L (RRB) to ₹25L+ (Private)</td>
+            </tr>
+            <tr>
+              <td><strong>Active Branch Productivity</strong></td>
+              <td>~₹25L – ₹40L+ / branch</td>
+              <td><strong>~₹50L – ₹85L+ / branch</strong></td>
+              <td>~₹45L – ₹75L+ / branch</td>
+              <td>Target: ₹10L–₹18L (PSU) | ₹22L–₹35L+ (Pvt)</td>
+            </tr>
+            <tr>
+              <td><strong>Dedicated Banca Staff / FoS</strong><br><span style="font-size:0.76rem; color:var(--text-muted);">(as of 31st Mar 2026)</span></td>
+              <td>~2,500+ RMs</td>
+              <td>~3,000+ RMs</td>
+              <td>~1,800+ RMs</td>
+              <td><strong>510 Total Staff</strong><br><span style="font-size:0.78rem; color:var(--text-muted);">486 Active + 24 Notice Serving<br>(Includes 8 Backend Staff)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dominant Operating Archetype</strong></td>
+              <td>High-reach mass-market &amp; credit-linked engine via YONO &amp; FoS</td>
+              <td>API-first cross-sell powerhouse (&gt;65% retail health straight-through)</td>
+              <td>Profitability-led open-architecture model focused on health &amp; SME</td>
+              <td>Three-Speed Multi-Promoter Consortium (2 PSUs, 1 Private, 2 RRBs)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Interactive SVG & Canvas Charts -->
+      <div class="charts-row">
+        <div class="chart-box">
+          <div class="chart-title">FY26 Total GDPI vs. Estimated Banca GWP (₹ Crore)</div>
+          <div class="chart-caption">Grouped comparison highlighting channel concentration vs. overall scale</div>
+          <div id="peerBarChartContainer" style="width: 100%; overflow-x: auto;"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Per-Branch Productivity: All-Branch vs. Active Branch (₹ Lakh/Yr)</div>
+          <div class="chart-caption">Illustrating the multiplier effect of branch activation &amp; affluent/SME mix</div>
+          <div id="productivityChartContainer" style="width: 100%; overflow-x: auto;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       4. SEPTEMBER / OCTOBER 2026 IRDAI REGULATORY RESET
+       ======================================================================== -->
+  <section id="regulatory" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 04 • Structural Compliance Overhaul</span>
+        <h2 class="section-title">Sept / Oct 2026 IRDAI Regulatory Reset: Recalibrating Distribution Economics</h2>
+        <p class="section-subtitle">
+          Following the Sabka Bima Sabki Raksha Act (2025) and IRDAI's landmark September 23, 2026 Consultation Paper (<em>Recalibrating Economics of Insurance Distribution</em>, comments closed Oct 25, 2026), legacy bancassurance practices face strict statutory prohibitions.
+        </p>
+      </div>
+
+      <div class="reg-alert-banner">
+        <div style="font-size: 1.4rem; line-height: 1;">⚠️</div>
+        <div>
+          <div class="reg-alert-title">Mandatory Strategic Pivot for Bancassurance Heads (FY27–FY28)</div>
+          <div class="reg-alert-text">
+            Volume-linked incentives for bank employees, compulsory loan bundling, and funding insurance single-premiums inside the loan sanction amount are explicitly prohibited under the draft framework. Channels must pivot immediately to <strong>documented suitability, separated payment gateways, and renewal persistency</strong>.
+          </div>
+        </div>
+      </div>
+
+      <div class="card-header-flex" style="margin-bottom: 1.25rem;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Filter View:</span>
+        <div class="tab-group" id="regFilterGroup">
+          <button type="button" class="tab-btn active" data-regfilter="all">Show Side-by-Side Shift (All 6 Reforms)</button>
+          <button type="button" class="tab-btn" data-regfilter="new-only">Show Post-Oct 2026 Compliance Mandate Only</button>
+        </div>
+      </div>
+
+      <div class="reg-grid" id="regCardsGrid">
+        <!-- Card 1 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>1. Expenses of Management (EoM) Glide Path</h4>
+              <span class="badge badge-amber">FY27–28 Glide Path</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Tightening structural acquisition cost ceilings across domestic general insurers.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              General insurers operated under a flat 30% of GWP EoM ceiling with wide discretion on banca marketing &amp; infrastructure payouts.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              Progressive reduction from <strong>30% down to 25%</strong> and subsequently <strong>20% of domestic GDPI</strong> starting FY27–28, compressing unallocated channel payouts.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>2. All-Inclusive Caps &amp; Renewal Escalator</h4>
+              <span class="badge badge-teal">Persistency Reward</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Eliminating off-invoice subsidies while rewarding long-term book retention.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              High upfront commissions on credit-linked covers supplemented by overseas trips, contests, co-branding fees, and tech subsidies.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              All contests, trips, and brand fees folded into a <strong>single all-inclusive cap</strong> (lower for credit-linked covers), offset by a <strong>+0.5% renewal escalator every 3 years from Year 6 (capped at 7%)</strong>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>3. Ban on Volume-Linked Staff Incentives</h4>
+              <span class="badge badge-crimson">Strict Prohibition</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Eliminating sales-volume pressure on bank branch staff and Specified Persons.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              Bank SPs and Branch Managers received quarterly reward pools, variable bonus accelerators, and sales contests tied to GWP targets.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              Rewards or incentives for bank/NBFC employees tied to insurance sales volume are <strong>strictly prohibited</strong>. Appraisals must use quality, suitability, and service metrics.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>4. Compulsory Bundling &amp; Loan Funding Ban</h4>
+              <span class="badge badge-crimson">LOS Architecture Shift</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Decoupling insurance premium payment from credit sanction and disbursement.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              Single-premium property/loan protection policies were auto-bundled and funded directly inside the borrower's sanctioned loan amount.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              Compulsory bundling is banned. Even when a customer opts in, the <strong>premium must be paid via a separate payment gateway</strong> and never deducted from loan proceeds.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>5. Seller-Level Tagging &amp; Public Registry</h4>
+              <span class="badge badge-amber">Audit &amp; Suitability</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Granular individual accountability and mandatory suitability documentation.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              Policies often logged under generic branch/corporate codes with minimal documented needs-analysis for retail/SME buyers.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              Every policy is tagged to the seller's functional ID; mis-selling is logged in a <strong>Public Insurance Registry</strong>, with mandatory documented needs-analysis above ticket thresholds.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="reg-card">
+          <div>
+            <div class="reg-card-head">
+              <h4>6. Unified IDE Licensing Framework</h4>
+              <span class="badge badge-teal">Structural Convergence</span>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-secondary);">Harmonizing intermediary categories under a single regulatory umbrella.</p>
+          </div>
+          <div class="reg-split">
+            <div class="reg-legacy">
+              <span class="reg-label-sm" style="color:var(--accent-crimson);">Legacy Practice (Pre-2026)</span>
+              Fragmented licensing across Corporate Agents (Banks), Brokers, IMFs, and POSPs with varying governance standards.
+            </div>
+            <div class="reg-new">
+              <span class="reg-label-sm" style="color:var(--accent-emerald);">Post-Oct 2026 Draft Reality</span>
+              Folding Corporate Agents, Brokers, IMFs, and POSPs into a unified <strong>Insurance Distribution Entity (IDE)</strong> framework with standardized conduct and disclosure rules.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       5. SEVEN-PILLAR RE-CALIBRATED STRATEGIC ROADMAP & 180-DAY GANTT
+       ======================================================================== -->
+  <section id="roadmap" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 05 • Execution Architecture</span>
+        <h2 class="section-title">Seven-Pillar Re-Calibrated Execution Stack &amp; 180-Day Rollout</h2>
+        <p class="section-subtitle">
+          A sequential operational playbook re-engineered for post-October 2026 regulatory compliance, followed by a phased 6-month implementation Gantt plan.
+        </p>
+      </div>
+
+      <div id="pillarsAccordion">
+        <div class="accordion-item open">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">1</span>Compliance-First LOS Needs-Analysis &amp; Separated Payment Gateway</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Embed an explicit, auditable <strong>Insurance Needs-Analysis &amp; Opt-In Consent Screen</strong> inside the bank's Loan Origination System (LOS) for Home, LAP, and MSME loans. Pre-fill asset valuation and borrower KYC via API, but route the premium collection through a <strong>dedicated secondary UPI/Net-Banking payment link</strong> triggered immediately post-sanction—ensuring 100% compliance with the ban on loan-funded premiums.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">2</span>Specified Person (SP) Certification &amp; Daily Branch Cadence (&gt;60% Activation)</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Run fast-track 15-day licensing bootcamps to qualify at least <strong>2 certified SPs per target branch</strong>, tagged with unique seller functional IDs. Establish a 15-minute morning branch huddle reviewing pre-approved customer journeys and pending claim service tasks to lift branch activation from the 30%–40% baseline to over <strong>60%–75%</strong>.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">3</span>CBS / SSO Pre-Filled Digital Journeys (&lt;5 Minute Policy Issuance)</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Deploy Single Sign-On (SSO) widgets inside bank teller, RM, and mobile banking interfaces. Eliminate manual portal hopping by auto-populating customer demographic and collateral fields from the Core Banking System (CBS), cutting retail health, motor, and property quote-to-bind cycle times to under <strong>5 minutes</strong>.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">4</span>Quality- &amp; Suitability-Weighted Hierarchy Alignment</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Replace legacy volume-linked contests with <strong>compliance-certified Balanced Scorecards</strong> for Zonal Heads, Branch Managers, and SPs. Align co-located insurer Banca RMs (FoS) to support complex SME risk assessments and customer suitability documentation rather than pushing standardized volume quotas.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">5</span>Analytics-Led CASA Non-Credit Penetration</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Mine the bank's Current &amp; Savings Account (CASA) base using propensity triggers (e.g., high-value UPI/card spenders, hospital transactions, locker holders, MSME current accounts) to deliver pre-underwritten <strong>Retail Indemnity Health, Personal Accident, Cyber, and SME Package</strong> offers inside mobile/net banking.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">6</span>Persistency &amp; Auto-Debit Renewal Engine (+48h Fast-Track Claims SLA)</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Capture e-NACH / auto-debit mandates at initial policy issuance to achieve <strong>&gt;80%–85% 13th-month persistency</strong>—directly unlocking the IRDAI draft's <strong>+0.5% renewal commission escalator</strong> from Policy Year 6 onward. Pair renewals with a dedicated Banca Fast-Track Claims Desk guaranteeing 48-hour document verification and escalation resolution.
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" onclick="toggleAccordion(this)">
+            <span><span class="pillar-num">7</span>Joint Steering Governance &amp; Public Registry Audit Readiness</span>
+            <span>▾</span>
+          </button>
+          <div class="accordion-body">
+            Conduct monthly Joint Steering Committee reviews tracking branch activation, needs-analysis completion %, First-Time-Right (FTR) issuance, loss ratios, and seller-level audit logs to ensure zero entries on the <strong>IRDAI Public Insurance Registry</strong>.
+          </div>
+        </div>
+      </div>
+
+      <!-- 180-Day Implementation Gantt Table -->
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-top: 2.25rem; margin-bottom: 0.85rem;">180-Day Phased Implementation Roadmap</h3>
+      <div class="table-responsive tabular-nums">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 22%;">Phase &amp; Timeline</th>
+              <th style="width: 46%;">Core Operational &amp; Compliance Deliverables</th>
+              <th style="width: 32%;">Primary Success Metrics &amp; Gates</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <strong>Phase 1: Foundation &amp; Compliance Plumbing</strong><br>
+                <span class="badge badge-teal">Month 1 – Month 2</span>
+                <div class="gantt-bar-wrap"><div class="gantt-bar" style="width: 34%;"></div></div>
+              </td>
+              <td>
+                • Integrate LOS Needs-Analysis screen &amp; separated UPI/Net-Banking payment gateway.<br>
+                • Map unique seller functional IDs for all SPs &amp; FoS.<br>
+                • Execute SP exam bootcamps (&ge;2 licensed SPs per target branch).
+              </td>
+              <td>
+                • API latency &lt;3 seconds; 100% separated payment gateway pass rate.<br>
+                • &gt;50% target branches with &ge;2 active SPs.<br>
+                • Zero loan-deducted premium exceptions.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Phase 2: Pilot Cluster Rollout &amp; Cadence</strong><br>
+                <span class="badge badge-amber">Month 3 – Month 4</span>
+                <div class="gantt-bar-wrap"><div class="gantt-bar" style="width: 68%;"></div></div>
+              </td>
+              <td>
+                • Launch in top 20%–25% high-potential branches (MSME, Mortgage &amp; Agri hubs).<br>
+                • Deploy co-located insurer FoS specialists for SME risk assessments.<br>
+                • Institute weekly quality/suitability MIS dashboards for Zonal Heads.
+              </td>
+              <td>
+                • Pilot branch activation &gt;60%.<br>
+                • Documented suitability completion &ge;90% on eligible loans.<br>
+                • Quote-to-bind cycle time &lt;10 minutes.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Phase 3: Network Scale-Up &amp; Renewal Engine</strong><br>
+                <span class="badge badge-emerald">Month 5 – Month 6</span>
+                <div class="gantt-bar-wrap"><div class="gantt-bar" style="width: 100%;"></div></div>
+              </td>
+              <td>
+                • Full network rollout across all eligible PSU, Private &amp; RRB branches.<br>
+                • Activate CASA digital triggers (Retail Health, Cyber, SME Package).<br>
+                • Operationalize e-NACH renewal engine &amp; 48h Banca Claims Cell.
+              </td>
+              <td>
+                • Network active branches &gt;75%.<br>
+                • Non-credit cross-sell share &gt;25% of banca GWP.<br>
+                • 13th-month auto-debit persistency &gt;80%.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       6. COMPLIANT BALANCED SCORECARDS & INTERACTIVE SIMULATOR
+       ======================================================================== -->
+  <section id="scorecards" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 06 • Governance &amp; Modeling</span>
+        <h2 class="section-title">IRDAI-Compliant Balanced Scorecards &amp; Multi-Bank Productivity Simulator</h2>
+        <p class="section-subtitle">
+          100% compliant with the October 2026 prohibition on volume-linked staff incentives—anchoring Branch Manager and Specified Person appraisals on suitability documentation, branch activation, persistency, and zero mis-selling.
+        </p>
+      </div>
+
+      <div class="two-col-grid tabular-nums">
+        <!-- Branch Manager Scorecard -->
+        <div class="card">
+          <div class="card-header-flex">
+            <h3 class="card-title">Branch Manager (BM) Scorecard</h3>
+            <span class="badge badge-teal">10%–15% Appraisal Weight</span>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>KPI Dimension</th>
+                  <th>Weight</th>
+                  <th>Compliant Benchmark</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Needs-Analysis &amp; Suitability Compliance</strong></td>
+                  <td><strong>30%</strong></td>
+                  <td>&ge;95% eligible loan/retail prospects with documented suitability records</td>
+                </tr>
+                <tr>
+                  <td><strong>Branch Activation &amp; SP Readiness</strong></td>
+                  <td><strong>25%</strong></td>
+                  <td>&ge;2 active certified SPs in branch logging weekly customer service/quotes</td>
+                </tr>
+                <tr>
+                  <td><strong>Credit-Linked Opt-In Attachment</strong></td>
+                  <td><strong>20%</strong></td>
+                  <td>&ge;65% voluntary opt-in via separated payment gateway (0% forced bundling)</td>
+                </tr>
+                <tr>
+                  <td><strong>Non-Credit &amp; Renewal Persistency</strong></td>
+                  <td><strong>15%</strong></td>
+                  <td>&ge;80% e-NACH renewal retention &amp; CASA digital cross-sell adoption</td>
+                </tr>
+                <tr>
+                  <td><strong>Zero Mis-Selling &amp; 48h Claim SLA</strong></td>
+                  <td><strong>10%</strong></td>
+                  <td>0 Public Registry escalations; 100% claim docs routed within 48h</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Specified Person Scorecard -->
+        <div class="card">
+          <div class="card-header-flex">
+            <h3 class="card-title">Specified Person (SP) Scorecard</h3>
+            <span class="badge badge-amber">15%–20% KRA Weight</span>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>KPI Dimension</th>
+                  <th>Weight</th>
+                  <th>Compliant Benchmark</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Documented Suitability &amp; FTR</strong></td>
+                  <td><strong>35%</strong></td>
+                  <td>&ge;95% First-Time-Right (FTR) proposals with full needs-analysis sign-off</td>
+                </tr>
+                <tr>
+                  <td><strong>Active Consistency &amp; Digital Usage</strong></td>
+                  <td><strong>25%</strong></td>
+                  <td>Consistent weekly customer advisory interactions via CBS/SSO module</td>
+                </tr>
+                <tr>
+                  <td><strong>Non-Credit &amp; Renewal Persistency</strong></td>
+                  <td><strong>25%</strong></td>
+                  <td>&ge;82% renewal persistency &amp; e-NACH mandate capture at onboarding</td>
+                </tr>
+                <tr>
+                  <td><strong>Zero Section 45 / Mis-Selling</strong></td>
+                  <td><strong>15%</strong></td>
+                  <td>Zero substantiated complaints, cancellations, or registry flags (Hard Gate)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE MULTI-BANK CHANNEL & PRODUCTIVITY SIMULATOR -->
+      <div class="simulator-panel tabular-nums">
+        <div class="card-header-flex">
+          <div>
+            <span class="badge badge-teal" style="margin-bottom: 0.35rem;">Interactive Planning Model</span>
+            <h3 class="card-title" style="font-size: 1.25rem;">Multi-Bank Consortium Channel &amp; FoS Resource Simulator</h3>
+            <p style="font-size: 0.84rem; color: var(--text-secondary);">
+              Adjust branch counts, activation rates, monthly policy velocity, and average ticket sizes across your PSU, Private, and RRB cohorts to model Annual Banca GWP and optimal Feet-on-Street (FoS) headcount.
+            </p>
+          </div>
+          <button type="button" class="btn-nav btn-nav-primary" id="resetSimBtn">↺ Reset to USGI Baseline</button>
+        </div>
+
+        <div class="sim-grid">
+          <!-- Cohort 1: 2 PSU Banks -->
+          <div class="sim-cohort-card">
+            <h4 style="color: #1D4ED8;">Speed 1: 2 PSU Promoter Banks (Indian Bank &amp; IOB)</h4>
+            <div class="slider-group">
+              <div class="slider-label"><span>Total Network Branches</span><span class="slider-val" id="psuBranchesVal">9,000</span></div>
+              <input type="range" id="psuBranches" min="2000" max="12000" step="250" value="9000">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Branch Activation Rate (%)</span><span class="slider-val" id="psuActVal">45%</span></div>
+              <input type="range" id="psuAct" min="20" max="85" step="5" value="45">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Policies / Active Branch / Mo</span><span class="slider-val" id="psuPolVal">6</span></div>
+              <input type="range" id="psuPol" min="2" max="15" step="1" value="6">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Avg. Ticket Size (₹)</span><span class="slider-val" id="psuTicketVal">₹19,500</span></div>
+              <input type="range" id="psuTicket" min="8000" max="40000" step="500" value="19500">
+            </div>
+          </div>
+
+          <!-- Cohort 2: 1 Private Bank -->
+          <div class="sim-cohort-card">
+            <h4 style="color: var(--accent-teal);">Speed 2: 1 Private Promoter Bank (Karnataka Bank)</h4>
+            <div class="slider-group">
+              <div class="slider-label"><span>Total Network Branches</span><span class="slider-val" id="pvtBranchesVal">920</span></div>
+              <input type="range" id="pvtBranches" min="300" max="2500" step="20" value="920">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Branch Activation Rate (%)</span><span class="slider-val" id="pvtActVal">65%</span></div>
+              <input type="range" id="pvtAct" min="25" max="90" step="5" value="65">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Policies / Active Branch / Mo</span><span class="slider-val" id="pvtPolVal">10</span></div>
+              <input type="range" id="pvtPol" min="3" max="20" step="1" value="10">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Avg. Ticket Size (₹)</span><span class="slider-val" id="pvtTicketVal">₹24,000</span></div>
+              <input type="range" id="pvtTicket" min="10000" max="50000" step="1000" value="24000">
+            </div>
+          </div>
+
+          <!-- Cohort 3: 2 RRBs -->
+          <div class="sim-cohort-card">
+            <h4 style="color: var(--accent-amber);">Speed 3: 2 Regional Rural Banks (Partner RRBs)</h4>
+            <div class="slider-group">
+              <div class="slider-label"><span>Total Network Branches</span><span class="slider-val" id="rrbBranchesVal">1,400</span></div>
+              <input type="range" id="rrbBranches" min="400" max="3500" step="100" value="1400">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Branch Activation Rate (%)</span><span class="slider-val" id="rrbActVal">50%</span></div>
+              <input type="range" id="rrbAct" min="20" max="85" step="5" value="50">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Policies / Active Branch / Mo</span><span class="slider-val" id="rrbPolVal">8</span></div>
+              <input type="range" id="rrbPol" min="2" max="18" step="1" value="8">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Avg. Ticket Size (₹)</span><span class="slider-val" id="rrbTicketVal">₹4,800</span></div>
+              <input type="range" id="rrbTicket" min="2000" max="12000" step="200" value="4800">
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulator Live Outputs -->
+        <div class="sim-outputs">
+          <div class="sim-out-box">
+            <div class="sim-out-label">Projected Annual Banca GWP</div>
+            <div class="sim-out-num" id="simTotalGwp">₹777.9 Cr</div>
+            <div class="sim-out-sub" id="simGwpSplit">PSU: ₹568.6 Cr | Pvt: ₹172.2 Cr | RRB: ₹32.3 Cr</div>
+          </div>
+          <div class="sim-out-box">
+            <div class="sim-out-label">Total Active Branches</div>
+            <div class="sim-out-num" id="simActiveBranches">5,348</div>
+            <div class="sim-out-sub" id="simAvgBranchProd">Avg ₹14.5L / active branch / yr</div>
+          </div>
+          <div class="sim-out-box">
+            <div class="sim-out-label">Recommended FoS Headcount</div>
+            <div class="sim-out-num" id="simFosCount">823 RMs</div>
+            <div class="sim-out-sub">1:7 PSU | 1:3 Private | 1:15 RRB ratios</div>
+          </div>
+          <div class="sim-out-box">
+            <div class="sim-out-label">Est. Non-Credit / Retail Mix</div>
+            <div class="sim-out-num" id="simNonCreditShare">28.4%</div>
+            <div class="sim-out-sub">Weighted by Private Health &amp; MSME mix</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       7. USGI CONSORTIUM "THREE-SPEED" MULTI-BANK STRATEGY
+       ======================================================================== -->
+  <section id="usgi" class="section-block">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">Section 07 • Consortium Operating Blueprint</span>
+        <h2 class="section-title">Universal Sompo (USGI) "Three-Speed" Multi-Bank Strategy</h2>
+        <p class="section-subtitle">
+          Operating across <strong>2 PSU promoter banks</strong> (Indian Bank, Indian Overseas Bank), <strong>1 Private promoter bank</strong> (Karnataka Bank), and <strong>2 Regional Rural Banks (RRBs)</strong> (~9,000+ total branches; FY26 GDPI ~₹6,008 Cr) demands three distinct operating engines rather than a uniform playbook.
+        </p>
+      </div>
+
+      <div class="speed-cards tabular-nums">
+        <div class="speed-card speed-1">
+          <span class="badge badge-teal" style="margin-bottom: 0.45rem;">Speed 1 • Volume &amp; MSME Credit Engine</span>
+          <h3>2 PSU Promoter Banks</h3>
+          <div class="speed-banks">Indian Bank (~5,800+ br.) &amp; Indian Overseas Bank (~3,200+ br.)</div>
+          <ul class="speed-list">
+            <li><strong>Primary Products:</strong> Commercial/SME Fire, Home/LAP Property, Co-branded Group Health (<em>Indian Bank / IOB Health Care Plus</em>), Motor.</li>
+            <li><strong>Compliance Workflow:</strong> Separated secondary digital payment link triggered immediately post-loan sanction (zero loan-funded premiums).</li>
+            <li><strong>FoS Deployment:</strong> Hub-and-Spoke Cluster RM (<strong>1 USGI RM per 6–8 branches</strong>) + Zonal Office governance.</li>
+            <li><strong>Active Branch Target:</strong> <strong>₹10L – ₹18L / yr</strong> (Urban/MSME hubs: ₹25L+) at 5–8 policies/mo.</li>
+            <li><strong>USGI RM Target:</strong> <strong>₹50L – ₹80L</strong> annual GWP per Cluster RM.</li>
+          </ul>
+        </div>
+
+        <div class="speed-card speed-2">
+          <span class="badge badge-emerald" style="margin-bottom: 0.45rem;">Speed 2 • Margin &amp; Digital Velocity Engine</span>
+          <h3>1 Private Promoter Bank</h3>
+          <div class="speed-banks">Karnataka Bank (~900+ branches across affluent &amp; MSME clusters)</div>
+          <ul class="speed-list">
+            <li><strong>Primary Products:</strong> High-ticket <strong>Retail Indemnity Health</strong>, MSME Commercial &amp; Marine, Cyber, Travel, Home/LAP Property.</li>
+            <li><strong>Compliance Workflow:</strong> API-first mobile banking &amp; RM tablet journey with embedded suitability scoring &amp; instant e-NACH.</li>
+            <li><strong>FoS Deployment:</strong> Co-Located High-Touch RM (<strong>1 USGI RM per 2–3 key branches</strong> + dedicated MSME/Mortgage hub desks).</li>
+            <li><strong>Active Branch Target:</strong> <strong>₹22L – ₹35L+ / yr</strong> (Metro/Urban hubs: ₹45L+) at 8–12 policies/mo.</li>
+            <li><strong>USGI RM Target:</strong> <strong>₹85L – ₹1.25 Cr+</strong> annual GWP per Metro/MSME RM.</li>
+          </ul>
+        </div>
+
+        <div class="speed-card speed-3">
+          <span class="badge badge-amber" style="margin-bottom: 0.45rem;">Speed 3 • Rural Inclusion &amp; Agri-Asset Engine</span>
+          <h3>2 Regional Rural Banks (RRBs)</h3>
+          <div class="speed-banks">Sponsored / Partner RRBs across deep rural, SHG &amp; KCC networks</div>
+          <ul class="speed-list">
+            <li><strong>Primary Products:</strong> Micro-SME / Shopkeeper covers, Cattle, Livestock, Tractor &amp; Agri-Pump, Personal Accident &amp; Rural Group Health.</li>
+            <li><strong>Compliance Workflow:</strong> 1-click regional-language SMS/UPI payment link with simplified 3-product menu.</li>
+            <li><strong>FoS Deployment:</strong> BC &amp; District Coordinator Model (<strong>1 Territory Manager per 15–20 branches</strong>).</li>
+            <li><strong>Active Branch Target:</strong> <strong>₹3L – ₹6L / yr</strong> (high policy velocity of 6–10 micro-policies/mo).</li>
+            <li><strong>USGI RM Target:</strong> <strong>₹30L – ₹45L</strong> annual GWP per Rural Territory Manager.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- SME Under-Advising Risk Mitigation Box -->
+      <div class="sme-risk-box">
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-crimson">Critical Commercial Governance Protocol</span>
+          <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-primary);">Mitigating SME "Under-Advising" Risk in Bancassurance</h4>
+        </div>
+        <p style="font-size: 0.86rem; color: var(--text-secondary);">
+          Industry loss-ratio diagnostics warn that generalist bank branch staff selling standardized commercial policies to MSME borrowers frequently cause <strong>under-insurance, sum-insured mismatches, or occupancy omissions</strong>—exposing both the bank and insurer to claim disputes and Public Insurance Registry flags. <strong>USGI Mitigation Protocol:</strong> Route all commercial/MSME proposals above ₹50 Lakh sum insured (including <em>Bharat Sookshma Udyog Suraksha</em> and <em>Business Shield</em>) to <strong>dedicated USGI FoS Commercial Specialists</strong> for physical/video risk inspection and documented suitability sign-off prior to policy binding.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FOOTER WITH EXPORT & COPY SINGLE-FILE HTML UTILITIES
+       ======================================================================== -->
+  <footer class="site-footer">
+    <div class="container footer-flex">
+      <div>
+        <div style="font-weight: 800; font-size: 1rem; color: #FFFFFF; margin-bottom: 0.25rem;">
+          Indian General Insurance Bancassurance Landscape &amp; Strategy (FY26–FY28)
+        </div>
+        <div style="font-size: 0.78rem; color: #94A3B8;">
+          Compiled from IRDAI Annual Reports, Sept/Oct 2026 Distribution Consultation Paper, RBI Branch Statistics &amp; Insurer Public Disclosures.
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn-nav" onclick="window.print()">
+          ⎙ Download / Print Executive Report
+        </button>
+        <button type="button" class="btn-nav btn-nav-primary" id="copySourceBtn">
+          ⎘ Copy Full Single-File HTML Source
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toastMsg" role="status" aria-live="polite"></div>
+
+  <!-- ========================================================================
+       VANILLA JAVASCRIPT: INTERACTIVITY, CHARTS, SIMULATOR & UTILITIES
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ----------------------------------------------------------------------
+         1. THEME TOGGLE (LIGHT / DARK EXECUTIVE MODE)
+         ---------------------------------------------------------------------- */
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+      const rootEl = document.documentElement;
+
+      function setTheme(theme) {
+        if (theme === 'dark') {
+          rootEl.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀';
+        } else {
+          rootEl.removeAttribute('data-theme');
+          themeIcon.textContent = '◐';
+        }
+        renderPeerCharts();
+      }
+
+      themeToggleBtn.addEventListener('click', function () {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark';
+        setTheme(isDark ? 'light' : 'dark');
+      });
+
+      /* ----------------------------------------------------------------------
+         2. SECTION 2: INTERACTIVE TIER BENCHMARK SWITCHER
+         ---------------------------------------------------------------------- */
+      const tierData = {
+        metro: {
+          metrics: [
+            { label: 'Active Branch GWP / Yr', val: '₹22L – ₹45L+', sub: 'Top mortgage & wealth hubs reach ₹60L–₹85L+' },
+            { label: 'Monthly Policy Velocity', val: '8 – 14 Policies', sub: 'High share of Retail Health & SME Packages' },
+            { label: 'Average Ticket Size', val: '₹22,000 – ₹32,000', sub: 'Driven by family floater health & commercial fire' },
+            { label: 'Dedicated FoS Target', val: '₹85L – ₹1.25 Cr+', sub: '1 Co-located Banca RM per 2–4 urban branches' }
+          ],
+          narrative: '<strong>Metro & Tier-1 Urban Playbook:</strong> High customer affluence and concentrated home/LAP/MSME loan hubs enable higher ticket sizes. Success hinges on API-first mobile app integration, wealth desk bundling of indemnity health, and specialist FoS underwriting for commercial risks.'
+        },
+        semi: {
+          metrics: [
+            { label: 'Active Branch GWP / Yr', val: '₹10L – ₹20L', sub: 'Core PSU & regional private bank sweet spot' },
+            { label: 'Monthly Policy Velocity', val: '5 – 8 Policies', sub: 'Balanced credit-linked property, motor & PA' },
+            { label: 'Average Ticket Size', val: '₹14,000 – ₹20,000', sub: 'Single-premium home/shop fire & co-branded health' },
+            { label: 'Dedicated FoS Target', val: '₹50L – ₹80L', sub: 'Hub-and-spoke cluster RM covering 6–8 branches' }
+          ],
+          narrative: '<strong>Semi-Urban & Tier-2/3 Playbook:</strong> Branch managers hold deep local trust. Performance scales when LOS triggers separated secondary payment links immediately upon MSME/housing loan sanction and Zonal Heads review weekly SP activation.'
+        },
+        rural: {
+          metrics: [
+            { label: 'Active Branch GWP / Yr', val: '₹3L – ₹6L', sub: 'High volume of bite-sized rural protection covers' },
+            { label: 'Monthly Policy Velocity', val: '6 – 10 Policies', sub: 'Seasonal spikes aligned with KCC & harvest cycles' },
+            { label: 'Average Ticket Size', val: '₹3,500 – ₹6,500', sub: 'Cattle, tractor, agri-pump, shopkeeper & PA' },
+            { label: 'Dedicated FoS Target', val: '₹30L – ₹45L', sub: '1 Rural Territory Manager per 15–20 RRB branches/BCs' }
+          ],
+          narrative: '<strong>Rural & RRB Cluster Playbook:</strong> Simplicity and zero friction are paramount. Limit the branch menu to 3–4 regional-language products with 1-click SMS/UPI payment links and leverage Business Correspondents (BCs) for last-mile servicing.'
+        },
+        provenance: {
+          metrics: [
+            { label: 'Data Sources (Where)', val: 'IRDAI & RBI Reports', sub: 'NL-21/NL-34 disclosures, RBI Branch stats (FY25-FY26)' },
+            { label: 'Primary Method (How)', val: 'Triangulation', sub: 'Dividing channel GDPI by active/total branch counts' },
+            { label: 'Key Outputs (What)', val: 'Productivity Baselines', sub: 'Active branch GWP, policy velocity & FoS targets' },
+            { label: 'Analytical Approach', val: 'Tiered Segmentation', sub: 'Clustering banks by geography and affluence profiles' }
+          ],
+          narrative: '<strong>Methodology & Approach:</strong> These statistics are derived using a bottom-up triangulation method. <strong>Where:</strong> Sourced from IRDAI Annual Reports, statutory NL-21/NL-34 public disclosures of top GI insurers, and RBI’s <em>Statistical Tables Relating to Banks in India</em>. <strong>How (Method):</strong> We extract the Corporate Agency (Bancassurance) GDPI for each insurer and divide it by their partner bank’s active branch network. <strong>Approach:</strong> A segmented clustering approach stratifies the data by geographical tiers (Metro, Semi-Urban, Rural). We differentiate "All-Branch Averages" (including dormant branches) from "Active Branch Productivity" by applying an industry-standard 35%–40% baseline activation rate, adjusting for the specific product mix and ticket size inherent to each tier.'
+        }
+      };
+
+      const tierMetricsContainer = document.getElementById('tierMetricsContainer');
+      const tierNarrativeBox = document.getElementById('tierNarrativeBox');
+      const tierButtons = document.querySelectorAll('[data-tier]');
+
+      function renderTier(tierKey) {
+        const data = tierData[tierKey];
+        if (!data) return;
+        tierMetricsContainer.innerHTML = data.metrics.map(m => `
+          <div class="tier-metric-box">
+            <div class="tier-metric-label">${m.label}</div>
+            <div class="tier-metric-val">${m.val}</div>
+            <div class="tier-metric-sub">${m.sub}</div>
+          </div>
+        `).join('');
+        tierNarrativeBox.innerHTML = data.narrative;
+      }
+
+      tierButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+          tierButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          renderTier(this.getAttribute('data-tier'));
+        });
+      });
+      renderTier('metro');
+
+      /* ----------------------------------------------------------------------
+         3. SECTION 3: BESPOKE SVG PEER BENCHMARKING CHARTS
+         ---------------------------------------------------------------------- */
+      function renderPeerCharts() {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#CBD5E1' : '#334155';
+        const gridColor = isDark ? '#1E293B' : '#E2E8F0';
+
+        // Chart 1: FY26 Total GDPI vs Est Banca GWP (₹ Cr)
+        const barContainer = document.getElementById('peerBarChartContainer');
+        const peers = [
+          { name: 'ICICI Lombard', total: 30618, banca: 2350 },
+          { name: 'SBI General', total: 15904, banca: 3500 },
+          { name: 'HDFC ERGO', total: 15769, banca: 3600 },
+          { name: 'USGI (Consortium)', total: 6008, banca: 370 }
+        ];
+        const maxVal1 = 32000;
+        const svgW = 520, svgH = 250, padL = 55, padB = 42, padT = 20, padR = 20;
+        const plotW = svgW - padL - padR;
+        const plotH = svgH - padT - padB;
+
+        let svg1 = `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="max-height:260px; font-family:Inter,sans-serif;">`;
+        // Gridlines
+        [0, 10000, 20000, 30000].forEach(val => {
+          const y = padT + plotH - (val / maxVal1) * plotH;
+          svg1 += `<line x1="${padL}" y1="${y}" x2="${svgW - padR}" y2="${y}" stroke="${gridColor}" stroke-width="1"/>`;
+          svg1 += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="${textColor}" font-size="10">₹${(val / 1000)}k</text>`;
+        });
+
+        const groupW = plotW / peers.length;
+        peers.forEach((p, i) => {
+          const gx = padL + i * groupW + groupW * 0.18;
+          const bw = groupW * 0.28;
+          const hTotal = (p.total / maxVal1) * plotH;
+          const hBanca = (p.banca / maxVal1) * plotH;
+
+          svg1 += `<rect x="${gx}" y="${padT + plotH - hTotal}" width="${bw}" height="${hTotal}" rx="3" fill="#1D4ED8"/>`;
+          svg1 += `<text x="${gx + bw / 2}" y="${padT + plotH - hTotal - 4}" text-anchor="middle" fill="${textColor}" font-size="9" font-weight="700">${(p.total / 1000).toFixed(1)}k</text>`;
+
+          svg1 += `<rect x="${gx + bw + 4}" y="${padT + plotH - hBanca}" width="${bw}" height="${hBanca}" rx="3" fill="#0D7377"/>`;
+          svg1 += `<text x="${gx + bw + 4 + bw / 2}" y="${padT + plotH - hBanca - 4}" text-anchor="middle" fill="#0D7377" font-size="9" font-weight="700">${(p.banca / 1000).toFixed(1)}k</text>`;
+
+          svg1 += `<text x="${gx + bw + 2}" y="${svgH - 18}" text-anchor="middle" fill="${textColor}" font-size="10" font-weight="600">${p.name}</text>`;
+        });
+
+        // Legend
+        svg1 += `<rect x="${padL}" y="${svgH - 8}" width="10" height="8" fill="#1D4ED8"/><text x="${padL + 14}" y="${svgH - 1}" fill="${textColor}" font-size="9">Total FY26 GDPI (₹ Cr)</text>`;
+        svg1 += `<rect x="${padL + 140}" y="${svgH - 8}" width="10" height="8" fill="#0D7377"/><text x="${padL + 154}" y="${svgH - 1}" fill="${textColor}" font-size="9">Est. Banca GWP (₹ Cr)</text>`;
+        svg1 += `</svg>`;
+        barContainer.innerHTML = svg1;
+
+        // Chart 2: All-Branch vs Active Branch Productivity (₹ Lakh/yr)
+        const prodContainer = document.getElementById('productivityChartContainer');
+        const prodData = [
+          { name: 'HDFC ERGO', allBr: 40, activeBr: 68 },
+          { name: 'ICICI Lombard', allBr: 34, activeBr: 60 },
+          { name: 'SBI General', allBr: 15.5, activeBr: 32.5 },
+          { name: 'USGI (Pvt/PSU Avg)', allBr: 11, activeBr: 21 }
+        ];
+        const maxVal2 = 80;
+        let svg2 = `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="max-height:260px; font-family:Inter,sans-serif;">`;
+        [0, 20, 40, 60, 80].forEach(val => {
+          const y = padT + plotH - (val / maxVal2) * plotH;
+          svg2 += `<line x1="${padL}" y1="${y}" x2="${svgW - padR}" y2="${y}" stroke="${gridColor}" stroke-width="1"/>`;
+          svg2 += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="${textColor}" font-size="10">₹${val}L</text>`;
+        });
+
+        prodData.forEach((p, i) => {
+          const gx = padL + i * groupW + groupW * 0.18;
+          const bw = groupW * 0.28;
+          const hAll = (p.allBr / maxVal2) * plotH;
+          const hAct = (p.activeBr / maxVal2) * plotH;
+
+          svg2 += `<rect x="${gx}" y="${padT + plotH - hAll}" width="${bw}" height="${hAll}" rx="3" fill="#64748B"/>`;
+          svg2 += `<text x="${gx + bw / 2}" y="${padT + plotH - hAll - 4}" text-anchor="middle" fill="${textColor}" font-size="9" font-weight="700">₹${p.allBr}L</text>`;
+
+          svg2 += `<rect x="${gx + bw + 4}" y="${padT + plotH - hAct}" width="${bw}" height="${hAct}" rx="3" fill="#D97706"/>`;
+          svg2 += `<text x="${gx + bw + 4 + bw / 2}" y="${padT + plotH - hAct - 4}" text-anchor="middle" fill="#D97706" font-size="9" font-weight="700">₹${p.activeBr}L</text>`;
+
+          svg2 += `<text x="${gx + bw + 2}" y="${svgH - 18}" text-anchor="middle" fill="${textColor}" font-size="10" font-weight="600">${p.name}</text>`;
+        });
+
+        svg2 += `<rect x="${padL}" y="${svgH - 8}" width="10" height="8" fill="#64748B"/><text x="${padL + 14}" y="${svgH - 1}" fill="${textColor}" font-size="9">All-Branch Avg (₹L/yr)</text>`;
+        svg2 += `<rect x="${padL + 145}" y="${svgH - 8}" width="10" height="8" fill="#D97706"/><text x="${padL + 159}" y="${svgH - 1}" fill="${textColor}" font-size="9">Active Branch Avg (₹L/yr)</text>`;
+        svg2 += `</svg>`;
+        prodContainer.innerHTML = svg2;
+      }
+      renderPeerCharts();
+
+      /* ----------------------------------------------------------------------
+         4. SECTION 4: REGULATORY FILTER TOGGLE
+         ---------------------------------------------------------------------- */
+      const regFilterBtns = document.querySelectorAll('[data-regfilter]');
+      const legacyBlocks = document.querySelectorAll('.reg-legacy');
+
+      regFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+          regFilterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const mode = this.getAttribute('data-regfilter');
+          legacyBlocks.forEach(el => {
+            el.style.display = (mode === 'new-only') ? 'none' : 'block';
+          });
+        });
+      });
+
+      /* ----------------------------------------------------------------------
+         5. SECTION 5: ACCORDION TOGGLE
+         ---------------------------------------------------------------------- */
+      window.toggleAccordion = function (headerBtn) {
+        const item = headerBtn.parentElement;
+        item.classList.toggle('open');
+      };
+
+      /* ----------------------------------------------------------------------
+         6. SECTION 6: MULTI-BANK CHANNEL & PRODUCTIVITY SIMULATOR
+         ---------------------------------------------------------------------- */
+      const simInputs = [
+        'psuBranches', 'psuAct', 'psuPol', 'psuTicket',
+        'pvtBranches', 'pvtAct', 'pvtPol', 'pvtTicket',
+        'rrbBranches', 'rrbAct', 'rrbPol', 'rrbTicket'
+      ];
+
+      function formatINR(val) {
+        return '₹' + Number(val).toLocaleString('en-IN');
+      }
+
+      function updateSimulator() {
+        const psuBr = +document.getElementById('psuBranches').value;
+        const psuAct = +document.getElementById('psuAct').value;
+        const psuPol = +document.getElementById('psuPol').value;
+        const psuTkt = +document.getElementById('psuTicket').value;
+
+        const pvtBr = +document.getElementById('pvtBranches').value;
+        const pvtAct = +document.getElementById('pvtAct').value;
+        const pvtPol = +document.getElementById('pvtPol').value;
+        const pvtTkt = +document.getElementById('pvtTicket').value;
+
+        const rrbBr = +document.getElementById('rrbBranches').value;
+        const rrbAct = +document.getElementById('rrbAct').value;
+        const rrbPol = +document.getElementById('rrbPol').value;
+        const rrbTkt = +document.getElementById('rrbTicket').value;
+
+        // Update labels
+        document.getElementById('psuBranchesVal').textContent = psuBr.toLocaleString('en-IN');
+        document.getElementById('psuActVal').textContent = psuAct + '%';
+        document.getElementById('psuPolVal').textContent = psuPol;
+        document.getElementById('psuTicketVal').textContent = formatINR(psuTkt);
+
+        document.getElementById('pvtBranchesVal').textContent = pvtBr.toLocaleString('en-IN');
+        document.getElementById('pvtActVal').textContent = pvtAct + '%';
+        document.getElementById('pvtPolVal').textContent = pvtPol;
+        document.getElementById('pvtTicketVal').textContent = formatINR(pvtTkt);
+
+        document.getElementById('rrbBranchesVal').textContent = rrbBr.toLocaleString('en-IN');
+        document.getElementById('rrbActVal').textContent = rrbAct + '%';
+        document.getElementById('rrbPolVal').textContent = rrbPol;
+        document.getElementById('rrbTicketVal').textContent = formatINR(rrbTkt);
+
+        // Compute Active Branches
+        const activePsu = Math.round(psuBr * (psuAct / 100));
+        const activePvt = Math.round(pvtBr * (pvtAct / 100));
+        const activeRrb = Math.round(rrbBr * (rrbAct / 100));
+        const totalActive = activePsu + activePvt + activeRrb;
+
+        // Compute Annual GWP in Crores (1 Cr = 10,000,000)
+        const gwpPsuCr = (activePsu * psuPol * 12 * psuTkt) / 10000000;
+        const gwpPvtCr = (activePvt * pvtPol * 12 * pvtTkt) / 10000000;
+        const gwpRrbCr = (activeRrb * rrbPol * 12 * rrbTkt) / 10000000;
+        const totalGwpCr = gwpPsuCr + gwpPvtCr + gwpRrbCr;
+
+        // Avg Active Branch Productivity in Lakhs
+        const avgBranchLakhs = totalActive > 0 ? ((totalGwpCr * 100) / totalActive) : 0;
+
+        // Recommended FoS Headcount (1:7 active PSU, 1:3 active Pvt, 1:15 active RRB)
+        const fosHeadcount = Math.ceil((activePsu / 7) + (activePvt / 3) + (activeRrb / 15));
+
+        // Estimated Non-Credit Mix (weighted: Pvt 42%, PSU 24%, RRB 30%)
+        const nonCreditCr = (gwpPvtCr * 0.42) + (gwpPsuCr * 0.24) + (gwpRrbCr * 0.30);
+        const nonCreditPct = totalGwpCr > 0 ? ((nonCreditCr / totalGwpCr) * 100) : 0;
+
+        document.getElementById('simTotalGwp').textContent = '₹' + totalGwpCr.toFixed(1) + ' Cr';
+        document.getElementById('simGwpSplit').textContent =
+          `PSU: ₹${gwpPsuCr.toFixed(1)} Cr | Pvt: ₹${gwpPvtCr.toFixed(1)} Cr | RRB: ₹${gwpRrbCr.toFixed(1)} Cr`;
+        document.getElementById('simActiveBranches').textContent = totalActive.toLocaleString('en-IN');
+        document.getElementById('simAvgBranchProd').textContent = `Avg ₹${avgBranchLakhs.toFixed(1)}L / active branch / yr`;
+        document.getElementById('simFosCount').textContent = fosHeadcount.toLocaleString('en-IN') + ' RMs';
+        document.getElementById('simNonCreditShare').textContent = nonCreditPct.toFixed(1) + '%';
+      }
+
+      simInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updateSimulator);
+      });
+
+      document.getElementById('resetSimBtn').addEventListener('click', function () {
+        document.getElementById('psuBranches').value = 9000;
+        document.getElementById('psuAct').value = 45;
+        document.getElementById('psuPol').value = 6;
+        document.getElementById('psuTicket').value = 19500;
+
+        document.getElementById('pvtBranches').value = 920;
+        document.getElementById('pvtAct').value = 65;
+        document.getElementById('pvtPol').value = 10;
+        document.getElementById('pvtTicket').value = 24000;
+
+        document.getElementById('rrbBranches').value = 1400;
+        document.getElementById('rrbAct').value = 50;
+        document.getElementById('rrbPol').value = 8;
+        document.getElementById('rrbTicket').value = 4800;
+
+        updateSimulator();
+        showToast('Simulator reset to USGI Consortium baseline parameters.');
+      });
+
+      updateSimulator();
+
+      /* ----------------------------------------------------------------------
+         7. COPY FULL SINGLE-FILE HTML SOURCE UTILITY (CLIPBOARD SAFE)
+         ---------------------------------------------------------------------- */
+      function showToast(message) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3200);
+      }
+
+      document.getElementById('copySourceBtn').addEventListener('click', function () {
+        try {
+          const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+          const tempArea = document.createElement('textarea');
+          tempArea.value = fullHtml;
+          tempArea.style.position = 'fixed';
+          tempArea.style.left = '-9999px';
+          document.body.appendChild(tempArea);
+          tempArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempArea);
+          showToast('✓ Full single-file HTML source copied to clipboard!');
+        } catch (err) {
+          showToast('Unable to copy automatically; use View Source or Save Page As.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
