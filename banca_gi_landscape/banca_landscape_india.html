@@ -1350,7 +1350,7 @@
   <div class="modal-overlay" id="jCurveModal">
     <div class="modal-container" style="max-width: 1100px; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3 class="modal-title">📉 Phase 1 Financial Simulator (24-Month J-Curve)</h3>
+        <h3 class="modal-title">📉 Segment-Weighted LOB Financial Simulator (24-Month J-Curve)</h3>
         <button type="button" class="modal-close" onclick="closeJCurveModal()">&times;</button>
       </div>
       <div class="modal-body">
@@ -1358,7 +1358,7 @@
         <!-- Glossary -->
         <div style="background: var(--bg-surface-alt); padding: 1.1rem; border-left: 4px solid var(--accent-teal); margin-bottom: 1.5rem; border-radius: 4px; font-size: 0.85rem; border: 1px solid var(--border-light);">
           <strong>Semantic Glossary:</strong><br>
-          <span style="color: var(--accent-teal); font-weight: 700;">Net CF (Net Cash Flow):</span> The actual profit or loss for a single specific month. Calculated as <em>(Fee Income)</em> minus <em>(CapEx + OpEx)</em>.<br>
+          <span style="color: var(--accent-teal); font-weight: 700;">Net CF (Net Cash Flow):</span> The actual profit or loss for a single specific month. Calculated as <em>(Fee Income)</em> minus fixed <em>(CapEx [₹50k/RM] + OpEx [₹75k/RM/Mo])</em>.<br>
           <span style="color: var(--accent-amber); font-weight: 700;">Cumulative CF (Cumulative Cash Flow):</span> The running total of all Net CFs from Month 1 to the current month. When this line crosses above ₹0, the entire investment phase has fully paid for itself (Breakeven).
         </div>
 
@@ -1392,29 +1392,42 @@
           <!-- LEFT COLUMN: CONTROLS -->
           <div class="sim-cohort-card tabular-nums" style="height: fit-content; box-shadow: var(--shadow-sm);">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-medium); padding-bottom: 0.5rem; margin-bottom: 1.2rem;">
-              <h4 style="margin: 0; padding: 0; border: none;">Execution Inputs</h4>
+              <h4 style="margin: 0; padding: 0; border: none;">Operational Inputs</h4>
               <button type="button" class="btn-nav btn-nav-primary" id="resetJCurveBtn" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">↺ Reset</button>
             </div>
             
             <div class="slider-group">
-              <div class="slider-label"><span>Total Phase 1 RM Hires</span><span class="slider-val" id="jcHiresVal">150</span></div>
-              <input type="range" id="jcHires" min="50" max="300" step="10" value="150">
+              <div class="slider-label"><span>Total RMs (Mixed Cohort)</span><span class="slider-val" id="jcHiresVal">150</span></div>
+              <input type="range" id="jcHires" min="50" max="325" step="5" value="150">
             </div>
             <div class="slider-group">
-              <div class="slider-label"><span>CapEx per RM (₹)</span><span class="slider-val" id="jcCapexVal">₹50,000</span></div>
-              <input type="range" id="jcCapex" min="25000" max="100000" step="5000" value="50000">
+              <div class="slider-label"><span>Active Branches per RM</span><span class="slider-val" id="jcBranchesVal">15</span></div>
+              <input type="range" id="jcBranches" min="5" max="25" step="1" value="15">
             </div>
             <div class="slider-group">
-              <div class="slider-label"><span>Monthly OpEx / RM (₹)</span><span class="slider-val" id="jcOpexVal">₹75,000</span></div>
-              <input type="range" id="jcOpex" min="40000" max="120000" step="5000" value="75000">
+              <div class="slider-label"><span>Avg GWP / Active Branch</span><span class="slider-val" id="jcBranchGwpVal">₹0.66 L</span></div>
+              <input type="range" id="jcBranchGwp" min="0.25" max="2.50" step="0.01" value="0.66">
             </div>
             <div class="slider-group">
-              <div class="slider-label"><span>Blended Fee Yield (%)</span><span class="slider-val" id="jcYieldVal">15%</span></div>
-              <input type="range" id="jcYield" min="10" max="25" step="1" value="15">
+              <div class="slider-label"><span>Non-Credit / Retail Mix (%)</span><span class="slider-val" id="jcNonCreditMixVal">28.3%</span></div>
+              <input type="range" id="jcNonCreditMix" min="0" max="100" step="0.1" value="28.3">
+            </div>
+            
+            <div class="slider-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-medium);">
+              <div class="slider-label"><span>CapEx per RM (Setup)</span><span class="slider-val" id="val-capex">₹50,000</span></div>
+              <input type="range" id="sim-capex" min="10000" max="150000" step="5000" value="50000">
             </div>
             <div class="slider-group">
-              <div class="slider-label"><span>Peak GWP / RM / Mo</span><span class="slider-val" id="jcGwpVal">₹10,00,000</span></div>
-              <input type="range" id="jcGwp" min="500000" max="1500000" step="50000" value="1000000">
+              <div class="slider-label"><span>OpEx per RM / Month</span><span class="slider-val" id="val-opex">₹75,000</span></div>
+              <input type="range" id="sim-opex" min="25000" max="150000" step="5000" value="75000">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Fee Yield: Credit (%)</span><span class="slider-val" id="val-yield-credit">17.5%</span></div>
+              <input type="range" id="sim-yield-credit" min="5" max="30" step="0.5" value="17.5">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Fee Yield: Non-Credit (%)</span><span class="slider-val" id="val-yield-noncredit">25.0%</span></div>
+              <input type="range" id="sim-yield-noncredit" min="10" max="40" step="0.5" value="25.0">
             </div>
           </div>
 
@@ -1422,8 +1435,8 @@
           <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;" class="tabular-nums">
               <div class="sim-out-box" style="background: var(--bg-navy-light); padding: 1.15rem;">
-                <div class="sim-out-label">Breakeven Month</div>
-                <div class="sim-out-num" id="jcBreakEven" style="font-size: 1.6rem;">Month 9</div>
+                <div class="sim-out-label">Blended Fee Yield</div>
+                <div class="sim-out-num" id="jcYieldBlended" style="font-size: 1.6rem;">19.6%</div>
               </div>
               <div class="sim-out-box" style="background: var(--accent-crimson-bg); color: var(--accent-crimson); padding: 1.15rem; border: 1px solid var(--accent-crimson);">
                 <div class="sim-out-label" style="color: var(--accent-crimson); opacity: 0.9;">Max Capital Required (Trough)</div>
@@ -1821,17 +1834,31 @@
       function initJCurve() {
          // Get values
          const hires = parseInt(document.getElementById('jcHires').value);
-         const capex = parseInt(document.getElementById('jcCapex').value);
-         const opex = parseInt(document.getElementById('jcOpex').value);
-         const yieldPct = parseInt(document.getElementById('jcYield').value) / 100;
-         const peakGwp = parseInt(document.getElementById('jcGwp').value);
+         const branchesPerRm = parseInt(document.getElementById('jcBranches').value);
+         const gwpPerBranchLakhs = parseFloat(document.getElementById('jcBranchGwp').value);
+         const nonCreditMix = parseFloat(document.getElementById('jcNonCreditMix').value);
+
+         const capex = parseInt(document.getElementById('sim-capex').value);
+         const opex = parseInt(document.getElementById('sim-opex').value);
+         const creditYield = parseFloat(document.getElementById('sim-yield-credit').value);
+         const nonCreditYield = parseFloat(document.getElementById('sim-yield-noncredit').value);
+         
+         const creditMix = 100 - nonCreditMix;
+         const yieldPct = ((creditMix * creditYield) + (nonCreditMix * nonCreditYield)) / 10000;
+         const peakGwp = branchesPerRm * gwpPerBranchLakhs * 100000; // Mature GWP per RM
 
          // Update UI labels
          document.getElementById('jcHiresVal').textContent = hires;
-         document.getElementById('jcCapexVal').textContent = '₹' + capex.toLocaleString('en-IN');
-         document.getElementById('jcOpexVal').textContent = '₹' + opex.toLocaleString('en-IN');
-         document.getElementById('jcYieldVal').textContent = (yieldPct * 100) + '%';
-         document.getElementById('jcGwpVal').textContent = '₹' + (peakGwp/100000).toFixed(1) + ' Lakhs';
+         document.getElementById('jcBranchesVal').textContent = branchesPerRm;
+         document.getElementById('jcBranchGwpVal').textContent = '₹' + gwpPerBranchLakhs.toFixed(2) + ' L';
+         document.getElementById('jcNonCreditMixVal').textContent = nonCreditMix.toFixed(1) + '%';
+         
+         document.getElementById('val-capex').textContent = '₹' + capex.toLocaleString('en-IN');
+         document.getElementById('val-opex').textContent = '₹' + opex.toLocaleString('en-IN');
+         document.getElementById('val-yield-credit').textContent = creditYield.toFixed(1) + '%';
+         document.getElementById('val-yield-noncredit').textContent = nonCreditYield.toFixed(1) + '%';
+
+         document.getElementById('jcYieldBlended').textContent = (yieldPct * 100).toFixed(2) + '%';
 
          // Cohort distribution: Hiring evenly over 3 months
          const m1Hires = Math.ceil(hires / 3);
@@ -1896,7 +1923,6 @@
          const formatCr = val => '₹' + (val / 10000000).toFixed(2) + ' Cr';
          
          // Update Output KPIs
-         document.getElementById('jcBreakEven').textContent = breakeven !== -1 ? `Month ${breakeven}` : 'No Breakeven';
          document.getElementById('jcMaxCap').textContent = formatCr(maxCap);
          document.getElementById('jcExitCf').textContent = formatCr(cumSum);
          
@@ -1917,16 +1943,13 @@
          }
          
          // Update Dynamic Text
-         let dynText = `<strong>Strategic Diagnostic:</strong> Scaling to <strong>${hires} RMs</strong> requires a maximum capital commitment (trough) of <strong style="color:var(--accent-crimson);">${formatCr(maxCap)}</strong>. This cash burn is primarily driven by upfront API CapEx and early-month OpEx before the GWP ramp kicks in. `;
+         let dynText = `<strong>Strategic Diagnostic:</strong> Deploying <strong>${hires} RMs</strong> (each activating ~${branchesPerRm} mixed branches) requires a maximum capital commitment of <strong style="color:var(--accent-crimson);">${formatCr(maxCap)}</strong>. `;
+         dynText += `At a Non-Credit mix of ${nonCreditMix.toFixed(1)}%, your Blended Fee Yield is <strong>${(yieldPct*100).toFixed(2)}%</strong>. `;
          
          if (breakeven > 12 || breakeven === -1) {
-             dynText += `<br><br><span style="color:var(--accent-crimson); font-weight:600;">⚠️ Warning: Breakeven is dangerously extended to ${breakeven === -1 ? 'beyond 24 months' : 'Month ' + breakeven}.</span> This usually happens when the Monthly OpEx (₹${opex.toLocaleString('en-IN')}) outpaces the Blended Fee Yield (${yieldPct*100}%). To fix this, you must explicitly mandate the Private Bank cohort (Karnataka Bank) to push higher-margin Retail Health and SME Packages to pull the blended yield up, or stringently cap starting salaries.`;
+             dynText += `<br><br><span style="color:var(--accent-crimson); font-weight:600;">⚠️ Warning: Breakeven is dangerously extended to ${breakeven === -1 ? 'beyond 24 months' : 'Month ' + breakeven}.</span> This usually happens when the Blended Margin (${(yieldPct*100).toFixed(2)}%) or active branch density (${branchesPerRm} branches) cannot outpace the fixed ₹75,000 monthly OpEx per RM. To fix this, you must push a higher-margin Non-Credit mix (Retail Health/SME) or increase branch activation throughput.`;
          } else {
-             dynText += `<br><br><span style="color:var(--accent-emerald); font-weight:600;">✓ Healthy Unit Economics: The channel breaks even in Month ${breakeven}.</span> From this point forward, the cohort operates as a compounding asset.`;
-         }
-         
-         if (yieldPct >= 0.18) {
-             dynText += ` By executing an aggressive <strong>${yieldPct*100}% yield</strong> (highly reliant on a rich Private Bank Health mix), the J-Curve inflection is drastically accelerated, generating a massive 24-month exit cash flow of <strong>${formatCr(cumSum)}</strong>.`;
+             dynText += `<br><br><span style="color:var(--accent-emerald); font-weight:600;">✓ Healthy Unit Economics: The channel breaks even in Month ${breakeven}.</span> From this point forward, the cohort operates as a highly accretive, compounding asset.`;
          }
          
          document.getElementById('jcDynamicText').innerHTML = dynText;
@@ -2034,16 +2057,19 @@
           if(e.target === this) closeJCurveModal();
       });
 
-      ['jcHires', 'jcCapex', 'jcOpex', 'jcYield', 'jcGwp'].forEach(id => {
+      ['jcHires', 'jcBranches', 'jcBranchGwp', 'jcNonCreditMix', 'sim-capex', 'sim-opex', 'sim-yield-credit', 'sim-yield-noncredit'].forEach(id => {
          document.getElementById(id).addEventListener('input', initJCurve);
       });
 
       document.getElementById('resetJCurveBtn').addEventListener('click', function() {
          document.getElementById('jcHires').value = 150;
-         document.getElementById('jcCapex').value = 50000;
-         document.getElementById('jcOpex').value = 75000;
-         document.getElementById('jcYield').value = 15;
-         document.getElementById('jcGwp').value = 1000000;
+         document.getElementById('jcBranches').value = 15;
+         document.getElementById('jcBranchGwp').value = 0.66;
+         document.getElementById('jcNonCreditMix').value = 28.3;
+         document.getElementById('sim-capex').value = 50000;
+         document.getElementById('sim-opex').value = 75000;
+         document.getElementById('sim-yield-credit').value = 17.5;
+         document.getElementById('sim-yield-noncredit').value = 25.0;
          
          // Trigger UI update
          initJCurve();
