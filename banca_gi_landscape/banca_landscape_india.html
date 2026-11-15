@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ==========================================================================
        DESIGN TOKENS & THEME VARIABLES (LIGHT & DARK EXECUTIVE MODES)
@@ -1079,7 +1080,7 @@
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <button type="button" class="btn-nav btn-nav-primary" id="resetSimBtn">↺ Reset to USGI Baseline</button>
-            <button type="button" class="btn-nav btn-nav-primary" onclick="openFinSimModal()" style="background: var(--accent-amber); border-color: var(--accent-amber); color: #fff;">📊 Launch Phase 1 Financial Simulator</button>
+            <button type="button" class="btn-nav" style="background: #0f766e; border-color: #0f766e; color: #fff;" onclick="openJCurveModal()">📉 Deep-Dive: Phase 1 Financial Simulator (24-Month J-Curve)</button>
           </div>
         </div>
 
@@ -1189,6 +1190,9 @@
         </div>
       </div>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn-nav btn-nav-primary" onclick="openPlaybookModal()" style="background: var(--bg-navy-light); border-color: #38bdf8; color: #fff;">
+          📖 View Executive Playbook &amp; FAQ
+        </button>
         <button type="button" class="btn-nav" onclick="window.print()">
           ⎙ Download / Print Executive Report
         </button>
@@ -1224,60 +1228,221 @@
     </div>
   </div>
 
-  <!-- Phase 1 Financial Simulator Modal -->
-  <div class="modal-overlay" id="finSimModal">
-    <div class="modal-container" style="max-width: 950px;">
+  <!-- Executive Playbook Modal -->
+  <div class="modal-overlay" id="playbookModal">
+    <div class="modal-container" style="max-width: 1050px; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3 class="modal-title">Phase 1 Financial Simulator (24-Month J-Curve)</h3>
-        <button type="button" class="modal-close" onclick="closeFinSimModal()">&times;</button>
+        <h3 class="modal-title">MEMORANDUM: FY27–FY28 Bancassurance Scale-Up &amp; Graduation Plan</h3>
+        <button type="button" class="modal-close" onclick="closePlaybookModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="two-col-grid" style="gap: 1.5rem; margin-bottom: 1.5rem;">
-          <div class="sim-cohort-card tabular-nums">
-            <h4>Assumptions &amp; Inputs</h4>
-            <div class="slider-group">
-              <div class="slider-label"><span>Phase 1 RM Hires</span><span class="slider-val" id="fsHiresVal">150</span></div>
-              <input type="range" id="fsHires" min="50" max="500" step="10" value="150">
-            </div>
-            <div class="slider-group">
-              <div class="slider-label"><span>CapEx per RM (₹)</span><span class="slider-val" id="fsCapexVal">₹50,000</span></div>
-              <input type="range" id="fsCapex" min="10000" max="150000" step="5000" value="50000">
-            </div>
-            <div class="slider-group">
-              <div class="slider-label"><span>Monthly OpEx per RM (₹)</span><span class="slider-val" id="fsOpexVal">₹75,000</span></div>
-              <input type="range" id="fsOpex" min="30000" max="200000" step="5000" value="75000">
-            </div>
-            <div class="slider-group">
-              <div class="slider-label"><span>Bancassurance Fee Margin (%)</span><span class="slider-val" id="fsMarginVal">15%</span></div>
-              <input type="range" id="fsMargin" min="5" max="30" step="1" value="15">
-            </div>
+        
+        <!-- Header & Download -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-light);">
+          <div>
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">A Comprehensive Strategy &amp; FAQ Playbook</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Targeted for <strong>Executive Management, Financial Planning &amp; Analysis (FP&amp;A), and Human Resources.</strong></p>
           </div>
-          <div class="sim-outputs tabular-nums" style="margin-top: 0; padding-top: 0; border-top: none; align-items: start; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-             <div class="sim-out-box" style="background: var(--bg-navy-light);">
-                <div class="sim-out-label">Total CapEx</div>
-                <div class="sim-out-num" id="fsOutCapex" style="font-size: 1.4rem;">₹75.0 L</div>
-             </div>
-             <div class="sim-out-box" style="background: var(--bg-navy-light);">
-                <div class="sim-out-label">Total OpEx (24M)</div>
-                <div class="sim-out-num" id="fsOutOpex" style="font-size: 1.4rem;">₹25.3 Cr</div>
-             </div>
-             <div class="sim-out-box" style="background: var(--bg-navy-light);">
-                <div class="sim-out-label">Total GWP (24M)</div>
-                <div class="sim-out-num" id="fsOutGwp" style="font-size: 1.4rem;">₹250.5 Cr</div>
-             </div>
-             <div class="sim-out-box" style="background: var(--bg-navy-light);">
-                <div class="sim-out-label">Total Fee Income</div>
-                <div class="sim-out-num" id="fsOutFee" style="font-size: 1.4rem;">₹37.6 Cr</div>
-             </div>
-             <div class="sim-out-box" style="grid-column: span 2; background: var(--accent-emerald); color: #fff;">
-                <div class="sim-out-label" style="color: rgba(255,255,255,0.8);">Break-Even Month</div>
-                <div class="sim-out-num" id="fsOutBreakEven" style="color: #fff;">Month 9</div>
-             </div>
+          <a href="USGI_Bancassurance_ScaleUp_Playbook_Verbose.docx" download class="btn-nav btn-nav-primary" style="background: var(--accent-emerald); border-color: var(--accent-emerald); color: #fff; padding: 0.65rem 1rem; font-size: 0.85rem;">
+            ⬇ Download Complete Playbook (.docx)
+          </a>
+        </div>
+
+        <!-- Rationale -->
+        <div style="margin-bottom: 2rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--accent-teal); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Strategic Rationale</h4>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            The days of raw "push-selling" tied to aggressive branch-level volume targets are ending. The October 2026 IRDAI draft regulations mandate a fundamental shift in distribution economics. This requires USGI to pivot its entire 510+ RM deployment and 10,500+ promoter branch network toward quality-led, API-driven workflows.
+          </p>
+          <div style="background: var(--accent-amber-bg); border-left: 4px solid var(--accent-amber); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-primary);">
+            <strong>Example &amp; Impact:</strong> Previously, a branch manager could force-bundle a fire policy into a ₹50 Lakh MSME loan and deduct the premium directly from the disbursal. Post-Oct 2026, <strong>compulsory bundling is explicitly banned</strong>, premiums must be paid via a separated gateway, and the bank staffer’s ID is tagged to the sale in a Public Mis-selling Registry.
           </div>
         </div>
+
+        <!-- Glossary -->
+        <div style="margin-bottom: 2rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--accent-teal); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Operational Glossary &amp; Actions</h4>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 20%;">Term / Concept</th>
+                  <th style="width: 30%;">Meaning (Definition)</th>
+                  <th style="width: 25%;">Action Required</th>
+                  <th style="width: 25%;">Business Outcome</th>
+                </tr>
+              </thead>
+              <tbody style="font-size: 0.85rem;">
+                <tr>
+                  <td><strong>Seller-Level Tagging</strong></td>
+                  <td>Every policy is uniquely mapped to the specific Bank SP or RM originating it.</td>
+                  <td>Overhaul HR training from "closing tactics" to FTR &amp; needs-analysis compliance.</td>
+                  <td>Zero entries in the IRDAI mis-selling registry; secures our Corporate Agency license.</td>
+                </tr>
+                <tr>
+                  <td><strong>Separate Payment Gateway</strong></td>
+                  <td>Prohibition of deducting insurance premiums directly from loan amounts.</td>
+                  <td>IT &amp; FP&amp;A must fund automated post-sanction SMS/Email payment links (CBS).</td>
+                  <td>Frictionless, compliant credit-attachment preserving volume.</td>
+                </tr>
+                <tr>
+                  <td><strong>EoM Glide Path</strong></td>
+                  <td>Progressive reduction of allowable acquisition costs down to 20% of GDPI.</td>
+                  <td>Eliminate off-invoice subsidies. Reallocate budget to tech CapEx &amp; Fast-Track Claims.</td>
+                  <td>A leaner Cost of Acquisition (CoA) protecting the combined ratio.</td>
+                </tr>
+                <tr>
+                  <td><strong>Renewal Escalator</strong></td>
+                  <td>Rewarding long-term portfolio retention (+0.5% fee bumps every 3 years).</td>
+                  <td>Mandatory e-NACH/Auto-Debit for all retail health &amp; SME policies at POS.</td>
+                  <td>Compounding, high-margin fee income for the bank (Lifetime Value).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div style="margin-bottom: 2.5rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--accent-teal); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">3. Execution Use Cases (325 RM Expansion)</h4>
+          <div class="impl-grid">
+            <div class="impl-box" style="background: var(--bg-surface-alt);">
+              <h4><span class="badge badge-amber" style="margin-right:0.5rem;">Conservative</span> The "Normal" Path</h4>
+              <p><strong>Approach:</strong> Gradual hiring of 50 RMs per quarter. Reliance on existing portal logins. Focus remains on PSU volume using legacy attachment methods.</p>
+              <p style="margin-top: 0.5rem; color: var(--accent-crimson); font-weight: 600;"><strong>Result:</strong> Credit-linked volume drops by 30% post-2026 as branch staff struggle with manual payment links. Non-credit mix stays stagnant at 15%. GWP stalls at ₹500 Cr.</p>
+            </div>
+            <div class="impl-box" style="background: var(--accent-teal-bg); border-color: rgba(13, 115, 119, 0.4);">
+              <h4><span class="badge badge-emerald" style="margin-right:0.5rem;">Strategic</span> The "Aggressive" Path</h4>
+              <p><strong>Approach:</strong> Front-loading 150 RMs in Phase 1. FP&amp;A approves early CapEx for full LOS API integration. Private Bank RMs target high-margin Retail Health; PSU RMs target SP activation.</p>
+              <p style="margin-top: 0.5rem; color: var(--accent-emerald); font-weight: 600;"><strong>Result:</strong> Frictionless API drives PSU attachment &gt;70%. Private Health pushes non-credit mix to 28.3%. Breaches the ₹780 Cr target by Month 24, locking in maximum Renewal Escalators.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boardroom FAQs -->
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--accent-teal); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">4. Boardroom FAQs &amp; Counter-Narratives</h4>
+          <div style="display: grid; gap: 1rem;">
+            
+            <div class="impl-box" style="background: var(--bg-surface);">
+              <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">Q (FP&amp;A): "Why front-load CapEx for API integration when we already have web portals?"</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);"><strong>Counter:</strong> The Oct 2026 mandate outlaws deducting premium from loan amounts. Manual portals require branch staff to chase customers for separate payments post-disbursal (massive drop-off). APIs automate a real-time payment link concurrently with loan sanction. This is a regulatory survival mechanism, not a tech upgrade.</div>
+            </div>
+
+            <div class="impl-box" style="background: var(--bg-surface);">
+              <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">Q (HR): "Why hire analytical RMs instead of standard sales Feet-on-Street?"</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);"><strong>Counter:</strong> Under new Seller-Level Tagging, USGI faces severe penalties for 'under-advising' MSME clients. Standard FoS push products; analytical RMs conduct documented risk assessments. One major mis-selling strike on the public registry costs more in lost bank trust than the salary premium of qualified RMs.</div>
+            </div>
+
+            <div class="impl-box" style="background: var(--bg-surface);">
+              <div style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem;">Q (Mgmt): "We have 12,200 branches. Why only target 5,498 active branches?"</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);"><strong>Counter:</strong> Benchmarks show active branches generate nearly double the system-wide average. Spreading 835 RMs across 12,200 branches creates a diluted 1:15 ratio where no coaching occurs. Ring-fencing the top 45% of branches maintains a tight 1:6 RM-to-branch ratio for high conversion and strict compliance oversight.</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Deep-Dive J-Curve Modal -->
+  <div class="modal-overlay" id="jCurveModal">
+    <div class="modal-container" style="max-width: 1100px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title">📉 Phase 1 Financial Simulator (24-Month J-Curve)</h3>
+        <button type="button" class="modal-close" onclick="closeJCurveModal()">&times;</button>
+      </div>
+      <div class="modal-body">
         
-        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">24-Month Net Cash Flow J-Curve (₹ Cr)</h4>
-        <div id="finSimChartContainer" style="width: 100%; overflow-x: auto; background: var(--bg-surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1rem;">
+        <!-- Glossary -->
+        <div style="background: var(--bg-surface-alt); padding: 1.1rem; border-left: 4px solid var(--accent-teal); margin-bottom: 1.5rem; border-radius: 4px; font-size: 0.85rem; border: 1px solid var(--border-light);">
+          <strong>Semantic Glossary:</strong><br>
+          <span style="color: var(--accent-teal); font-weight: 700;">Net CF (Net Cash Flow):</span> The actual profit or loss for a single specific month. Calculated as <em>(Fee Income)</em> minus <em>(CapEx + OpEx)</em>.<br>
+          <span style="color: var(--accent-amber); font-weight: 700;">Cumulative CF (Cumulative Cash Flow):</span> The running total of all Net CFs from Month 1 to the current month. When this line crosses above ₹0, the entire investment phase has fully paid for itself (Breakeven).
+        </div>
+
+        <div class="simulator-kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <!-- Top 4 Cards -->
+            <div style="background-color: #1e293b; padding: 1.25rem; border-radius: 8px;">
+                <div style="color: #94a3b8; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 0.5rem; text-transform: uppercase;">Total CapEx</div>
+                <div id="sim-kpi-capex" style="color: #38bdf8; font-size: 1.5rem; font-weight: 700;">₹75.0 L</div>
+            </div>
+            <div style="background-color: #1e293b; padding: 1.25rem; border-radius: 8px;">
+                <div style="color: #94a3b8; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 0.5rem; text-transform: uppercase;">Total OpEx (24M)</div>
+                <div id="sim-kpi-opex" style="color: #38bdf8; font-size: 1.5rem; font-weight: 700;">₹25.88 Cr</div>
+            </div>
+            <div style="background-color: #1e293b; padding: 1.25rem; border-radius: 8px;">
+                <div style="color: #94a3b8; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 0.5rem; text-transform: uppercase;">Total GWP (24M)</div>
+                <div id="sim-kpi-gwp" style="color: #38bdf8; font-size: 1.5rem; font-weight: 700;">₹294.75 Cr</div>
+            </div>
+            <div style="background-color: #1e293b; padding: 1.25rem; border-radius: 8px;">
+                <div style="color: #94a3b8; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 0.5rem; text-transform: uppercase;">Total Fee Income</div>
+                <div id="sim-kpi-fee" style="color: #38bdf8; font-size: 1.5rem; font-weight: 700;">₹44.21 Cr</div>
+            </div>
+            
+            <!-- Full-Width Break-Even Banner -->
+            <div style="grid-column: 1 / -1; background-color: #0f766e; padding: 1.25rem; border-radius: 8px; margin-top: 0.5rem; transition: background-color 0.3s ease;">
+                <div style="color: #ccfbf1; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 0.5rem; text-transform: uppercase;">Break-Even Month</div>
+                <div id="sim-kpi-breakeven" style="color: #ffffff; font-size: 2rem; font-weight: 800;">Month 9</div>
+            </div>
+        </div>
+
+        <div class="two-col-grid" style="grid-template-columns: 1fr 2.2fr;">
+          <!-- LEFT COLUMN: CONTROLS -->
+          <div class="sim-cohort-card tabular-nums" style="height: fit-content; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-medium); padding-bottom: 0.5rem; margin-bottom: 1.2rem;">
+              <h4 style="margin: 0; padding: 0; border: none;">Execution Inputs</h4>
+              <button type="button" class="btn-nav btn-nav-primary" id="resetJCurveBtn" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">↺ Reset</button>
+            </div>
+            
+            <div class="slider-group">
+              <div class="slider-label"><span>Total Phase 1 RM Hires</span><span class="slider-val" id="jcHiresVal">150</span></div>
+              <input type="range" id="jcHires" min="50" max="300" step="10" value="150">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>CapEx per RM (₹)</span><span class="slider-val" id="jcCapexVal">₹50,000</span></div>
+              <input type="range" id="jcCapex" min="25000" max="100000" step="5000" value="50000">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Monthly OpEx / RM (₹)</span><span class="slider-val" id="jcOpexVal">₹75,000</span></div>
+              <input type="range" id="jcOpex" min="40000" max="120000" step="5000" value="75000">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Blended Fee Yield (%)</span><span class="slider-val" id="jcYieldVal">15%</span></div>
+              <input type="range" id="jcYield" min="10" max="25" step="1" value="15">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Peak GWP / RM / Mo</span><span class="slider-val" id="jcGwpVal">₹10,00,000</span></div>
+              <input type="range" id="jcGwp" min="500000" max="1500000" step="50000" value="1000000">
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: VISUALS -->
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;" class="tabular-nums">
+              <div class="sim-out-box" style="background: var(--bg-navy-light); padding: 1.15rem;">
+                <div class="sim-out-label">Breakeven Month</div>
+                <div class="sim-out-num" id="jcBreakEven" style="font-size: 1.6rem;">Month 9</div>
+              </div>
+              <div class="sim-out-box" style="background: var(--accent-crimson-bg); color: var(--accent-crimson); padding: 1.15rem; border: 1px solid var(--accent-crimson);">
+                <div class="sim-out-label" style="color: var(--accent-crimson); opacity: 0.9;">Max Capital Required (Trough)</div>
+                <div class="sim-out-num" id="jcMaxCap" style="font-size: 1.6rem; color: var(--accent-crimson);">₹-2.5 Cr</div>
+              </div>
+              <div class="sim-out-box" style="background: var(--accent-emerald-bg); color: var(--accent-emerald); padding: 1.15rem; border: 1px solid var(--accent-emerald);">
+                <div class="sim-out-label" style="color: var(--accent-emerald); opacity: 0.9;">M24 Exit Net CF</div>
+                <div class="sim-out-num" id="jcExitCf" style="font-size: 1.6rem; color: var(--accent-emerald);">₹10.5 Cr</div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1rem; position: relative; height: 320px; box-shadow: var(--shadow-sm);">
+              <canvas id="jcChartCanvas"></canvas>
+            </div>
+
+            <div id="jcDynamicText" style="background: var(--bg-surface); border: 1px dashed var(--border-medium); padding: 1.15rem; border-radius: var(--radius-sm); font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6; margin-top: 0.25rem;">
+              <!-- Dynamic text populated by JS -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1631,210 +1796,261 @@
       /* ----------------------------------------------------------------------
          8. PHASE 1 FINANCIAL SIMULATOR LOGIC
          ---------------------------------------------------------------------- */
-      window.openFinSimModal = function() {
-        document.getElementById('finSimModal').classList.add('active');
-        updateFinSim(); // Initial render
+      // The static Phase 1 Financial Simulator modal logic has been removed in favor of the Deep-Dive J-Curve Simulator
+
+      /* ----------------------------------------------------------------------
+         9. EXECUTIVE PLAYBOOK MODAL LOGIC
+         ---------------------------------------------------------------------- */
+      window.openPlaybookModal = function() {
+        document.getElementById('playbookModal').classList.add('active');
       };
       
-      window.closeFinSimModal = function() {
-        document.getElementById('finSimModal').classList.remove('active');
+      window.closePlaybookModal = function() {
+        document.getElementById('playbookModal').classList.remove('active');
       };
 
-      document.getElementById('finSimModal').addEventListener('click', function(e) {
-        if(e.target === this) closeFinSimModal();
+      document.getElementById('playbookModal').addEventListener('click', function(e) {
+        if(e.target === this) closePlaybookModal();
       });
 
-      const fsInputs = ['fsHires', 'fsCapex', 'fsOpex', 'fsMargin'];
-      fsInputs.forEach(id => {
-         document.getElementById(id).addEventListener('input', updateFinSim);
-      });
+      /* ----------------------------------------------------------------------
+         10. PHASE 1 FINANCIAL SIMULATOR (J-CURVE DEEP DIVE) WITH CHART.JS
+         ---------------------------------------------------------------------- */
+      let jcChartInstance = null;
+      
+      function initJCurve() {
+         // Get values
+         const hires = parseInt(document.getElementById('jcHires').value);
+         const capex = parseInt(document.getElementById('jcCapex').value);
+         const opex = parseInt(document.getElementById('jcOpex').value);
+         const yieldPct = parseInt(document.getElementById('jcYield').value) / 100;
+         const peakGwp = parseInt(document.getElementById('jcGwp').value);
 
-      function updateFinSim() {
-         const hires = parseInt(document.getElementById('fsHires').value);
-         const capex = parseInt(document.getElementById('fsCapex').value);
-         const opex = parseInt(document.getElementById('fsOpex').value);
-         const margin = parseFloat(document.getElementById('fsMargin').value) / 100;
+         // Update UI labels
+         document.getElementById('jcHiresVal').textContent = hires;
+         document.getElementById('jcCapexVal').textContent = '₹' + capex.toLocaleString('en-IN');
+         document.getElementById('jcOpexVal').textContent = '₹' + opex.toLocaleString('en-IN');
+         document.getElementById('jcYieldVal').textContent = (yieldPct * 100) + '%';
+         document.getElementById('jcGwpVal').textContent = '₹' + (peakGwp/100000).toFixed(1) + ' Lakhs';
 
-         document.getElementById('fsHiresVal').textContent = hires;
-         document.getElementById('fsCapexVal').textContent = '₹' + capex.toLocaleString('en-IN');
-         document.getElementById('fsOpexVal').textContent = '₹' + opex.toLocaleString('en-IN');
-         document.getElementById('fsMarginVal').textContent = (margin * 100).toFixed(0) + '%';
-
-         const cohortSize = hires / 3; // Staggered over 3 months
-         const ramp = [0, 100000, 300000, 500000, 750000, 1000000]; // Month 1 to 6+ GWP per RM
-
-         let totalCapex = 0;
-         let totalOpex = 0;
-         let totalGWP = 0;
+         // Cohort distribution: Hiring evenly over 3 months
+         const m1Hires = Math.ceil(hires / 3);
+         const m2Hires = Math.round(hires / 3);
+         const m3Hires = hires - m1Hires - m2Hires;
+         const cohortSizes = [m1Hires, m2Hires, m3Hires];
+         
+         // GWP Ramp (M1 to M6+)
+         const ramp = [0, 0.1, 0.3, 0.5, 0.75, 1.0]; 
          
          let monthlyNet = [];
          let cumulativeNet = [];
-         let breakEvenMonth = -1;
          let cumSum = 0;
+         let maxCap = 0;
+         let breakeven = -1;
+         
+         let totalSimGWP = 0;
+         let totalSimFee = 0;
+         let totalSimOpex = 0;
 
-         for (let m = 1; m <= 24; m++) {
+         for(let m = 1; m <= 24; m++) {
             let mCapex = 0;
             let mOpex = 0;
-            let mGWP = 0;
+            let mRev = 0;
+            let mGwp = 0;
 
-            // Cohort 1 (Starts Month 1)
-            let c1Active = cohortSize;
-            if (m === 1) mCapex += c1Active * capex;
-            if (m >= 1) {
-               mOpex += c1Active * opex;
-               let rIdx = Math.min(m - 1, 5);
-               mGWP += c1Active * ramp[rIdx];
+            for(let c = 0; c < 3; c++) {
+               const startMonth = c + 1;
+               if (m >= startMonth) {
+                  const cSize = cohortSizes[c];
+                  const activeMonths = m - startMonth + 1; 
+                  
+                  // CapEx incurred only in the starting month for that cohort
+                  if (activeMonths === 1) mCapex += cSize * capex;
+                  
+                  // OpEx incurred every active month
+                  mOpex += cSize * opex;
+                  
+                  // Revenue lookup based on ramp
+                  const rIdx = Math.min(activeMonths - 1, 5); 
+                  const cohortGwp = cSize * (ramp[rIdx] * peakGwp);
+                  mGwp += cohortGwp;
+                  mRev += cohortGwp * yieldPct;
+               }
             }
-
-            // Cohort 2 (Starts Month 2)
-            let c2Active = cohortSize;
-            if (m === 2) mCapex += c2Active * capex;
-            if (m >= 2) {
-               mOpex += c2Active * opex;
-               let rIdx = Math.min(m - 2, 5);
-               mGWP += c2Active * ramp[rIdx];
-            }
-
-            // Cohort 3 (Starts Month 3)
-            let c3Active = cohortSize;
-            if (m === 3) mCapex += c3Active * capex;
-            if (m >= 3) {
-               mOpex += c3Active * opex;
-               let rIdx = Math.min(m - 3, 5);
-               mGWP += c3Active * ramp[rIdx];
-            }
-
-            totalCapex += mCapex;
-            totalOpex += mOpex;
-            totalGWP += mGWP;
-
-            let mFee = mGWP * margin;
-            let net = mFee - (mCapex + mOpex);
+            
+            const net = mRev - (mCapex + mOpex);
             cumSum += net;
+            
+            totalSimGWP += mGwp;
+            totalSimFee += mRev;
+            totalSimOpex += mOpex;
+            
+            if (cumSum < maxCap) maxCap = cumSum;
+            if (breakeven === -1 && cumSum > 0) breakeven = m;
             
             monthlyNet.push(net);
             cumulativeNet.push(cumSum);
-
-            if (breakEvenMonth === -1 && cumSum > 0) {
-               breakEvenMonth = m;
-            }
          }
-
+         
+         // Format values
          const formatCr = val => '₹' + (val / 10000000).toFixed(2) + ' Cr';
-         const formatLakh = val => '₹' + (val / 100000).toFixed(1) + ' L';
-
-         document.getElementById('fsOutCapex').textContent = formatLakh(totalCapex);
-         document.getElementById('fsOutOpex').textContent = formatCr(totalOpex);
-         document.getElementById('fsOutGwp').textContent = formatCr(totalGWP);
-         document.getElementById('fsOutFee').textContent = formatCr(totalGWP * margin);
-         document.getElementById('fsOutBreakEven').textContent = breakEvenMonth > 0 ? `Month ${breakEvenMonth}` : 'Did not break even';
-
-         drawFinSimChart(monthlyNet, cumulativeNet);
-      }
-
-      function drawFinSimChart(monthly, cumulative) {
-         const container = document.getElementById('finSimChartContainer');
+         
+         // Update Output KPIs
+         document.getElementById('jcBreakEven').textContent = breakeven !== -1 ? `Month ${breakeven}` : 'No Breakeven';
+         document.getElementById('jcMaxCap').textContent = formatCr(maxCap);
+         document.getElementById('jcExitCf').textContent = formatCr(cumSum);
+         
+         // Update 5-Card Top Grid
+         const totalCapex = hires * capex;
+         document.getElementById('sim-kpi-capex').innerText = `₹${(totalCapex / 100000).toFixed(1)} L`;
+         document.getElementById('sim-kpi-opex').innerText = `₹${(totalSimOpex / 10000000).toFixed(2)} Cr`;
+         document.getElementById('sim-kpi-gwp').innerText = `₹${(totalSimGWP / 10000000).toFixed(2)} Cr`;
+         document.getElementById('sim-kpi-fee').innerText = `₹${(totalSimFee / 10000000).toFixed(2)} Cr`;
+         
+         const beBanner = document.getElementById('sim-kpi-breakeven');
+         if (breakeven !== -1) {
+             beBanner.innerText = `Month ${breakeven}`;
+             beBanner.parentElement.style.backgroundColor = '#0f766e';
+         } else {
+             beBanner.innerText = `No Break-Even in 24M`;
+             beBanner.parentElement.style.backgroundColor = '#9f1239';
+         }
+         
+         // Update Dynamic Text
+         let dynText = `<strong>Strategic Diagnostic:</strong> Scaling to <strong>${hires} RMs</strong> requires a maximum capital commitment (trough) of <strong style="color:var(--accent-crimson);">${formatCr(maxCap)}</strong>. This cash burn is primarily driven by upfront API CapEx and early-month OpEx before the GWP ramp kicks in. `;
+         
+         if (breakeven > 12 || breakeven === -1) {
+             dynText += `<br><br><span style="color:var(--accent-crimson); font-weight:600;">⚠️ Warning: Breakeven is dangerously extended to ${breakeven === -1 ? 'beyond 24 months' : 'Month ' + breakeven}.</span> This usually happens when the Monthly OpEx (₹${opex.toLocaleString('en-IN')}) outpaces the Blended Fee Yield (${yieldPct*100}%). To fix this, you must explicitly mandate the Private Bank cohort (Karnataka Bank) to push higher-margin Retail Health and SME Packages to pull the blended yield up, or stringently cap starting salaries.`;
+         } else {
+             dynText += `<br><br><span style="color:var(--accent-emerald); font-weight:600;">✓ Healthy Unit Economics: The channel breaks even in Month ${breakeven}.</span> From this point forward, the cohort operates as a compounding asset.`;
+         }
+         
+         if (yieldPct >= 0.18) {
+             dynText += ` By executing an aggressive <strong>${yieldPct*100}% yield</strong> (highly reliant on a rich Private Bank Health mix), the J-Curve inflection is drastically accelerated, generating a massive 24-month exit cash flow of <strong>${formatCr(cumSum)}</strong>.`;
+         }
+         
+         document.getElementById('jcDynamicText').innerHTML = dynText;
+         
+         // Chart.js Configuration
          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-         const textColor = isDark ? '#CBD5E1' : '#334155';
-         const gridColor = isDark ? '#1E293B' : '#CBD5E1';
+         const textColor = isDark ? '#CBD5E1' : '#475569';
+         const gridColor = isDark ? '#334155' : '#E2E8F0';
          
-         const svgW = 850;
-         const svgH = 320;
-         const padL = 60, padR = 60, padT = 30, padB = 40;
-         const plotW = svgW - padL - padR;
-         const plotH = svgH - padT - padB;
-
-         const minVal = Math.min(...monthly, ...cumulative);
-         const maxVal = Math.max(...monthly, ...cumulative);
+         const ctx = document.getElementById('jcChartCanvas').getContext('2d');
          
-         // Add some padding to Y axis
-         const yMin = minVal < 0 ? minVal * 1.15 : 0;
-         const yMax = maxVal * 1.15;
-         const yRange = yMax - yMin;
+         // Define dynamic bar colors
+         const barColors = monthlyNet.map(v => v >= 0 ? 'rgba(13, 115, 119, 0.85)' : 'rgba(185, 28, 28, 0.85)');
 
-         const zeroY = padT + plotH - ((0 - yMin) / yRange) * plotH;
-
-         let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="font-family:Inter,sans-serif; min-width: 700px;">`;
-         
-         // Grid lines
-         for (let i = 0; i <= 4; i++) {
-            let val = yMin + (yRange * (i / 4));
-            let y = padT + plotH - ((val - yMin) / yRange) * plotH;
-            svg += `<line x1="${padL}" y1="${y}" x2="${svgW - padR}" y2="${y}" stroke="${gridColor}" stroke-width="1" opacity="0.6"/>`;
-            svg += `<text x="${padL - 10}" y="${y + 4}" text-anchor="end" fill="${textColor}" font-size="10">₹${(val/10000000).toFixed(1)}Cr</text>`;
+         if(jcChartInstance) {
+             jcChartInstance.data.datasets[0].data = monthlyNet;
+             jcChartInstance.data.datasets[0].backgroundColor = barColors;
+             jcChartInstance.data.datasets[1].data = cumulativeNet;
+             
+             // Update colors for theme toggling support
+             jcChartInstance.options.scales.x.ticks.color = textColor;
+             jcChartInstance.options.scales.y.ticks.color = textColor;
+             jcChartInstance.options.scales.y.grid.color = gridColor;
+             jcChartInstance.options.plugins.legend.labels.color = textColor;
+             
+             jcChartInstance.update();
+         } else {
+             jcChartInstance = new Chart(ctx, {
+                 type: 'bar',
+                 data: {
+                     labels: Array.from({length: 24}, (_, i) => `M${i+1}`),
+                     datasets: [
+                         {
+                             type: 'bar',
+                             label: 'Net CF (Monthly)',
+                             data: monthlyNet,
+                             backgroundColor: barColors,
+                             borderRadius: 4,
+                             order: 2
+                         },
+                         {
+                             type: 'line',
+                             label: 'Cumulative CF',
+                             data: cumulativeNet,
+                             borderColor: '#D97706',
+                             borderWidth: 3,
+                             pointRadius: 3,
+                             pointBackgroundColor: '#FFFFFF',
+                             fill: false,
+                             tension: 0.2,
+                             order: 1
+                         }
+                     ]
+                 },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     interaction: { mode: 'index', intersect: false },
+                     plugins: {
+                         legend: { labels: { color: textColor, font: { family: 'Inter', weight: '600' } } },
+                         tooltip: {
+                             callbacks: {
+                                 label: function(context) {
+                                     let label = context.dataset.label || '';
+                                     if (label) label += ': ';
+                                     if (context.parsed.y !== null) {
+                                         label += '₹' + (context.parsed.y / 100000).toFixed(2) + ' Lakhs';
+                                     }
+                                     return label;
+                                 }
+                             }
+                         }
+                     },
+                     scales: {
+                         x: {
+                             grid: { display: false },
+                             ticks: { color: textColor, font: { family: 'Inter' } }
+                         },
+                         y: {
+                             grid: { color: gridColor },
+                             ticks: { 
+                                 color: textColor,
+                                 font: { family: 'Inter' },
+                                 callback: function(value) {
+                                     return '₹' + (value / 10000000).toFixed(1) + ' Cr';
+                                 }
+                             }
+                         }
+                     }
+                 }
+             });
          }
-
-         // Zero line
-         if (zeroY >= padT && zeroY <= padT + plotH) {
-             svg += `<line x1="${padL}" y1="${zeroY}" x2="${svgW - padR}" y2="${zeroY}" stroke="${textColor}" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.8"/>`;
-         }
-
-         const stepX = plotW / 24;
-         const barW = stepX * 0.65;
-         
-         let pathD = "";
-
-         for (let m = 0; m < 24; m++) {
-            let cx = padL + (m * stepX) + (stepX / 2);
-            let barH = (Math.abs(monthly[m]) / yRange) * plotH;
-            let barY = monthly[m] >= 0 ? zeroY - barH : zeroY;
-            let fillColor = monthly[m] >= 0 ? '#0D7377' : '#B91C1C';
-            
-            svg += `<rect x="${cx - barW/2}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}" opacity="0.85"/>`;
-            
-            let cy = padT + plotH - ((cumulative[m] - yMin) / yRange) * plotH;
-            if (m === 0) pathD += `M ${cx} ${cy} `;
-            else pathD += `L ${cx} ${cy} `;
-            
-            if (m % 2 === 0 || m === 23) {
-               svg += `<text x="${cx}" y="${svgH - 15}" text-anchor="middle" fill="${textColor}" font-size="10">M${m+1}</text>`;
-            }
-         }
-
-         svg += `<path d="${pathD}" fill="none" stroke="#D97706" stroke-width="3" />`;
-         
-         for (let m = 0; m < 24; m++) {
-            let cx = padL + (m * stepX) + (stepX / 2);
-            let cy = padT + plotH - ((cumulative[m] - yMin) / yRange) * plotH;
-            svg += `<circle cx="${cx}" cy="${cy}" r="4.5" fill="#D97706" stroke="${isDark ? '#111D32' : '#FFFFFF'}" stroke-width="1.5"/>`;
-         }
-
-         // Legend
-         svg += `<rect x="${svgW/2 - 110}" y="${10}" width="12" height="12" rx="2" fill="#0D7377"/><text x="${svgW/2 - 90}" y="${20}" fill="${textColor}" font-size="10" font-weight="600">+ Net CF</text>`;
-         svg += `<rect x="${svgW/2 - 30}" y="${10}" width="12" height="12" rx="2" fill="#B91C1C"/><text x="${svgW/2 - 10}" y="${20}" fill="${textColor}" font-size="10" font-weight="600">- Net CF</text>`;
-         svg += `<line x1="${svgW/2 + 50}" y1="${16}" x2="${svgW/2 + 75}" y2="${16}" stroke="#D97706" stroke-width="3"/><text x="${svgW/2 + 82}" y="${20}" fill="${textColor}" font-size="10" font-weight="600">Cumulative CF</text>`;
-
-         svg += `</svg>`;
-         container.innerHTML = svg;
       }
+
+      window.openJCurveModal = function() {
+          document.getElementById('jCurveModal').classList.add('active');
+          initJCurve(); 
+      };
+
+      window.closeJCurveModal = function() {
+          document.getElementById('jCurveModal').classList.remove('active');
+      };
       
-      // Initialize Fin Sim logic on load implicitly when openFinSimModal runs.
+      document.getElementById('jCurveModal').addEventListener('click', function(e) {
+          if(e.target === this) closeJCurveModal();
+      });
+
+      ['jcHires', 'jcCapex', 'jcOpex', 'jcYield', 'jcGwp'].forEach(id => {
+         document.getElementById(id).addEventListener('input', initJCurve);
+      });
+
+      document.getElementById('resetJCurveBtn').addEventListener('click', function() {
+         document.getElementById('jcHires').value = 150;
+         document.getElementById('jcCapex').value = 50000;
+         document.getElementById('jcOpex').value = 75000;
+         document.getElementById('jcYield').value = 15;
+         document.getElementById('jcGwp').value = 1000000;
+         
+         // Trigger UI update
+         initJCurve();
+         showToast('Deep-Dive Simulator reset to baseline parameters.');
+      });
+
     })();
   </script>
-
-  <!-- STRATEGY PLAYBOOK FOOTER LINK -->
-<footer style="background-color: #0f172a; border-top: 4px solid #0f766e; padding: 2.5rem 1rem; text-align: center; margin-top: 3rem; font-family: 'Segoe UI', system-ui, sans-serif;">
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <h4 style="color: #f8fafc; margin: 0 0 0.5rem 0; font-size: 1.1rem; letter-spacing: 0.5px;">Bancassurance Channel Execution & Strategic Planning</h4>
-        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0 0 1.5rem 0;">Universal Sompo General Insurance (USGI) | FY27–FY28 Roadmap</p>
-        
-        <a href="USGI_Bancassurance_ScaleUp_Playbook_Verbose.docx" download 
-           style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #1e293b; color: #38bdf8; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid #334155; transition: all 0.2s ease;"
-           onmouseover="this.style.backgroundColor='#334155'; this.style.borderColor='#38bdf8';"
-           onmouseout="this.style.backgroundColor='#1e293b'; this.style.borderColor='#334155';">
-            
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-            </svg>
-            Download the Complete Scale-Up & FAQ Playbook (.docx)
-        </a>
-        
-        <p style="color: #64748b; font-size: 0.8rem; margin-top: 1.5rem;">
-            Designed for Financial Planning & Analysis (FP&A), Human Resources, and Executive Management.<br>
-            Strictly accounts for the October 2026 IRDAI Regulatory Reset (EoM Caps & Compulsory De-bundling).
-        </p>
-    </div>
-</footer>
 </body>
 </html>
